@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\Services\TimeManagementService\TimeManagementService.csproj" />
+    <ProjectReference Include="..\..\src\TimeManagementService\TimeManagementService.csproj" />
   </ItemGroup>
 
 </Project>
