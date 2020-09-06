@@ -4,7 +4,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
-<<<<<<< HEAD
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.7" />
   </ItemGroup>
@@ -20,6 +19,4 @@
     </Compile>
   </ItemGroup>
 
-=======
->>>>>>> develop
 </Project>

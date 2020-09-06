@@ -4,7 +4,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
-<<<<<<< HEAD
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.7" />
   </ItemGroup>
@@ -13,6 +12,4 @@
     <ProjectReference Include="..\TimeManagementService.Models.Db\TimeManagementService.Models.Db.csproj" />
   </ItemGroup>
 
-=======
->>>>>>> develop
 </Project>

@@ -4,7 +4,6 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
-<<<<<<< HEAD
   <ItemGroup>
     <ProjectReference Include="..\TimeManagementService.Mappers\TimeManagementService.Mappers.csproj" />
     <ProjectReference Include="..\TimeManagementService.Models.Db\TimeManagementService.Models.Db.csproj" />
@@ -12,6 +11,4 @@
     <ProjectReference Include="..\TimeManagementService.Validation\TimeManagementService.Validation.csproj" />
   </ItemGroup>
 
-=======
->>>>>>> develop
 </Project>
