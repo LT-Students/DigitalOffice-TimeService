@@ -4,8 +4,11 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+<<<<<<< HEAD
   <ItemGroup>
     <ProjectReference Include="..\TimeManagementService.Data.Provider\TimeManagementService.Data.Provider.csproj" />
   </ItemGroup>
 
+=======
+>>>>>>> develop
 </Project>
