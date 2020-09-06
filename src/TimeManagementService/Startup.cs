@@ -1,25 +1,25 @@
-using System;
 using FluentValidation;
 using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
-using LT.DigitalOffice.TimeManagementService.Commands;
-using LT.DigitalOffice.TimeManagementService.Commands.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Database;
-using LT.DigitalOffice.TimeManagementService.Database.Entities;
+using LT.DigitalOffice.Kernel;
+using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Business;
+using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Validation;
+using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
+using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Mappers;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models;
-using LT.DigitalOffice.TimeManagementService.Repositories;
-using LT.DigitalOffice.TimeManagementService.Repositories.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Validators;
-using LT.DigitalOffice.Kernel;
+using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Data;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using LT.DigitalOffice.Kernel.Broker;
+using System;
 
 namespace LT.DigitalOffice.TimeManagementService
 {

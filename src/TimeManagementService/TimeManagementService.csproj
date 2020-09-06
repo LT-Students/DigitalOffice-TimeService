@@ -24,9 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Update="Database\Migrations\20200711012245_InitialCreate.Designer.cs">
-      <DependentUpon>20200711214239_InitialCreate.cs</DependentUpon>
-    </Compile>
+    <ProjectReference Include="..\TimeManagementService.Business\TimeManagementService.Business.csproj" />
+    <ProjectReference Include="..\TimeManagementService.Data.Provider.MsSql.Ef\TimeManagementService.Data.Provider.MsSql.Ef.csproj" />
+    <ProjectReference Include="..\TimeManagementService.Models.Dto\TimeManagementService.Models.Dto.csproj" />
   </ItemGroup>
 
 

@@ -1,5 +1,5 @@
-﻿using LT.DigitalOffice.TimeManagementService.Commands.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models;
+﻿using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -11,7 +11,7 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
     {
         [HttpGet("editWorkTime")]
         public bool EditWorkTime(
-            [FromBody] EditWorkTimeRequest request, 
+            [FromBody] EditWorkTimeRequest request,
             [FromServices] IEditWorkTimeCommand command)
         {
             return command.Execute(request);

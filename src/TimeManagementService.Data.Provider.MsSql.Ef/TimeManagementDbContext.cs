@@ -1,0 +1,26 @@
+using LT.DigitalOffice.TimeManagementService.Models.Db;
+using Microsoft.EntityFrameworkCore;
+using System.Reflection;
+using TimeManagementService.Data.Provider;
+
+namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
+{
+    /// <summary>
+    /// A class that defines the tables and its properties in the database of TimeManagementService.
+    /// </summary>
+    public class TimeManagementDbContext : DbContext, IDataProvider
+    {
+        public DbSet<DbLeaveTime> LeaveTimes { get; set; }
+        public DbSet<DbWorkTime> WorkTimes { get; set; }
+
+        public TimeManagementDbContext(DbContextOptions<TimeManagementDbContext> options) : base(options)
+        {
+        }
+
+        // Fluent API is written here.
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+        }
+    }
+}

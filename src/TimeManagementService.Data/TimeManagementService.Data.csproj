@@ -4,4 +4,8 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\TimeManagementService.Data.Provider\TimeManagementService.Data.Provider.csproj" />
+  </ItemGroup>
+
 </Project>
