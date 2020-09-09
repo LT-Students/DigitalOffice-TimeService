@@ -35,8 +35,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeManagementService.Valid
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeManagementService.Data.Provider.MsSql.Ef", "src\TimeManagementService.Data.Provider.MsSql.Ef\TimeManagementService.Data.Provider.MsSql.Ef.csproj", "{9A661A04-8F38-4770-8B5D-5CFB879E040C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeManagementService.Data.Provider.MsSql.Ef.UnitTests", "test\TimeManagementService.Data.Provider.MsSql.Ef.UnitTests\TimeManagementService.Data.Provider.MsSql.Ef.UnitTests.csproj", "{58122FA0-E4AD-46E8-B58B-000A6A5558F5}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeManagementService", "src\TimeManagementService\TimeManagementService.csproj", "{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}"
 EndProject
 Global
@@ -101,10 +99,6 @@ Global
 		{9A661A04-8F38-4770-8B5D-5CFB879E040C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A661A04-8F38-4770-8B5D-5CFB879E040C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9A661A04-8F38-4770-8B5D-5CFB879E040C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{58122FA0-E4AD-46E8-B58B-000A6A5558F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{58122FA0-E4AD-46E8-B58B-000A6A5558F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{58122FA0-E4AD-46E8-B58B-000A6A5558F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{58122FA0-E4AD-46E8-B58B-000A6A5558F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -128,7 +122,6 @@ Global
 		{ED95A683-BEAD-4107-98FC-006DD20ABDB3} = {D27E8A93-66A3-4F53-9E8D-21157C31F805}
 		{31D56B06-6CC1-4865-B15D-CA5187900A8A} = {D27E8A93-66A3-4F53-9E8D-21157C31F805}
 		{9A661A04-8F38-4770-8B5D-5CFB879E040C} = {9AFCD706-9B86-4330-BC95-F11F97C82892}
-		{58122FA0-E4AD-46E8-B58B-000A6A5558F5} = {D27E8A93-66A3-4F53-9E8D-21157C31F805}
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625} = {9AFCD706-9B86-4330-BC95-F11F97C82892}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
