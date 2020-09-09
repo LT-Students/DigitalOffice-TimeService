@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.TimeManagementService.Data.Filters;
+﻿using LinqKit;
+using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using System;
@@ -20,20 +21,20 @@ namespace LT.DigitalOffice.TimeManagementService.Data
         public Guid CreateWorkTime(DbWorkTime workTime)
         {
             provider.WorkTimes.Add(workTime);
-            dbContext.SaveChanges(); // TODO
+            provider.SaveChanges();
 
             return workTime.Id;
         }
 
         public ICollection<DbWorkTime> GetUserWorkTimes(Guid userId, WorkTimeFilter filter)
         {
-            var predicate = PredicateBuilder.New<DbWorkTime>(); // TODO
+            var predicate = PredicateBuilder.New<DbWorkTime>();
 
             predicate.Start(wt => wt.WorkerUserId == userId);
 
             if (filter == null)
             {
-                return dbContext.WorkTimes.Where(predicate).ToList();
+                return provider.WorkTimes.Where(predicate).ToList();
             }
 
             if (filter.StartTime != null)
@@ -46,12 +47,12 @@ namespace LT.DigitalOffice.TimeManagementService.Data
                 predicate.And(wt => wt.EndTime <= filter.EndTime);
             }
 
-            return dbContext.WorkTimes.Where(predicate).ToList();
+            return provider.WorkTimes.Where(predicate).ToList();
         }
 
         public bool EditWorkTime(DbWorkTime workTime)
         {
-            var time = dbContext.WorkTimes.Find(workTime.Id);
+            var time = provider.WorkTimes.Find(workTime.Id);
 
             if (time == null)
             {
@@ -65,8 +66,8 @@ namespace LT.DigitalOffice.TimeManagementService.Data
             time.ProjectId = workTime.ProjectId;
             time.Description = workTime.Description;
 
-            dbContext.WorkTimes.Update(time);
-            dbContext.SaveChanges();
+            provider.WorkTimes.Update(time);
+            provider.SaveChanges();
 
             return true;
         }

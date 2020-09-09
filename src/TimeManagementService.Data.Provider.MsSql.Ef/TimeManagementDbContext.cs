@@ -22,5 +22,10 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
+
+        void IDataProvider.SaveChanges()
+        {
+            SaveChanges();
+        }
     }
 }

@@ -13,10 +13,4 @@
     <ProjectReference Include="..\TimeManagementService.Models.Db\TimeManagementService.Models.Db.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Compile Update="Migrations\20200711012245_InitialCreate.Designer.cs">
-      <DependentUpon>20200711214239_InitialCreate.cs</DependentUpon>
-    </Compile>
-  </ItemGroup>
-
 </Project>
