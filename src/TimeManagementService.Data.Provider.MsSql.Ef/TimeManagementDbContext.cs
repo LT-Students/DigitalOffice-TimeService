@@ -20,7 +20,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
         // Fluent API is written here.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.Load("TimeManagementService.Models.Db"));
         }
 
         void IDataProvider.SaveChanges()
