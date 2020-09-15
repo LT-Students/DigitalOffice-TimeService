@@ -1,81 +1,113 @@
 ﻿using FluentValidation;
+using FluentValidation.Results;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Mappers;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto;
-using LT.DigitalOffice.TimeManagementService.Validation;
 using Moq;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
-    class EditWorkTimeCommandTests
+    public class EditWorkTimeCommandTests
     {
+        private Mock<IValidator<EditWorkTimeRequest>> validatorMock;
+        private Mock<IMapper<EditWorkTimeRequest, DbWorkTime>> mapperMock;
         private Mock<IWorkTimeRepository> repositoryMock;
         private IEditWorkTimeCommand command;
-        private IValidator<EditWorkTimeRequest> validator;
-        private IMapper<EditWorkTimeRequest, DbWorkTime> mapper;
+
         private EditWorkTimeRequest request;
+        private DbWorkTime editedWorkTime;
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            request = new EditWorkTimeRequest()
+            {
+                Id = Guid.NewGuid(),
+                ProjectId = Guid.NewGuid(),
+                StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
+                EndTime = new DateTime(2020, 7, 29, 17, 0, 0),
+                Title = "I was working on a very important task",
+                Description = "I was asleep. I love sleep. I hope I get paid for this.",
+                WorkerUserId = Guid.NewGuid()
+            };
+
+            editedWorkTime = new DbWorkTime()
+            {
+                Id = request.Id,
+                ProjectId = Guid.NewGuid(),
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                Title = "I was working on a very very important task",
+                Description = request.Description,
+                WorkerUserId = request.WorkerUserId
+            };
+        }
 
         [SetUp]
         public void SetUp()
         {
-            request = new EditWorkTimeRequest
-            {
-                Id = Guid.NewGuid(),
-                WorkerUserId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndTime = new DateTime(2020, 1, 1, 2, 2, 2),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
-            };
-
+            validatorMock = new Mock<IValidator<EditWorkTimeRequest>>();
+            mapperMock = new Mock<IMapper<EditWorkTimeRequest, DbWorkTime>>();
             repositoryMock = new Mock<IWorkTimeRepository>();
-            mapper = new WorkTimeMapper();
-            validator = new EditWorkTimeRequestValidator(repositoryMock.Object);
 
-            command = new EditWorkTimeCommand(validator, repositoryMock.Object, mapper);
+            command = new EditWorkTimeCommand(validatorMock.Object, repositoryMock.Object, mapperMock.Object);
         }
 
         [Test]
-        public void ShouldThrowsExceptionWhenDataIsInvalid()
+        public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
-            var incorrectRequest = new EditWorkTimeRequest
-            {
-                Id = Guid.NewGuid(),
-                WorkerUserId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
-                Title = "E",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
-            };
+            validatorMock
+                .Setup(x => x.Validate(It.IsAny<EditWorkTimeRequest>()))
+                .Returns(new ValidationResult(
+                    new List<ValidationFailure>
+                    {
+                        new ValidationFailure("test", "something", null)
+                    }));
 
-            Assert.Throws<ValidationException>(() => command.Execute(incorrectRequest));
+            Assert.Throws<ValidationException>(() => command.Execute(request));
+            repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
         }
 
         [Test]
-        public void ShouldThrowExceptionWhenIdIsNotExist()
+        public void ShouldThrowExceptionWhenRepositoryThrowsException()
         {
+            validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
+
+            mapperMock
+                .Setup(x => x.Map(It.IsAny<EditWorkTimeRequest>()))
+                .Returns(editedWorkTime);
+
             repositoryMock
                 .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
-                .Throws(new Exception("Work time with this Id does not exist."));
+                .Throws(new Exception());
 
             Assert.Throws<Exception>(() => command.Execute(request));
         }
 
         [Test]
-        public void ShouldCreateTimeWhenDataIsValid()
+        public void ShouldEditNewWorkTimeWhenDataIsValid()
         {
+            validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
+
+            mapperMock
+                .Setup(x => x.Map(It.IsAny<EditWorkTimeRequest>()))
+                .Returns(editedWorkTime);
+
             repositoryMock
                 .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
                 .Returns(true);
 
-            Assert.IsTrue(command.Execute(request));
+            Assert.AreEqual(editedWorkTime.Id, command.Execute(request));
+            repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }
 }

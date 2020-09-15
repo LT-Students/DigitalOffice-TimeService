@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
@@ -7,6 +8,7 @@ using LT.DigitalOffice.TimeManagementService.Models.Dto;
 using Moq;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
@@ -36,12 +38,12 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
             createdWorkTime = new DbWorkTime()
             {
                 Id = Guid.NewGuid(),
-                ProjectId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                EndTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                Title = "I was working on a very important task",
-                Description = "I was asleep. I love sleep. I hope I get paid for this.",
-                WorkerUserId = Guid.NewGuid()
+                ProjectId = request.ProjectId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                Title = request.Title,
+                Description = request.Description,
+                WorkerUserId = request.WorkerUserId
             };
         }
 
@@ -59,8 +61,12 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             validatorMock
-                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                .Returns(false);
+                .Setup(x => x.Validate(It.IsAny<CreateWorkTimeRequest>()))
+                .Returns(new ValidationResult(
+                    new List<ValidationFailure>
+                    {
+                        new ValidationFailure("test", "something", null)
+                    }));
 
             Assert.Throws<ValidationException>(() => command.Execute(request));
             repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
@@ -85,7 +91,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         }
 
         [Test]
-        public void ShouldCreateNewWorkTime()
+        public void ShouldCreateNewWorkTimeWhenDataIsValid()
         {
             validatorMock
                  .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)

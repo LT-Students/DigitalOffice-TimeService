@@ -1,4 +1,5 @@
 using FluentValidation;
+using FluentValidation.Results;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
@@ -8,6 +9,7 @@ using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
 using Moq;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
@@ -58,8 +60,12 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             validatorMock
-                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                .Returns(false);
+                .Setup(x => x.Validate(It.IsAny<CreateLeaveTimeRequest>()))
+                .Returns(new ValidationResult(
+                    new List<ValidationFailure>
+                    {
+                        new ValidationFailure("test", "something", null)
+                    }));
 
             Assert.Throws<ValidationException>(() => command.Execute(request));
             repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Never);
@@ -84,7 +90,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         }
 
         [Test]
-        public void ShouldCreateNewLeaveTime()
+        public void ShouldCreateNewLeaveTimeWhenDataIsValid()
         {
             validatorMock
                  .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
