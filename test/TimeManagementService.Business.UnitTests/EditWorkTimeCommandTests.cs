@@ -95,7 +95,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         public void ShouldEditNewWorkTimeWhenDataIsValid()
         {
             validatorMock
-                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Setup(x => x.Validate(It.IsAny<EditWorkTimeRequest>()).IsValid)
                  .Returns(true);
 
             mapperMock
@@ -106,7 +106,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
                 .Returns(true);
 
-            Assert.AreEqual(editedWorkTime.Id, command.Execute(request));
+            Assert.AreEqual(true, command.Execute(request));
             repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }
