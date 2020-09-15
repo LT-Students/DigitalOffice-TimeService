@@ -27,5 +27,22 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
         {
             SaveChanges();
         }
+
+        public object MakeEntityDetached(object obj)
+        {
+            Entry(obj).State = EntityState.Detached;
+
+            return Entry(obj).State;
+        }
+
+        public void EnsureDeleted()
+        {
+            Database.EnsureDeleted();
+        }
+
+        public bool IsInMemory()
+        {
+            return Database.IsInMemory();
+        }
     }
 }

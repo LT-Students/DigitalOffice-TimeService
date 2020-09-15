@@ -9,5 +9,8 @@ namespace TimeManagementService.Data.Provider
         DbSet<DbWorkTime> WorkTimes { get; set; }
 
         void SaveChanges();
+        object MakeEntityDetached(object obj);
+        void EnsureDeleted();
+        bool IsInMemory();
     }
 }
