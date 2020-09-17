@@ -34,6 +34,8 @@ namespace LT.DigitalOffice.TimeManagementService
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddHealthChecks();
+
             services.Configure<RabbitMQOptions>(Configuration);
 
             services.AddDbContext<TimeManagementDbContext>(options =>
@@ -81,6 +83,8 @@ namespace LT.DigitalOffice.TimeManagementService
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseHealthChecks("/healthcheck");
+
             app.UseExceptionHandler(tempApp => tempApp.Run(CustomExceptionHandler.HandleCustomException));
 
             UpdateDatabase(app);
