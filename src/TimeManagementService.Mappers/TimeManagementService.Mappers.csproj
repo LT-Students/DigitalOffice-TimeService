@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>TimeManagementService.Mappers</AssemblyName>
-    <RootNamespace>TimeManagementService.Mappers</RootNamespace>
+    <AssemblyName>LT.DigitalOffice.TimeManagementService.Mappers</AssemblyName>
+    <RootNamespace>LT.DigitalOffice.TimeManagementService.Mappers</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

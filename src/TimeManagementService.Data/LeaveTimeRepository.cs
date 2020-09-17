@@ -1,9 +1,9 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Data.Provider;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using TimeManagementService.Data.Provider;
 
 namespace LT.DigitalOffice.TimeManagementService.Data
 {

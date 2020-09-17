@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>TimeManagementService.Data</AssemblyName>
-    <RootNamespace>TimeManagementService.Data</RootNamespace>
+    <AssemblyName>LT.DigitalOffice.TimeManagementService.Data</AssemblyName>
+    <RootNamespace>LT.DigitalOffice.TimeManagementService.Data</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

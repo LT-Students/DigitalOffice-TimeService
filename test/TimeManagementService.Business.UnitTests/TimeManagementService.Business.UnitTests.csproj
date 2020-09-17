@@ -4,6 +4,10 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
+
+    <AssemblyName>LT.DigitalOffice.TimeManagementService.Business.UnitTests</AssemblyName>
+
+    <RootNamespace>LT.DigitalOffice.TimeManagementService.Business.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

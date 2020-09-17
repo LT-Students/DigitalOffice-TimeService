@@ -2,8 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>TimeManagementService.Broker</AssemblyName>
-    <RootNamespace>TimeManagementService.Broker</RootNamespace>
+    <AssemblyName>LT.DigitalOffice.TimeManagementService.Broker</AssemblyName>
+    <RootNamespace>LT.DigitalOffice.TimeManagementService.Broker</RootNamespace>
   </PropertyGroup>
 
 </Project>
