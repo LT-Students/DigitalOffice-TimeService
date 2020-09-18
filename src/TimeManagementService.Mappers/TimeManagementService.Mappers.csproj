@@ -1,7 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>LT.DigitalOffice.TimeManagementService.Mappers</AssemblyName>
+    <RootNamespace>LT.DigitalOffice.TimeManagementService.Mappers</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\TimeManagementService.Models.Db\TimeManagementService.Models.Db.csproj" />
+    <ProjectReference Include="..\TimeManagementService.Models.Dto\TimeManagementService.Models.Dto.csproj" />
+  </ItemGroup>
 
 </Project>
