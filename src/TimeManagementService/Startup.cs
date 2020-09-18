@@ -20,6 +20,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using LT.DigitalOffice.TimeManagementService.Data.Provider;
 
 namespace LT.DigitalOffice.TimeManagementService
 {
@@ -75,6 +76,8 @@ namespace LT.DigitalOffice.TimeManagementService
 
         private void ConfigureRepositories(IServiceCollection services)
         {
+            services.AddTransient<IDataProvider, TimeManagementDbContext>();
+
             services.AddTransient<ILeaveTimeRepository, LeaveTimeRepository>();
             services.AddTransient<IWorkTimeRepository, WorkTimeRepository>();
         }

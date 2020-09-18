@@ -1,7 +1,6 @@
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using TimeManagementService.Data.Provider;
 
 namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
 {
@@ -20,7 +19,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
         // Fluent API is written here.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.Load("TimeManagementService.Models.Db"));
+            modelBuilder.ApplyConfigurationsFromAssembly(Assembly.Load("LT.DigitalOffice.TimeManagementService.Models.Db"));
         }
 
         void IDataProvider.SaveChanges()
