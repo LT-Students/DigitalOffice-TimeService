@@ -5,7 +5,9 @@ using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Controllers
 {
-    public class LeaveTimeController
+    [Route("api/[controller]")]
+    [ApiController]
+    public class LeaveTimeController : ControllerBase
     {
         [HttpPost("addLeaveTime")]
         public Guid AddLeaveTime(
