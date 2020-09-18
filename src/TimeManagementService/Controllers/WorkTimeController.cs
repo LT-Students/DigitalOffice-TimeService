@@ -7,7 +7,7 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TimeManagementController : ControllerBase
+    public class WorkTimeController : ControllerBase
     {
         [HttpGet("editWorkTime")]
         public bool EditWorkTime(
@@ -15,14 +15,6 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
             [FromServices] IEditWorkTimeCommand command)
         {
             return command.Execute(request);
-        }
-
-        [HttpPost("addLeaveTime")]
-        public Guid AddLeaveTime(
-            [FromBody] CreateLeaveTimeRequest leaveTime,
-            [FromServices] ICreateLeaveTimeCommand command)
-        {
-            return command.Execute(leaveTime);
         }
 
         [HttpPost("addWorkTime")]
