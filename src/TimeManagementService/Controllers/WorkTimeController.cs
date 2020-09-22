@@ -9,7 +9,7 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
     [ApiController]
     public class WorkTimeController : ControllerBase
     {
-        [HttpGet("editWorkTime")]
+        [HttpPost("editWorkTime")]
         public bool EditWorkTime(
             [FromBody] EditWorkTimeRequest request,
             [FromServices] IEditWorkTimeCommand command)
