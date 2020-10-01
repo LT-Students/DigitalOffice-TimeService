@@ -6,12 +6,11 @@
     <IsPackable>false</IsPackable>
 
     <AssemblyName>LT.DigitalOffice.TimeManagementService.Data.UnitTests</AssemblyName>
-
     <RootNamespace>LT.DigitalOffice.TimeManagementService.Data.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.0.3" />
+    <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.8" />
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
