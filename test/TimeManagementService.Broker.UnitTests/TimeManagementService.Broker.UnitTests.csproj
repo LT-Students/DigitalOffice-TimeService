@@ -6,6 +6,7 @@
     <IsPackable>false</IsPackable>
 
     <AssemblyName>LT.DigitalOffice.TimeManagementService.Broker.UnitTests</AssemblyName>
+
     <RootNamespace>LT.DigitalOffice.TimeManagementService.Broker.UnitTests</RootNamespace>
   </PropertyGroup>
 
