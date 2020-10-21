@@ -37,7 +37,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeManagementService.Data.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TimeManagementService", "src\TimeManagementService\TimeManagementService.csproj", "{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeManagementService.Models.BrokerRequest", "src\TimeManagement.Models.BrokerRequest\TimeManagementService.Models.BrokerRequest.csproj", "{53E2A0BE-7A34-4647-9A9D-F06AFA3E284D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeManagementService.Models.Broker", "src\TimeManagementService.Models.Broker\TimeManagementService.Models.Broker.csproj", "{2523FBB4-7E7A-49E8-8A81-A7FF66CD82D3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -105,10 +105,10 @@ Global
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625}.Release|Any CPU.Build.0 = Release|Any CPU
-		{53E2A0BE-7A34-4647-9A9D-F06AFA3E284D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53E2A0BE-7A34-4647-9A9D-F06AFA3E284D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53E2A0BE-7A34-4647-9A9D-F06AFA3E284D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53E2A0BE-7A34-4647-9A9D-F06AFA3E284D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2523FBB4-7E7A-49E8-8A81-A7FF66CD82D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2523FBB4-7E7A-49E8-8A81-A7FF66CD82D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2523FBB4-7E7A-49E8-8A81-A7FF66CD82D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2523FBB4-7E7A-49E8-8A81-A7FF66CD82D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,7 +129,7 @@ Global
 		{31D56B06-6CC1-4865-B15D-CA5187900A8A} = {D27E8A93-66A3-4F53-9E8D-21157C31F805}
 		{9A661A04-8F38-4770-8B5D-5CFB879E040C} = {9AFCD706-9B86-4330-BC95-F11F97C82892}
 		{BE1DE6D9-EFB3-421F-BF29-11ABE2395625} = {9AFCD706-9B86-4330-BC95-F11F97C82892}
-		{53E2A0BE-7A34-4647-9A9D-F06AFA3E284D} = {9AFCD706-9B86-4330-BC95-F11F97C82892}
+		{2523FBB4-7E7A-49E8-8A81-A7FF66CD82D3} = {9AFCD706-9B86-4330-BC95-F11F97C82892}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {915925EA-5B12-427F-A41B-94F04588588A}
