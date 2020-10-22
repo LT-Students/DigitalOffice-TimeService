@@ -92,7 +92,9 @@ namespace LT.DigitalOffice.TimeManagementService
 
             UpdateDatabase(app);
 
+#if RELEASE
             app.UseHttpsRedirection();
+#endif
 
             app.UseRouting();
 
