@@ -1,8 +1,8 @@
-using LT.DigitalOffice.Kernel.UnitTestLibrary;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
+using LT.DigitalOffice.UnitTestKernel;
 using NUnit.Framework;
 using System;
 
