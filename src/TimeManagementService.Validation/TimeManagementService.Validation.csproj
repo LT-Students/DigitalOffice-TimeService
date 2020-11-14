@@ -4,8 +4,6 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>LT.DigitalOffice.TimeManagementService.Validation</AssemblyName>
-    <RootNamespace>LT.DigitalOffice.TimeManagementService.Validation</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
