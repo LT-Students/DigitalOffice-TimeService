@@ -1,3 +1,4 @@
+using LT.DigitalOffice.Kernel.Database;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -22,7 +23,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.Load("LT.DigitalOffice.TimeManagementService.Models.Db"));
         }
 
-        void IDataProvider.SaveChanges()
+        void IBaseDataProvider.Save()
         {
             SaveChanges();
         }

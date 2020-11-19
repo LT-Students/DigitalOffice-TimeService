@@ -1,8 +1,8 @@
-using LT.DigitalOffice.Kernel.UnitTestLibrary;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;

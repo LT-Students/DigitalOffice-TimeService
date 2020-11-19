@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data
         public Guid CreateLeaveTime(DbLeaveTime leaveTime)
         {
             provider.LeaveTimes.Add(leaveTime);
-            provider.SaveChanges();
+            provider.Save();
 
             return leaveTime.Id;
         }

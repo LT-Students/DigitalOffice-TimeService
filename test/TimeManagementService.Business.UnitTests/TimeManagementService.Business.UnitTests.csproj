@@ -1,21 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
+
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
-
-    <AssemblyName>LT.DigitalOffice.TimeManagementService.Business.UnitTests</AssemblyName>
-
-    <RootNamespace>LT.DigitalOffice.TimeManagementService.Business.UnitTests</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Moq" Version="4.14.5" />
-    <PackageReference Include="nunit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TimeManagementService.Business\TimeManagementService.Business.csproj" />
