@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
+
   <PropertyGroup>
     <TargetFramework>netstandard2.1</TargetFramework>
-    <AssemblyName>LT.DigitalOffice.TimeManagementService.Models.Dto</AssemblyName>
-    <RootNamespace>LT.DigitalOffice.TimeManagementService.Models.Dto</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

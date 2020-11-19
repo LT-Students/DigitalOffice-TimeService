@@ -5,6 +5,7 @@ using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
 using LT.DigitalOffice.TimeManagementService.Business;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Configuration;
 using LT.DigitalOffice.TimeManagementService.Data;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Provider;
@@ -36,8 +37,6 @@ namespace LT.DigitalOffice.TimeManagementService
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddHealthChecks();
-
-            services.Configure<RabbitMQOptions>(Configuration);
 
             services.AddDbContext<TimeManagementDbContext>(options =>
             {
@@ -125,12 +124,7 @@ namespace LT.DigitalOffice.TimeManagementService
 
         private void ConfigureRabbitMq(IServiceCollection services)
         {
-            const string serviceSection = "RabbitMQ";
-            string serviceName = Configuration.GetSection(serviceSection)["Username"];
-            string servicePassword = Configuration.GetSection(serviceSection)["Password"];
-
-            string appSettingMassTransitUris = "MassTransitUris";
-            string checkTokenUri = Configuration.GetSection(appSettingMassTransitUris)["CheckToken"];
+            var rabbitMqConfig = Configuration.GetSection(BaseRabbitMqOptions.RabbitMqSectionName).Get<RabbitMqConfig>();
 
             services.AddMassTransit(x =>
             {
@@ -138,12 +132,12 @@ namespace LT.DigitalOffice.TimeManagementService
                 {
                     cfg.Host("localhost", "/", host =>
                     {
-                        host.Username($"{serviceName}_{servicePassword}");
-                        host.Password(servicePassword);
+                        host.Username($"{rabbitMqConfig.Username}_{rabbitMqConfig.Password}");
+                        host.Password(rabbitMqConfig.Password);
                     });
                 });
 
-                x.AddRequestClient<IUserJwtRequest>(new Uri(checkTokenUri));
+                x.AddRequestClient<ICheckTokenRequest>(new Uri(rabbitMqConfig.AuthenticationServiceValidationUrl));
             });
 
             services.AddMassTransitHostedService();

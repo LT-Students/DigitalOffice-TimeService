@@ -21,7 +21,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data
         public Guid CreateWorkTime(DbWorkTime workTime)
         {
             provider.WorkTimes.Add(workTime);
-            provider.SaveChanges();
+            provider.Save();
 
             return workTime.Id;
         }
@@ -67,7 +67,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data
             time.Description = workTime.Description;
 
             provider.WorkTimes.Update(time);
-            provider.SaveChanges();
+            provider.Save();
 
             return true;
         }

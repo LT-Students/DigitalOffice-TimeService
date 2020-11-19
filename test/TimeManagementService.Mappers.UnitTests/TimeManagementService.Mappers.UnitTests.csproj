@@ -1,21 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
+
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
 
     <IsPackable>false</IsPackable>
-
-    <AssemblyName>LT.DigitalOffice.TimeManagementService.Mappers.UnitTests</AssemblyName>
-
-    <RootNamespace>LT.DigitalOffice.TimeManagementService.Mappers.UnitTests</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.0.3" />
-    <PackageReference Include="nunit" Version="3.12.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.7.1" />
-  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\TimeManagementService.Mappers\TimeManagementService.Mappers.csproj" />
