@@ -4,6 +4,7 @@ using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
@@ -12,13 +13,13 @@ namespace LT.DigitalOffice.TimeManagementService.Business
 {
     public class CreateWorkTimeCommand : ICreateWorkTimeCommand
     {
-        private readonly IValidator<CreateWorkTimeRequest> validator;
-        private readonly IMapper<CreateWorkTimeRequest, DbWorkTime> mapper;
+        private readonly IValidator<WorkTime> validator;
+        private readonly IMapper<WorkTime, DbWorkTime> mapper;
         private readonly IWorkTimeRepository repository;
 
         public CreateWorkTimeCommand(
-            [FromServices] IValidator<CreateWorkTimeRequest> validator,
-            [FromServices] IMapper<CreateWorkTimeRequest, DbWorkTime> mapper,
+            [FromServices] IValidator<WorkTime> validator,
+            [FromServices] IMapper<WorkTime, DbWorkTime> mapper,
             [FromServices] IWorkTimeRepository repository)
         {
             this.validator = validator;
@@ -26,7 +27,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business
             this.repository = repository;
         }
 
-        public Guid Execute(CreateWorkTimeRequest request)
+        public Guid Execute(WorkTime request)
         {
             var validationResult = validator.Validate(request);
 

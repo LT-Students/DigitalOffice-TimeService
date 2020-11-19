@@ -1,4 +1,4 @@
-﻿using LT.DigitalOffice.TimeManagementService.Models.Dto;
+﻿using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
@@ -14,6 +14,6 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// </summary>
         /// <param name="request">Leave time data.</param>
         /// <returns>Id of the added leave time.</returns>
-        Guid Execute(CreateLeaveTimeRequest request);
+        Guid Execute(LeaveTime request);
     }
 }

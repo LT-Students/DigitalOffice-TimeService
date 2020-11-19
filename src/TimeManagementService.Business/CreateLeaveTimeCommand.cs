@@ -4,6 +4,7 @@ using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -13,13 +14,13 @@ namespace LT.DigitalOffice.TimeManagementService.Business
 {
     public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
     {
-        private readonly IValidator<CreateLeaveTimeRequest> validator;
-        private readonly IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper;
+        private readonly IValidator<LeaveTime> validator;
+        private readonly IMapper<LeaveTime, DbLeaveTime> mapper;
         private readonly ILeaveTimeRepository repository;
 
         public CreateLeaveTimeCommand(
-            [FromServices] IValidator<CreateLeaveTimeRequest> validator,
-            [FromServices] IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper,
+            [FromServices] IValidator<LeaveTime> validator,
+            [FromServices] IMapper<LeaveTime, DbLeaveTime> mapper,
             [FromServices] ILeaveTimeRepository repository)
         {
             this.validator = validator;
@@ -27,7 +28,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business
             this.repository = repository;
         }
 
-        public Guid Execute(CreateLeaveTimeRequest request)
+        public Guid Execute(LeaveTime request)
         {
             var validationResult = validator.Validate(request);
 

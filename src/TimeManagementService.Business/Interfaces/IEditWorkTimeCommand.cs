@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.TimeManagementService.Models.Dto;
+﻿using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
 {
@@ -13,6 +14,6 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// </summary>
         /// <param name="request">Work time data.</param>
         /// <returns>True if the operation is successful.</returns>
-        bool Execute(EditWorkTimeRequest request);
+        bool Execute(JsonPatchDocument<WorkTime> request);
     }
 }

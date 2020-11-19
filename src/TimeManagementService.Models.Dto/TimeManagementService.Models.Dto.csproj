@@ -6,4 +6,9 @@
     <RootNamespace>LT.DigitalOffice.TimeManagementService.Models.Dto</RootNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Folder Include="Responses\" />
+    <Folder Include="Requests\" />
+  </ItemGroup>
+
 </Project>
