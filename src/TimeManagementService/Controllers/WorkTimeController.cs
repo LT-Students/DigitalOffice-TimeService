@@ -1,5 +1,5 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -13,10 +13,11 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
     {
         [HttpPatch("editWorkTime")]
         public bool EditWorkTime(
-            [FromBody] JsonPatchDocument<WorkTime> patch,
+            [FromQuery] Guid workTimeId,
+            [FromBody] JsonPatchDocument<DbWorkTime> patch,
             [FromServices] IEditWorkTimeCommand command)
         {
-            return command.Execute(patch);
+            return command.Execute(workTimeId, patch);
         }
 
         [HttpPost("addWorkTime")]

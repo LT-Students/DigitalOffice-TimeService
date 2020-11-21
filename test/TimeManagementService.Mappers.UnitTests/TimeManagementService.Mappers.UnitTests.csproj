@@ -12,4 +12,9 @@
     <ProjectReference Include="..\..\src\TimeManagementService.Mappers\TimeManagementService.Mappers.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ResponseMappers\" />
+    <Folder Include="RequestMappers\" />
+  </ItemGroup>
+
 </Project>

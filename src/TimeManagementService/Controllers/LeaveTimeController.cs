@@ -1,5 +1,5 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -11,7 +11,7 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
     {
         [HttpPost("addLeaveTime")]
         public Guid AddLeaveTime(
-            [FromBody] CreateLeaveTimeRequest leaveTime,
+            [FromBody] LeaveTime leaveTime,
             [FromServices] ICreateLeaveTimeCommand command)
         {
             return command.Execute(leaveTime);

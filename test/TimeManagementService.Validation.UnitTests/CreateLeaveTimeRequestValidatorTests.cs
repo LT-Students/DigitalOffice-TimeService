@@ -2,8 +2,8 @@ using FluentValidation;
 using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -14,9 +14,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
     public class CreateLeaveTimeRequestValidatorTests
     {
         private Mock<ILeaveTimeRepository> repositoryMock;
-        private IValidator<CreateLeaveTimeRequest> validator;
+        private IValidator<LeaveTime> validator;
 
-        private CreateLeaveTimeRequest request;
+        private LeaveTime request;
         private DbLeaveTime expectedDbLeaveTime;
 
         [SetUp]
@@ -24,9 +24,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             repositoryMock = new Mock<ILeaveTimeRepository>();
 
-            validator = new CreateLeaveTimeRequestValidator(repositoryMock.Object);
+            validator = new LeaveTimeValidator(repositoryMock.Object);
 
-            request = new CreateLeaveTimeRequest
+            request = new LeaveTime
             {
                 LeaveType = LeaveType.SickLeave,
                 Comment = "I have a sore throat",
@@ -120,7 +120,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldNotHaveAnyValidationErrorsWhenRequestOverlapWithOtherTime()
         {
-            var successfulRequest = new CreateLeaveTimeRequest
+            var successfulRequest = new LeaveTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(-6),
@@ -135,7 +135,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheStartTime()
         {
-            var failRequest = new CreateLeaveTimeRequest
+            var failRequest = new LeaveTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(-1),
@@ -150,7 +150,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionInsideTime()
         {
-            var failRequest = new CreateLeaveTimeRequest
+            var failRequest = new LeaveTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(1),
@@ -165,7 +165,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheEndTime()
         {
-            var failRequest = new CreateLeaveTimeRequest
+            var failRequest = new LeaveTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(1),

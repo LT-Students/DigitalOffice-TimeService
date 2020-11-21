@@ -11,4 +11,9 @@
     <ProjectReference Include="..\TimeManagementService.Models.Dto\TimeManagementService.Models.Dto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="RequestMappers\" />
+    <Folder Include="ResponseMappers\" />
+  </ItemGroup>
+
 </Project>

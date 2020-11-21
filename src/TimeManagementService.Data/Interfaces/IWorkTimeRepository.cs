@@ -32,5 +32,12 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Interfaces
         /// <param name="workTime">Work time change.</param>
         /// <returns>True if the operation is successful.</returns>
         public bool EditWorkTime(DbWorkTime workTime);
+
+        /// <summary>
+        /// Get work time with specified id from the database.
+        /// </summary>
+        /// <param name="workTimeId">Work time id.</param>
+        /// <returns>Model with specified id.</returns>
+        public DbWorkTime GetWorkTime(Guid workTimeId);
     }
 }

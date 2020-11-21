@@ -3,7 +3,7 @@ using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -14,9 +14,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
     public class CreateWorkTimeRequestValidatorTests
     {
         private Mock<IWorkTimeRepository> repositoryMock;
-        private IValidator<CreateWorkTimeRequest> validator;
+        private IValidator<WorkTime> validator;
 
-        private CreateWorkTimeRequest request;
+        private WorkTime request;
         private DbWorkTime expectedDbWorkTime;
 
         [SetUp]
@@ -24,9 +24,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             repositoryMock = new Mock<IWorkTimeRepository>();
 
-            validator = new CreateWorkTimeRequestValidator(repositoryMock.Object);
+            validator = new WorkTimeValidator(repositoryMock.Object);
 
-            request = new CreateWorkTimeRequest
+            request = new WorkTime
             {
                 WorkerUserId = Guid.NewGuid(),
                 StartTime = DateTime.Now,
@@ -75,7 +75,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveValidationErrorWhenStartTimeTooEarly()
         {
-            var startTime = DateTime.Now.AddDays(CreateWorkTimeRequestValidator.ToDay).AddHours(1);
+            var startTime = DateTime.Now.AddDays(WorkTimeValidator.ToDay).AddHours(1);
             repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime>());
 
@@ -85,7 +85,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveValidationErrorWhenStartTimeTooLate()
         {
-            var startTime = DateTime.Now.AddDays(CreateWorkTimeRequestValidator.FromDay).AddHours(-1);
+            var startTime = DateTime.Now.AddDays(WorkTimeValidator.FromDay).AddHours(-1);
             repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime>());
 
@@ -130,7 +130,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenWorkTimeGreaterThanWorkingLimit()
         {
-            var tooManyMinutes = CreateWorkTimeRequestValidator.WorkingLimit.TotalMinutes + 1;
+            var tooManyMinutes = WorkTimeValidator.WorkingLimit.TotalMinutes + 1;
             request.EndTime = request.StartTime.AddMinutes(tooManyMinutes);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
@@ -140,7 +140,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public void ShouldNotHaveAnyValidationErrorsWhenRequestOverlapsWithOtherTime()
         {
 
-            var successfulRequest = new CreateWorkTimeRequest
+            var successfulRequest = new WorkTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(-6),
@@ -156,7 +156,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheStartTime()
         {
-            var failRequest = new CreateWorkTimeRequest
+            var failRequest = new WorkTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(-1),
@@ -172,7 +172,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionInsideTime()
         {
-            var failRequest = new CreateWorkTimeRequest
+            var failRequest = new WorkTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(1),
@@ -188,7 +188,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheEndTime()
         {
-            var failRequest = new CreateWorkTimeRequest
+            var failRequest = new WorkTime
             {
                 WorkerUserId = request.WorkerUserId,
                 StartTime = request.StartTime.AddHours(1),

@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Globalization;
@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
-    public class CreateWorkTimeRequestValidator : AbstractValidator<CreateWorkTimeRequest>
+    public class WorkTimeValidator : AbstractValidator<WorkTime>
     {
         /// <summary>
         /// How many days ago can WorkTime be added.
@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
         private readonly DateTime toDateTime = DateTime.Now.AddDays(ToDay);
         private readonly CultureInfo culture = CultureInfo.CreateSpecificCulture("en-GB");
 
-        public CreateWorkTimeRequestValidator([FromServices] IWorkTimeRepository repository)
+        public WorkTimeValidator([FromServices] IWorkTimeRepository repository)
         {
             RuleFor(wt => wt.WorkerUserId)
                     .NotEmpty();

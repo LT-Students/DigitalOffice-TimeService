@@ -1,43 +1,38 @@
 ﻿using FluentValidation;
+using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Business
 {
     public class EditWorkTimeCommand: IEditWorkTimeCommand
     {
-        private readonly IValidator<EditWorkTimeRequest> validator;
+        private readonly IValidator<(JsonPatchDocument<WorkTime>, Guid)> validator;
         private readonly IWorkTimeRepository repository;
-        private readonly IMapper<EditWorkTimeRequest, DbWorkTime> mapper;
+        private readonly IMapper<JsonPatchDocument<WorkTime>, DbWorkTime> mapper;
 
         public EditWorkTimeCommand(
-            [FromServices] IValidator<EditWorkTimeRequest> validator,
-            [FromServices] IWorkTimeRepository repository,
-            [FromServices] IMapper<EditWorkTimeRequest, DbWorkTime> mapper)
+            [FromServices] IValidator<(JsonPatchDocument<WorkTime>, Guid)> validator,
+            [FromServices] IWorkTimeRepository repository)
         {
             this.validator = validator;
             this.repository = repository;
-            this.mapper = mapper;
         }
 
-        public bool Execute(EditWorkTimeRequest request)
+        public bool Execute(Guid workTimeId, JsonPatchDocument<DbWorkTime> patch)
         {
-            var validationResult = validator.Validate(request);
+            validator.ValidateAndThrowCustom((patch, workTimeId));
 
-            if (validationResult != null && !validationResult.IsValid)
-            {
-                var messages = validationResult.Errors.Select(x => x.ErrorMessage);
-                string message = messages.Aggregate((x, y) => x + "\n" + y);
+            var dbWorkTime = repository.GetWorkTime(workTimeId);
+            patch.ApplyTo(dbWorkTime);
 
-                throw new ValidationException(message);
-            }
-
-            return repository.EditWorkTime(mapper.Map(request));
+            return repository.EditWorkTime(dbWorkTime);
         }
     }
 }

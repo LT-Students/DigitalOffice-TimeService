@@ -4,7 +4,7 @@ using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -14,18 +14,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
     public class CreateWorkTimeCommandTests
     {
-        private Mock<IValidator<CreateWorkTimeRequest>> validatorMock;
-        private Mock<IMapper<CreateWorkTimeRequest, DbWorkTime>> mapperMock;
+        private Mock<IValidator<WorkTime>> validatorMock;
+        private Mock<IMapper<WorkTime, DbWorkTime>> mapperMock;
         private Mock<IWorkTimeRepository> repositoryMock;
         private ICreateWorkTimeCommand command;
 
-        private CreateWorkTimeRequest request;
+        private WorkTime request;
         private DbWorkTime createdWorkTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            request = new CreateWorkTimeRequest()
+            request = new WorkTime()
             {
                 ProjectId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
@@ -50,8 +50,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [SetUp]
         public void SetUp()
         {
-            validatorMock = new Mock<IValidator<CreateWorkTimeRequest>>();
-            mapperMock = new Mock<IMapper<CreateWorkTimeRequest, DbWorkTime>>();
+            validatorMock = new Mock<IValidator<WorkTime>>();
+            mapperMock = new Mock<IMapper<WorkTime, DbWorkTime>>();
             repositoryMock = new Mock<IWorkTimeRepository>();
 
             command = new CreateWorkTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
@@ -61,7 +61,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             validatorMock
-                .Setup(x => x.Validate(It.IsAny<CreateWorkTimeRequest>()))
+                .Setup(x => x.Validate(It.IsAny<WorkTime>()))
                 .Returns(new ValidationResult(
                     new List<ValidationFailure>
                     {
@@ -80,7 +80,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                  .Returns(true);
 
             mapperMock
-                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
+                .Setup(x => x.Map(It.IsAny<WorkTime>()))
                 .Returns(createdWorkTime);
 
             repositoryMock
@@ -98,7 +98,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                  .Returns(true);
 
             mapperMock
-                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
+                .Setup(x => x.Map(It.IsAny<WorkTime>()))
                 .Returns(createdWorkTime);
 
             repositoryMock

@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -8,9 +7,9 @@ using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
-    public class CreateLeaveTimeRequestValidator : AbstractValidator<LeaveTime>
+    public class LeaveTimeValidator : AbstractValidator<LeaveTime>
     {
-        public CreateLeaveTimeRequestValidator([FromServices] ILeaveTimeRepository repository)
+        public LeaveTimeValidator([FromServices] ILeaveTimeRepository repository)
         {
             RuleFor(lt => lt.WorkerUserId)
                 .NotEmpty();

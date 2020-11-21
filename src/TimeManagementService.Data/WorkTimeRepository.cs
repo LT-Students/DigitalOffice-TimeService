@@ -1,4 +1,5 @@
 ﻿using LinqKit;
+using LT.DigitalOffice.Kernel.Exceptions;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Provider;
@@ -56,7 +57,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data
 
             if (time == null)
             {
-                throw new Exception("Work time with this Id is not exist.");
+                throw new NotFoundException($"Work time with id {workTime.Id} is not exist.");
             }
 
             time.WorkerUserId = workTime.WorkerUserId;
@@ -70,6 +71,18 @@ namespace LT.DigitalOffice.TimeManagementService.Data
             provider.Save();
 
             return true;
+        }
+
+        public DbWorkTime GetWorkTime(Guid workTimeId)
+        {
+            var workTime = provider.WorkTimes.FirstOrDefault(x => x.Id == workTimeId);
+
+            if (workTime == null)
+            {
+                throw new NotFoundException($"Work time with id {workTimeId} is not exist.");
+            }
+
+            return workTime;
         }
     }
 }
