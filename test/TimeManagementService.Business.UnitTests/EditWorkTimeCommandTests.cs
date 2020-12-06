@@ -5,8 +5,8 @@ using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -16,18 +16,21 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
     public class EditWorkTimeCommandTests
     {
-        private Mock<IValidator<(JsonPatchDocument<WorkTime>, Guid)>> validatorMock;
-        private Mock<IMapper<WorkTime, DbWorkTime>> mapperMock;
+        private Mock<IValidator<EditWorkTimeRequest>> validatorMock;
         private Mock<IWorkTimeRepository> repositoryMock;
         private IEditWorkTimeCommand command;
 
-        private (Guid, JsonPatchDocument<DbWorkTime>) request;
+        private EditWorkTimeRequest request;
         private DbWorkTime editedWorkTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            request = (Guid.NewGuid(), new JsonPatchDocument<DbWorkTime>());
+            request = new EditWorkTimeRequest
+            {
+                WorkTimeId = Guid.NewGuid(),
+                Patch = new JsonPatchDocument<DbWorkTime>()
+            };
 
             editedWorkTime = new DbWorkTime() {};
         }
@@ -35,9 +38,20 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [SetUp]
         public void SetUp()
         {
-            validatorMock = new Mock<IValidator<(JsonPatchDocument<WorkTime>, Guid)>>();
-            mapperMock = new Mock<IMapper<WorkTime, DbWorkTime>>();
+            validatorMock = new Mock<IValidator<EditWorkTimeRequest>>();
             repositoryMock = new Mock<IWorkTimeRepository>();
+
+            validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
+
+            repositoryMock
+                .Setup(x => x.GetWorkTime(It.IsAny<Guid>()))
+                .Returns(new DbWorkTime());
+
+            repositoryMock
+                .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
+                .Returns(true);
 
             command = new EditWorkTimeCommand(validatorMock.Object, repositoryMock.Object);
         }
@@ -46,51 +60,27 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             validatorMock
-                .Setup(x => x.Validate(It.IsAny<(JsonPatchDocument<WorkTime>, Guid)>()))
-                .Returns(new ValidationResult(
-                    new List<ValidationFailure>
-                    {
-                        new ValidationFailure("test", "something", null)
-                    }));
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(false);
 
-            Assert.Throws<ValidationException>(() => command.Execute(request.Item1, request.Item2));
+            Assert.Throws<ValidationException>(() => command.Execute(request));
             repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
         }
 
         [Test]
         public void ShouldThrowExceptionWhenRepositoryThrowsException()
         {
-            validatorMock
-                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                 .Returns(true);
-
-            mapperMock
-                .Setup(x => x.Map(It.IsAny<WorkTime>()))
-                .Returns(editedWorkTime);
-
             repositoryMock
                 .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
                 .Throws(new Exception());
 
-            Assert.Throws<Exception>(() => command.Execute(request.Item1, request.Item2));
+            Assert.Throws<Exception>(() => command.Execute(request));
         }
 
         [Test]
         public void ShouldEditNewWorkTimeWhenDataIsValid()
         {
-            validatorMock
-                 .Setup(x => x.Validate(It.IsAny<(JsonPatchDocument<WorkTime>, Guid)>()).IsValid)
-                 .Returns(true);
-
-            mapperMock
-                .Setup(x => x.Map(It.IsAny<WorkTime>()))
-                .Returns(editedWorkTime);
-
-            repositoryMock
-                .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
-                .Returns(true);
-
-            Assert.AreEqual(true, command.Execute(request.Item1, request.Item2));
+            Assert.AreEqual(true, command.Execute(request));
             repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }

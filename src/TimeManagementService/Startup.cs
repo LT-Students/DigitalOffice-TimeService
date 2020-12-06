@@ -14,6 +14,7 @@ using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeManagementService.Validation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -66,7 +67,7 @@ namespace LT.DigitalOffice.TimeManagementService
         {
             services.AddTransient<IValidator<LeaveTime>, LeaveTimeValidator>();
             services.AddTransient<IValidator<WorkTime>, WorkTimeValidator>();
-            services.AddTransient<IValidator<(JsonPatchDocument<DbWorkTime>, Guid)>, EditWorkTimeRequestValidator>();
+            services.AddTransient<IValidator<EditWorkTimeRequest>, EditWorkTimeRequestValidator>();
         }
 
         private void ConfigureMappers(IServiceCollection services)

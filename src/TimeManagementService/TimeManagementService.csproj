@@ -16,5 +16,4 @@
     <ProjectReference Include="..\TimeManagementService.Models.Dto\TimeManagementService.Models.Dto.csproj" />
   </ItemGroup>
 
-
 </Project>

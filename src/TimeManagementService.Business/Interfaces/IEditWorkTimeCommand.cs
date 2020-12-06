@@ -1,4 +1,5 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 
@@ -13,9 +14,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// <summary>
         /// Changes a work time. Returns true if the operation is successful.
         /// </summary>
-        /// <param name="workTimeId">Work time id.</param>
-        /// <param name="request">Work time data.</param>
+        /// <param name="request">Work time data with id and changes.</param>
         /// <returns>True if the operation is successful.</returns>
-        bool Execute(Guid workTimeId, JsonPatchDocument<DbWorkTime> request);
+        bool Execute(EditWorkTimeRequest request);
     }
 }

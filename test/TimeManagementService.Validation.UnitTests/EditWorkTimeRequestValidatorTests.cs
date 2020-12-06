@@ -4,164 +4,155 @@ using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
+using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
-    //class EditWorkTimeRequestValidatorTests
-    //{
-    //    private IValidator<WorkTime> validator;
+    class EditWorkTimeRequestValidatorTests
+    {
+        private IValidator<EditWorkTimeRequest> validator;
+        private Mock<IWorkTimeRepository> mockRepository;
+        private EditWorkTimeRequest editRequest;
 
-    //    private Mock<IWorkTimeRepository> repositoryMock;
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            mockRepository = new Mock<IWorkTimeRepository>();
 
-    //    [SetUp]
-    //    public void SetUp()
-    //    {
-    //        repositoryMock = new Mock<IWorkTimeRepository>();
+            validator = new EditWorkTimeRequestValidator(mockRepository.Object);
+        }
 
-    //        validator = new EditWorkTimeRequestValidator(repositoryMock.Object);
-    //    }
+        [SetUp]
+        public void SetUp()
+        {
+            editRequest = new EditWorkTimeRequest
+            {
+                Patch = new JsonPatchDocument<DbWorkTime>(new List<Operation<DbWorkTime>>
+                {
+                    new Operation<DbWorkTime>("replace", "/Title", "", "New Name"),
+                    new Operation<DbWorkTime>("replace", "/Description", "", "New description"),
+                }, new CamelCasePropertyNamesContractResolver()),
+                WorkTimeId = Guid.NewGuid()
+            };
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenIdIsEmpty()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.Id, Guid.Empty);
-    //    }
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenRequestIsCorrect()
+        {
+            validator.TestValidate(editRequest).ShouldNotHaveAnyValidationErrors();
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenWorkerUserIdIsEmpty()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, Guid.Empty);
-    //    }
+        #region Base validation
+        [Test]
+        public void ShouldThrowValidationExceptionWhenRequestNotContainsOperations()
+        {
+            editRequest.Patch.Operations.Clear();
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenStartTimeIsEmpty()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.StartTime, new DateTime());
-    //    }
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenEndTimeIsEmpty()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.EndTime, new DateTime());
-    //    }
+        [Test]
+        public void ShouldThrowValidationExceptionWhenRequestContainsNotUniqueOperations()
+        {
+            editRequest.Patch.Operations.Add(editRequest.Patch.Operations.First());
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenTitleIsEmpty()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.Title, "");
-    //    }
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenTitleIsTooLong()
-    //    {
-    //        var title = "123" + new string('a', 30);
+        [Test]
+        public void ShouldThrowValidationExceptionWhenRequestContainsNotSupportedReplace()
+        {
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/Id", "", Guid.NewGuid().ToString()));
 
-    //        validator.ShouldHaveValidationErrorFor(x => x.Title, title);
-    //    }
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+        #endregion
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenTitleIsTooShort()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.Title, "A");
-    //    }
+        #region field validations
+        [Test]
+        public void ShouldThrowValidationExceptionWhenShortNameIsTooLong()
+        {
+            editRequest.Patch.Operations.Find(x => x.path == "/Title").value = "".PadLeft(33);
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenProjectIdIsEmpty()
-    //    {
-    //        validator.ShouldHaveValidationErrorFor(x => x.ProjectId, Guid.Empty);
-    //    }
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenDescriptionIsTooLong()
-    //    {
-    //        var comment = "1" + new string('a', 500);
+        [Test]
+        public void ShouldThrowValidationExceptionWhenShortNameIsTooShort()
+        {
+            editRequest.Patch.Operations.Find(x => x.path == "/Title").value = "A";
 
-    //        validator.ShouldHaveValidationErrorFor(x => x.Description, comment);
-    //    }
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenEndTimeIsLessThanStartTime()
-    //    {
-    //        var request = new WorkTime
-    //        {
-    //            Id = Guid.NewGuid(),
-    //            WorkerUserId = Guid.NewGuid(),
-    //            StartTime = new DateTime(2020, 2, 2, 2, 2, 2),
-    //            EndTime = new DateTime(2020, 1, 1, 1, 1, 1),
-    //            Title = "ExampleTitle",
-    //            ProjectId = Guid.NewGuid(),
-    //            Description = "ExampleDescription"
-    //        };
+        [Test]
+        public void ShouldThrowValidationExceptionWhenDescriptionIsTooLong()
+        {
+            editRequest.Patch.Operations.Find(x => x.path == "/Description").value = "".PadLeft(501);
 
-    //        Assert.Throws<ValidationException>(() => validator.ValidateAndThrow(request));
-    //    }
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
 
-    //    [Test]
-    //    public void ShouldThrowsValidationExceptionWhenWorkTimeGreaterThanWorkingLimit()
-    //    {
-    //        var request = new WorkTime
-    //        {
-    //            Id = Guid.NewGuid(),
-    //            WorkerUserId = Guid.NewGuid(),
-    //            StartTime = DateTime.Now,
-    //            EndTime = DateTime.Now.AddHours(25),
-    //            Title = "ExampleTitle",
-    //            ProjectId = Guid.NewGuid(),
-    //            Description = "ExampleDescription"
-    //        };
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenStartTimeIsEmpty()
+        //{
+        //    editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", new DateTime()));
 
-    //        Assert.Throws<ValidationException>(() => validator.ValidateAndThrow(request));
-    //    }
+        //    validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        //}
 
-    //    [Test]
-    //    public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheStartTime()
-    //    {
-    //        var request = new WorkTime
-    //        {
-    //            Id = Guid.NewGuid(),
-    //            WorkerUserId = Guid.NewGuid(),
-    //            StartTime = DateTime.Now,
-    //            EndTime = DateTime.Now.AddHours(25),
-    //            Title = "ExampleTitle",
-    //            ProjectId = Guid.NewGuid(),
-    //            Description = "ExampleDescription"
-    //        };
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenEndTimeIsEmpty()
+        //{
+        //    editRequest.Patch.Operations.Find(x => x.path == "/EndTime").value = new DateTime();
 
-    //        var time = new DbWorkTime
-    //        {
-    //            WorkerUserId = request.WorkerUserId,
-    //            StartTime = request.StartTime,
-    //            EndTime = request.EndTime,
-    //            Title = request.Title,
-    //            ProjectId = request.ProjectId,
-    //            Description = request.Description
-    //        };
+        //    validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        //}
 
-    //        repositoryMock.Setup(x => x.GetUserWorkTimes(request.WorkerUserId, It.IsAny<WorkTimeFilter>()))
-    //            .Returns(new List<DbWorkTime> { time });
 
-    //        Assert.Throws<ValidationException>(() => validator.ValidateAndThrow(request));
-    //    }
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenProjectIdIsEmpty()
+        //{
+        //    editRequest.Patch.Operations.Find(x => x.path == "/ProjectId").value = Guid.Empty;
 
-    //    [Test]
-    //    public void ShouldNotThrowValidationExceptionWhenDataIsValid()
-    //    {
-    //        var request = new WorkTime
-    //        {
-    //            Id = Guid.NewGuid(),
-    //            WorkerUserId = Guid.NewGuid(),
-    //            StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-    //            EndTime = new DateTime(2020, 1, 1, 2, 2, 2),
-    //            Title = "ExampleTitle",
-    //            ProjectId = Guid.NewGuid(),
-    //            Description = "ExampleDescription"
-    //        };
+        //    validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        //}
 
-    //        Assert.DoesNotThrow(() => validator.ValidateAndThrow(request));
-    //    }
-    //}
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenWorkerUserIdIsEmpty()
+        //{
+        //    editRequest.Patch.Operations.Find(x => x.path == "/WorkerUserId").value = Guid.Empty;
+
+        //    validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        //}
+
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenEndTimeIsLessThanStartTime()
+        //{
+        //    editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", new DateTime(2020, 2, 2, 2, 2, 2)));
+        //    editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", new DateTime(2020, 1, 1, 1, 1, 1)));
+
+        //    validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        //}
+
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenWorkTimeGreaterThanWorkingLimit()
+        //{
+        //    editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", DateTime.Now));
+        //    editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", DateTime.Now.AddHours(25)));
+
+        //    validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        //}
+
+        // test overlap
+        #endregion
+    }
 }

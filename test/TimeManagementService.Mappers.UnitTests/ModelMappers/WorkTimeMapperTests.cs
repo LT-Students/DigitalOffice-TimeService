@@ -1,4 +1,3 @@
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers;
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
@@ -11,13 +10,23 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
 {
     public class WorkTimeMapperTests
     {
+        #region Variable declaration
         private IWorkTimeMapper mapper;
+
+        private Guid id = Guid.NewGuid();
+        private Guid projectId = Guid.NewGuid();
+        private DateTime startTime = new DateTime(2020, 7, 29, 9, 0, 0);
+        private DateTime endTime = new DateTime(2020, 7, 29, 9, 0, 0);
+        private const string title = "I was working on a very important task";
+        private const string description = "I was asleep. I love sleep. I hope I get paid for this.";
+        private Guid workerUserId = Guid.NewGuid();
 
         private WorkTime workTime;
         private DbWorkTime expectedDbWorkTimeWithoutId;
 
         private DbWorkTime dbWorkTime;
         private WorkTime expectedWorkTime;
+        #endregion
 
         #region SetUp
         [OneTimeSetUp]
@@ -37,22 +46,22 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         {
             workTime = new WorkTime
             {
-                ProjectId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                EndTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                Title = "I was working on a very important task",
-                Description = "I was asleep. I love sleep. I hope I get paid for this.",
-                WorkerUserId = Guid.NewGuid()
+                ProjectId = projectId,
+                StartTime = startTime,
+                EndTime = endTime,
+                Title = title,
+                Description = description,
+                WorkerUserId = workerUserId
             };
 
             expectedDbWorkTimeWithoutId = new DbWorkTime
             {
-                ProjectId = workTime.ProjectId,
-                StartTime = workTime.StartTime,
-                EndTime = workTime.EndTime,
-                Title = workTime.Title,
-                Description = workTime.Description,
-                WorkerUserId = workTime.WorkerUserId
+                ProjectId = projectId,
+                StartTime = startTime,
+                EndTime = endTime,
+                Title = title,
+                Description = description,
+                WorkerUserId = workerUserId
             };
         }
 
@@ -60,24 +69,24 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         {
             dbWorkTime = new DbWorkTime
             {
-                Id = new Guid(),
-                ProjectId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                EndTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                Title = "I was working on a very important task",
-                Description = "I was asleep. I love sleep. I hope I get paid for this.",
-                WorkerUserId = Guid.NewGuid()
+                Id = id,
+                ProjectId = projectId,
+                StartTime = startTime,
+                EndTime = endTime,
+                Title = title,
+                Description = description,
+                WorkerUserId = workerUserId
             };
 
             expectedWorkTime = new WorkTime
             {
-                Id = dbWorkTime.Id,
-                ProjectId = dbWorkTime.ProjectId,
-                StartTime = dbWorkTime.StartTime,
-                EndTime = dbWorkTime.EndTime,
-                Title = dbWorkTime.Title,
-                Description = dbWorkTime.Description,
-                WorkerUserId = dbWorkTime.WorkerUserId
+                Id = id,
+                ProjectId = projectId,
+                StartTime = startTime,
+                EndTime = endTime,
+                Title = title,
+                Description = description,
+                WorkerUserId = workerUserId
             };
         }
         #endregion

@@ -27,7 +27,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                 .NotEqual(new DateTime());
 
             RuleFor(lt => lt)
-                .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time")
+                .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time.")
                 .Must(lt =>
                 {
                     var workTimes = repository.GetUserLeaveTimes(lt.WorkerUserId);

@@ -1,3 +1,4 @@
+using LT.DigitalOffice.Kernel.Exceptions;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
@@ -192,7 +193,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [Test]
         public void ShouldThrowExceptionWhenIdIsNotExist()
         {
-            Assert.Throws<Exception>(() => repository.EditWorkTime(time));
+            Assert.Throws<NotFoundException>(() => repository.EditWorkTime(time));
         }
         #endregion
     }
