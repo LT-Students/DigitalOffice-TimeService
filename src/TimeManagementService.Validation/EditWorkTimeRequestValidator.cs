@@ -16,12 +16,13 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
     public class EditWorkTimeRequestValidator : AbstractValidator<EditWorkTimeRequest>
     {
         private static List<string> Paths
-            => new List<string> { DescriptionPath, TitlePath, ProjectIdPath, WorkerUserIdPath, StartTimePath, EndTimePath };
+            => new List<string> { DescriptionPath, TitlePath, ProjectIdPath,// WorkerUserIdPath,
+                StartTimePath, EndTimePath };
 
         private static string DescriptionPath => $"/{nameof(DbWorkTime.Description)}";
         private static string TitlePath => $"/{nameof(DbWorkTime.Title)}";
         private static string ProjectIdPath => $"/{nameof(DbWorkTime.ProjectId)}";
-        private static string WorkerUserIdPath => $"/{nameof(DbWorkTime.WorkerUserId)}";
+        //private static string WorkerUserIdPath => $"/{nameof(DbWorkTime.WorkerUserId)}";
         private static string StartTimePath => $"/{nameof(DbWorkTime.StartTime)}";
         private static string EndTimePath => $"/{nameof(DbWorkTime.EndTime)}";
 
@@ -46,18 +47,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                 )
                 .DependentRules(() =>
                 {
-                    When(wt => GetOperationByPath(wt.Patch, WorkerUserIdPath) != null, () =>
-                    {
-                        RuleFor(x => x.Patch.Operations)
-                        .UniqueOperationWithAllowedOp(WorkerUserIdPath, "add", "replace");
-
-                        //check exist
-
-                        RuleFor(wt => (Guid)GetOperationByPath(wt.Patch, WorkerUserIdPath).value)
-                        .NotEmpty()
-                        .WithMessage($"{WorkerUserIdPath} must not be empty.");
-                    });
-
                     When(wt => GetOperationByPath(wt.Patch, StartTimePath) != null, () =>
                     {
                         RuleFor(x => x.Patch.Operations)
@@ -90,12 +79,26 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         .WithMessage($"{TitlePath} is too short.");
                     });
 
+                    // Oh. Check overlap with new User? Admin can it?
+                    //When(wt => GetOperationByPath(wt.Patch, WorkerUserIdPath) != null, () =>
+                    //{
+                    //    RuleFor(x => x.Patch.Operations)
+                    //    .UniqueOperationWithAllowedOp(WorkerUserIdPath, "add", "replace");
+
+                    //    //check exist?
+
+                    //    RuleFor(wt => (Guid)GetOperationByPath(wt.Patch, WorkerUserIdPath).value)
+                    //    .NotEmpty()
+                    //    .WithMessage($"{WorkerUserIdPath} must not be empty.");
+                    //});
+
                     When(wt => GetOperationByPath(wt.Patch, ProjectIdPath) != null, () =>
                     {
                         RuleFor(x => x.Patch.Operations)
                         .UniqueOperationWithAllowedOp(ProjectIdPath, "add", "replace");
 
-                        //check exist
+                        //check exist?
+                        //check user projects?
 
                         RuleFor(wt => (Guid)GetOperationByPath(wt.Patch, ProjectIdPath).value)
                         .NotEmpty()
@@ -117,6 +120,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         var userId = new Guid();
                         var startTime = new DateTime();
                         var endTime = new DateTime();
+                        var oldWorkTimeId = new Guid();
 
                         RuleFor(wt => wt)
                         .Must(wt =>
@@ -125,6 +129,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                             var startTimeOperation = GetOperationByPath(wt.Patch, StartTimePath);
                             var endTimeOperation = GetOperationByPath(wt.Patch, EndTimePath);
                             userId = oldWorkTime.WorkerUserId;
+                            oldWorkTimeId = oldWorkTime.Id;
 
                             startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartTime;
                             endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndTime;
@@ -145,8 +150,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
                             if (oldWorkTimes == null) return true;
 
-                            return oldWorkTimes.All(oldWorkTime =>
-                                endTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= startTime);
+                            return oldWorkTimes
+                            .Where(oldWorkTime => oldWorkTime.Id != oldWorkTimeId)
+                            .All(oldWorkTime => endTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= startTime);
                         }).WithMessage("New WorkTime should not overlap with old ones.");
                     });
                 });
