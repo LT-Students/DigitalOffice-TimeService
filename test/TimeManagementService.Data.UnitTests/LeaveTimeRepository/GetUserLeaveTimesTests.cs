@@ -8,7 +8,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
 {
-    public class CreateLeaveTimeTests
+    public class GetUserLeaveTimesTests
     {
         private TimeManagementDbContext dbContext;
         private ILeaveTimeRepository repository;
@@ -37,7 +37,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 5),
                 EndTime = new DateTime(2020, 7, 25),
-                WorkerUserId = firstWorkerId
+                UserId = firstWorkerId
             };
             secondLeaveTime = new DbLeaveTime
             {
@@ -46,7 +46,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 10),
                 EndTime = new DateTime(2020, 7, 20),
-                WorkerUserId = secondWorkerId
+                UserId = secondWorkerId
             };
         }
 
@@ -59,18 +59,6 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             }
         }
 
-        #region CreateLeaveTimeTests
-        [Test]
-        public void ShouldAddNewLeaveTimeInDb()
-        {
-            var guidOfNewLeaveTime = repository.CreateLeaveTime(firstLeaveTime);
-
-            Assert.AreEqual(firstLeaveTime.Id, guidOfNewLeaveTime);
-            Assert.That(dbContext.LeaveTimes.Find(firstLeaveTime.Id), Is.EqualTo(firstLeaveTime));
-        }
-        #endregion
-
-        #region GetUserLeaveTimesTests
         [Test]
         public void ShouldReturnsLeaveTime()
         {
@@ -85,6 +73,5 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             Assert.That(leaveTimesOfSecondWorker, Is.EquivalentTo(new[] {secondLeaveTime}));
             Assert.That(dbContext.LeaveTimes, Is.EquivalentTo(new[] {firstLeaveTime, secondLeaveTime}));
         }
-        #endregion
     }
 }

@@ -2,6 +2,7 @@
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Controllers
 {
@@ -9,12 +10,21 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
     [ApiController]
     public class LeaveTimeController : ControllerBase
     {
+        [HttpPost("getUserLeaveTimes")]
+        public IEnumerable<LeaveTime> GetUserWorkTimes(
+            [FromQuery] Guid userId,
+            [FromServices] IGetUserLeaveTimesCommand command)
+        {
+            return command.Execute(userId);
+        }
+
         [HttpPost("addLeaveTime")]
         public Guid AddLeaveTime(
             [FromBody] LeaveTime leaveTime,
+            [FromHeader] Guid currentUserId,
             [FromServices] ICreateLeaveTimeCommand command)
         {
-            return command.Execute(leaveTime);
+            return command.Execute(leaveTime, currentUserId);
         }
     }
 }

@@ -6,6 +6,7 @@ using LT.DigitalOffice.TimeManagementService.Data.Provider;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Data
@@ -31,7 +32,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data
         {
             var predicate = PredicateBuilder.New<DbWorkTime>();
 
-            predicate.Start(wt => wt.WorkerUserId == userId);
+            predicate.Start(wt => wt.UserId == userId);
 
             if (filter == null)
             {
@@ -40,40 +41,35 @@ namespace LT.DigitalOffice.TimeManagementService.Data
 
             if (filter.StartTime != null)
             {
-                predicate.And(wt => wt.StartTime >= filter.StartTime);
+                predicate.And(wt => wt.StartDate >= filter.StartTime);
             }
 
             if (filter.EndTime != null)
             {
-                predicate.And(wt => wt.EndTime <= filter.EndTime);
+                predicate.And(wt => wt.EndDate <= filter.EndTime);
             }
 
             return provider.WorkTimes.Where(predicate).ToList();
         }
 
-        public bool EditWorkTime(DbWorkTime workTime)
+        public bool EditWorkTime(DbWorkTime dbWorkTime)
         {
-            var time = provider.WorkTimes.Find(workTime.Id);
+            var workTimeToEdit = provider.WorkTimes
+                .AsNoTracking()
+                .FirstOrDefault(p => p.Id == dbWorkTime.Id);
 
-            if (time == null)
+            if (workTimeToEdit == null)
             {
-                throw new NotFoundException($"Work time with id {workTime.Id} is not exist.");
+                throw new NotFoundException($"Work time with id {dbWorkTime.Id} is not exist.");
             }
 
-            time.WorkerUserId = workTime.WorkerUserId;
-            time.StartTime = workTime.StartTime;
-            time.EndTime = workTime.EndTime;
-            time.Title = workTime.Title;
-            time.ProjectId = workTime.ProjectId;
-            time.Description = workTime.Description;
-
-            provider.WorkTimes.Update(time);
+            provider.WorkTimes.Update(dbWorkTime);
             provider.Save();
 
             return true;
         }
 
-        public DbWorkTime GetWorkTime(Guid workTimeId)
+        public DbWorkTime GetWorkTimeById(Guid workTimeId)
         {
             var workTime = provider.WorkTimes.FirstOrDefault(x => x.Id == workTimeId);
 

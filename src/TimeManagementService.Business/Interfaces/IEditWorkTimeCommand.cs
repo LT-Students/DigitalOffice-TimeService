@@ -15,7 +15,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// Changes a work time. Returns true if the operation is successful.
         /// </summary>
         /// <param name="request">Work time data with id and changes.</param>
+        /// <param name="currentUserId">Id of the ediding user.</param>
         /// <returns>True if the operation is successful.</returns>
-        bool Execute(EditWorkTimeRequest request);
+        public bool Execute(EditWorkTimeRequest request, Guid currentUserId);
     }
 }

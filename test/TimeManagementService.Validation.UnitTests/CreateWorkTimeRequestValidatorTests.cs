@@ -28,9 +28,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 
             request = new WorkTime
             {
-                WorkerUserId = Guid.NewGuid(),
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now.AddHours(6),
+                UserId = Guid.NewGuid(),
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddHours(6),
                 Title = "Worked...",
                 ProjectId = Guid.NewGuid(),
                 Description = "Did something"
@@ -38,15 +38,15 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 
             expectedDbWorkTime = new DbWorkTime
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
+                UserId = request.UserId,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
                 Title = request.Title,
                 ProjectId = request.ProjectId,
                 Description = request.Description
             };
 
-            repositoryMock.Setup(x => x.GetUserWorkTimes(request.WorkerUserId, It.IsAny<WorkTimeFilter>()))
+            repositoryMock.Setup(x => x.GetUserWorkTimes(request.UserId, It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime> { expectedDbWorkTime });
         }
 
@@ -63,11 +63,11 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveValidationErrorWhenWorkerUserIdIsEmpty()
         {
-            request.WorkerUserId = Guid.Empty;
+            request.UserId = Guid.Empty;
             repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime>());
 
-            validator.TestValidate(request).ShouldHaveValidationErrorFor(r => r.WorkerUserId);
+            validator.TestValidate(request).ShouldHaveValidationErrorFor(r => r.UserId);
         }
         #endregion
 
@@ -79,7 +79,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
+            validator.ShouldHaveValidationErrorFor(x => x.StartDate, startTime);
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
+            validator.ShouldHaveValidationErrorFor(x => x.StartDate, startTime);
         }
         #endregion
 
@@ -120,9 +120,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveAnyValidationErrorWhenEndTimeEarlierThanStarTime()
         {
-            var temp = request.StartTime;
-            request.StartTime = request.EndTime;
-            request.EndTime = temp;
+            var temp = request.StartDate;
+            request.StartDate = request.EndDate;
+            request.EndDate = temp;
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
         }
@@ -131,7 +131,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public void ShouldHaveAnyValidationErrorWhenWorkTimeGreaterThanWorkingLimit()
         {
             var tooManyMinutes = WorkTimeValidator.WorkingLimit.TotalMinutes + 1;
-            request.EndTime = request.StartTime.AddMinutes(tooManyMinutes);
+            request.EndDate = request.StartDate.AddMinutes(tooManyMinutes);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
         }
@@ -142,9 +142,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 
             var successfulRequest = new WorkTime
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(-6),
-                EndTime = request.StartTime.AddHours(-5.85),
+                UserId = request.UserId,
+                StartDate = request.StartDate.AddHours(-6),
+                EndDate = request.StartDate.AddHours(-5.85),
                 Title = request.Title,
                 ProjectId = request.ProjectId,
                 Description = request.Description
@@ -158,9 +158,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var failRequest = new WorkTime
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(-1),
-                EndTime = request.EndTime.AddHours(-1),
+                UserId = request.UserId,
+                StartDate = request.StartDate.AddHours(-1),
+                EndDate = request.EndDate.AddHours(-1),
                 Title = request.Title,
                 ProjectId = request.ProjectId,
                 Description = request.Description
@@ -174,9 +174,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var failRequest = new WorkTime
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(1),
-                EndTime = request.EndTime.AddHours(-1),
+                UserId = request.UserId,
+                StartDate = request.StartDate.AddHours(1),
+                EndDate = request.EndDate.AddHours(-1),
                 Title = request.Title,
                 ProjectId = request.ProjectId,
                 Description = request.Description
@@ -190,9 +190,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var failRequest = new WorkTime
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(1),
-                EndTime = request.EndTime.AddHours(1),
+                UserId = request.UserId,
+                StartDate = request.StartDate.AddHours(1),
+                EndDate = request.EndDate.AddHours(1),
                 Title = request.Title,
                 ProjectId = request.ProjectId,
                 Description = request.Description

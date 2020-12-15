@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
 {
-    public class CreateWorkTimeTests
+    public class GetUserWorkTimesTests
     {
         private TimeManagementDbContext dbContext;
         private IWorkTimeRepository repository;
@@ -48,20 +48,20 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = worker1,
+                    UserId = worker1,
                     ProjectId = project1,
-                    StartTime = DateTime.Now.AddDays(-1),
-                    EndTime = DateTime.Now.AddDays(-0.75)
+                    StartDate = DateTime.Now.AddDays(-1),
+                    EndDate = DateTime.Now.AddDays(-0.75)
                 },
 
                 new DbWorkTime
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = worker1,
+                    UserId = worker1,
                     ProjectId = project2,
-                    StartTime = DateTime.Now.AddDays(-0.7),
-                    EndTime = DateTime.Now.AddDays(-0.45)
+                    StartDate = DateTime.Now.AddDays(-0.7),
+                    EndDate = DateTime.Now.AddDays(-0.45)
                 }
             };
 
@@ -71,10 +71,10 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = worker2,
+                    UserId = worker2,
                     ProjectId = project1,
-                    StartTime = DateTime.Now.AddDays(-0.9),
-                    EndTime = DateTime.Now.AddDays(-0.65)
+                    StartDate = DateTime.Now.AddDays(-0.9),
+                    EndDate = DateTime.Now.AddDays(-0.65)
                 }
             };
 
@@ -83,9 +83,9 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             time = new DbWorkTime
             {
                 Id = id,
-                WorkerUserId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
+                UserId = Guid.NewGuid(),
+                StartDate = new DateTime(2020, 1, 1, 1, 1, 1),
+                EndDate = new DateTime(2020, 2, 2, 2, 2, 2),
                 Title = "Example",
                 ProjectId = Guid.NewGuid(),
                 Description = "ExampleDescription"
@@ -101,18 +101,6 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             }
         }
 
-        #region CreateWorkTimeTests
-        [Test]
-        public void SuccessfulAddNewWorkTimeInDb()
-        {
-            var guidOfNewWorkTime = repository.CreateWorkTime(workTimesOfWorker1.First());
-
-            Assert.AreEqual(workTimesOfWorker1.First().Id, guidOfNewWorkTime);
-            Assert.NotNull(dbContext.WorkTimes.Find(workTimesOfWorker1.First().Id));
-        }
-        #endregion
-
-        #region GetUserWorkTimesTests
         [Test]
         public void CorrectlyReturnsWorkTime()
         {
@@ -163,38 +151,5 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                 repository.GetUserWorkTimes(worker2, filerForGetOnlyWorkTime2).Count,
                 workTimesOfWorker2.Count);
         }
-        #endregion
-
-        #region EditWorkTimeTests
-        [Test]
-        public void ShouldChangeWorkTimeWhenDataIsCorrect()
-        {
-            var newTime = new DbWorkTime
-            {
-                Id = id,
-                WorkerUserId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "Example"
-            };
-
-            dbContext.WorkTimes.Add(time);
-            dbContext.SaveChanges();
-
-            Assert.True(repository.EditWorkTime(newTime));
-
-            var result = dbContext.WorkTimes.Find(id);
-
-            SerializerAssert.AreEqual(newTime, result);
-        }
-
-        [Test]
-        public void ShouldThrowExceptionWhenIdIsNotExist()
-        {
-            Assert.Throws<NotFoundException>(() => repository.EditWorkTime(time));
-        }
-        #endregion
     }
 }

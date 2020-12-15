@@ -13,7 +13,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// Adds a new work time. Returns id of the added work time.
         /// </summary>
         /// <param name="request">Work time data.</param>
+        /// <param name="currentUserId">Id of the creating user.</param>
         /// <returns>Id of the added work time.</returns>
-        Guid Execute(WorkTime request);
+        public Guid Execute(WorkTime request, Guid currentUserId);
     }
 }

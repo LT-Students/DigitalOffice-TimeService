@@ -26,11 +26,12 @@ namespace LT.DigitalOffice.TimeManagementService.Business
             this.repository = repository;
         }
 
-        public bool Execute(EditWorkTimeRequest request)
+        public bool Execute(EditWorkTimeRequest request, Guid currentUserId)
         {
+            request.CurrentUserId = currentUserId;
             validator.ValidateAndThrowCustom(request);
 
-            var dbWorkTime = repository.GetWorkTime(request.WorkTimeId);
+            var dbWorkTime = repository.GetWorkTimeById(request.WorkTimeId);
             request.Patch.ApplyTo(dbWorkTime);
 
             return repository.EditWorkTime(dbWorkTime);

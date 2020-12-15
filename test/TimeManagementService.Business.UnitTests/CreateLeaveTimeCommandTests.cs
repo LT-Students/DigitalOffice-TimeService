@@ -32,7 +32,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 Comment = "I have a sore throat",
                 StartTime = new DateTime(2020, 7, 24),
                 EndTime = new DateTime(2020, 7, 27),
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             createdLeaveTime = new DbLeaveTime()
@@ -42,7 +42,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 Comment = request.Comment,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
-                WorkerUserId = request.WorkerUserId
+                UserId = request.UserId
             };
         }
 

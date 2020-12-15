@@ -141,6 +141,8 @@ namespace LT.DigitalOffice.TimeManagementService
                     });
                 });
 
+                x.AddRequestClient<IGetUserRequest>(new Uri(rabbitMqConfig.UserServiceUrl));
+                x.AddRequestClient<IGetProjectUserRequest>(new Uri(rabbitMqConfig.ProjectService_ProjectUserUrl));
                 x.AddRequestClient<ICheckTokenRequest>(new Uri(rabbitMqConfig.AuthenticationServiceValidationUrl));
             });
 

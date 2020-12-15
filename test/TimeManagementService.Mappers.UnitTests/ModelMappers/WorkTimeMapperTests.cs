@@ -47,21 +47,21 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
             workTime = new WorkTime
             {
                 ProjectId = projectId,
-                StartTime = startTime,
-                EndTime = endTime,
+                StartDate = startTime,
+                EndDate = endTime,
                 Title = title,
                 Description = description,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
 
             expectedDbWorkTimeWithoutId = new DbWorkTime
             {
                 ProjectId = projectId,
-                StartTime = startTime,
-                EndTime = endTime,
+                StartDate = startTime,
+                EndDate = endTime,
                 Title = title,
                 Description = description,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
         }
 
@@ -71,22 +71,22 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
             {
                 Id = id,
                 ProjectId = projectId,
-                StartTime = startTime,
-                EndTime = endTime,
+                StartDate = startTime,
+                EndDate = endTime,
                 Title = title,
                 Description = description,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
 
             expectedWorkTime = new WorkTime
             {
                 Id = id,
                 ProjectId = projectId,
-                StartTime = startTime,
-                EndTime = endTime,
+                StartDate = startTime,
+                EndDate = endTime,
                 Title = title,
                 Description = description,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
         }
         #endregion

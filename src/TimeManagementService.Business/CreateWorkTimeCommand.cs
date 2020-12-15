@@ -26,8 +26,9 @@ namespace LT.DigitalOffice.TimeManagementService.Business
             this.repository = repository;
         }
 
-        public Guid Execute(WorkTime request)
+        public Guid Execute(WorkTime request, Guid currentUserId)
         {
+            request.CurrentUserId = currentUserId;
             validator.ValidateAndThrowCustom(request);
 
             var dbWorkTime = mapper.Map(request);

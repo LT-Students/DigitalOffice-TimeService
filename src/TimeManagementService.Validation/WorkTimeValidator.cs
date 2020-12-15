@@ -1,7 +1,13 @@
 ﻿using FluentValidation;
+using LT.DigitalOffice.Broker.Requests;
+using LT.DigitalOffice.Broker.Responses;
+using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Exceptions;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Globalization;
@@ -28,44 +34,61 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
         private readonly DateTime toDateTime = DateTime.Now.AddDays(ToDay);
         private readonly CultureInfo culture = CultureInfo.CreateSpecificCulture("en-GB");
 
-        public WorkTimeValidator([FromServices] IWorkTimeRepository repository)
+        public WorkTimeValidator(
+            [FromServices] IWorkTimeRepository repository,
+            [FromServices] IAssignValidator assignValidator)
         {
-            RuleFor(wt => wt.WorkerUserId)
-                    .NotEmpty();
+            RuleFor(x => x.UserId)
+                .NotEmpty()
+                .DependentRules(() =>
+                {
+                    RuleFor(x => x)
+                    .Must(x => assignValidator.CanAssignUser(x.CurrentUserId, x.UserId))
+                    .WithMessage("You cannot assign this user.");
+                })
+                .WithMessage("User does not exist.");
 
-            RuleFor(wt => wt.StartTime)
+            RuleFor(x => x.StartDate)
                 .NotEqual(new DateTime())
                 .Must(st => st > fromDateTime).WithMessage(date =>
                     $"WorkTime had to be filled no later than {fromDateTime.ToString(culture)}.")
                 .Must(st => st < toDateTime)
                 .WithMessage(date => $"WorkTime cannot be filled until {toDateTime.ToString(culture)}.");
 
-            RuleFor(wt => wt.EndTime)
+            RuleFor(x => x.EndDate)
                 .NotEqual(new DateTime());
 
-            RuleFor(wt => wt.ProjectId)
+            RuleFor(x => x.ProjectId)
+                .NotEmpty()
+                .DependentRules(() =>
+                {
+                    RuleFor(x => x)
+                    .Must(x => assignValidator.CanAssignUser(x.UserId, x.ProjectId))
+                    .WithMessage("You cannot assign this user on this project.");
+                })
+                .WithMessage("Project does not exist."); ;
+
+            RuleFor(x => x.Title)
                 .NotEmpty();
 
-            RuleFor(wt => wt.Title)
-                .NotEmpty();
-
-            RuleFor(wt => wt)
-                .Must(wt => wt.StartTime < wt.EndTime)
+            RuleFor(x => x)
+                .Must(x => x.StartDate < x.EndDate)
                 .WithMessage("You cannot indicate that you worked zero hours or a negative amount.")
-                .Must(wt => wt.EndTime - wt.StartTime <= WorkingLimit).WithMessage(time =>
+                .Must(x => x.EndDate - x.StartDate <= WorkingLimit)
+                .WithMessage(x =>
                     $"You cannot indicate that you worked more than {WorkingLimit.Hours} hours and {WorkingLimit.Minutes} minutes.")
-                .Must(wt =>
+                .Must(x =>
                 {
                     var oldWorkTimes = repository.GetUserWorkTimes(
-                        wt.WorkerUserId,
+                        x.UserId,
                         new WorkTimeFilter
                         {
-                            StartTime = wt.StartTime.AddMinutes(-WorkingLimit.TotalMinutes),
-                            EndTime = wt.EndTime
+                            StartTime = x.StartDate.AddMinutes(-WorkingLimit.TotalMinutes),
+                            EndTime = x.EndDate
                         });
 
                     return oldWorkTimes.All(oldWorkTime =>
-                        wt.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= wt.StartTime);
+                        x.EndDate <= oldWorkTime.StartDate || oldWorkTime.EndDate <= x.StartDate);
                 }).WithMessage("New WorkTime should not overlap with old ones.");
         }
     }

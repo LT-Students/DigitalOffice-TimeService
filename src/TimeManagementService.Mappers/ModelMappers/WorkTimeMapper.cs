@@ -17,9 +17,9 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers
             return new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = value.WorkerUserId,
-                StartTime = value.StartTime,
-                EndTime = value.EndTime,
+                UserId = value.UserId,
+                StartDate = value.StartDate,
+                EndDate = value.EndDate,
                 Title = value.Title,
                 ProjectId = value.ProjectId,
                 Description = value.Description
@@ -36,9 +36,9 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers
             return new WorkTime()
             {
                 Id = value.Id,
-                WorkerUserId = value.WorkerUserId,
-                StartTime = value.StartTime,
-                EndTime = value.EndTime,
+                UserId = value.UserId,
+                StartDate = value.StartDate,
+                EndDate = value.EndDate,
                 Title = value.Title,
                 ProjectId = value.ProjectId,
                 Description = value.Description

@@ -13,7 +13,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// Adds a new leave time. Returns id of the added leave time.
         /// </summary>
         /// <param name="request">Leave time data.</param>
+        /// <param name="currentUserId">Id of the creating user.</param>
         /// <returns>Id of the added leave time.</returns>
-        Guid Execute(LeaveTime request);
+        public Guid Execute(LeaveTime request, Guid currentUserId);
     }
 }

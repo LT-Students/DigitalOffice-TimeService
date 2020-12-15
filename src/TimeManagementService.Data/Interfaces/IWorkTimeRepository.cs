@@ -29,7 +29,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Interfaces
         /// <summary>
         /// Change work time in the database. Returns true if the operation is successful.
         /// </summary>
-        /// <param name="workTime">Work time change.</param>
+        /// <param name="workTime">New WorkTime.</param>
         /// <returns>True if the operation is successful.</returns>
         public bool EditWorkTime(DbWorkTime workTime);
 
@@ -38,6 +38,6 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Interfaces
         /// </summary>
         /// <param name="workTimeId">Work time id.</param>
         /// <returns>Model with specified id.</returns>
-        public DbWorkTime GetWorkTime(Guid workTimeId);
+        public DbWorkTime GetWorkTimeById(Guid workTimeId);
     }
 }

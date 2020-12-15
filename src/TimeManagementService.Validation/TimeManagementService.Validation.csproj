@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TimeManagementService.Data\TimeManagementService.Data.csproj" />
+    <ProjectReference Include="..\TimeManagementService.Models.Broker\TimeManagementService.Models.Broker.csproj" />
     <ProjectReference Include="..\TimeManagementService.Models.Dto\TimeManagementService.Models.Dto.csproj" />
   </ItemGroup>
 

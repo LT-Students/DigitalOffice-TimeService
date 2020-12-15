@@ -1,9 +1,12 @@
 ﻿using FluentValidation;
+using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -16,15 +19,14 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
     public class EditWorkTimeRequestValidator : AbstractValidator<EditWorkTimeRequest>
     {
         private static List<string> Paths
-            => new List<string> { DescriptionPath, TitlePath, ProjectIdPath,// WorkerUserIdPath,
-                StartTimePath, EndTimePath };
+            => new List<string> { DescriptionPath, TitlePath, ProjectIdPath, UserIdPath, StartTimePath, EndTimePath };
 
         private static string DescriptionPath => $"/{nameof(DbWorkTime.Description)}";
         private static string TitlePath => $"/{nameof(DbWorkTime.Title)}";
         private static string ProjectIdPath => $"/{nameof(DbWorkTime.ProjectId)}";
-        //private static string WorkerUserIdPath => $"/{nameof(DbWorkTime.WorkerUserId)}";
-        private static string StartTimePath => $"/{nameof(DbWorkTime.StartTime)}";
-        private static string EndTimePath => $"/{nameof(DbWorkTime.EndTime)}";
+        private static string UserIdPath => $"/{nameof(DbWorkTime.UserId)}";
+        private static string StartTimePath => $"/{nameof(DbWorkTime.StartDate)}";
+        private static string EndTimePath => $"/{nameof(DbWorkTime.EndDate)}";
 
         Func<JsonPatchDocument<DbWorkTime>, string, Operation> GetOperationByPath =>
             (x, path) => x.Operations.FirstOrDefault(x => x.path == path);
@@ -34,7 +36,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
         /// </summary>
         public static TimeSpan WorkingLimit { get; } = new TimeSpan(24, 0, 0);
 
-        public EditWorkTimeRequestValidator([FromServices] IWorkTimeRepository repository)
+        public EditWorkTimeRequestValidator(
+            [FromServices] IWorkTimeRepository repository,
+            [FromServices] IAssignValidator assignValidator)
         {
             RuleFor(x => x.Patch.Operations)
                 .Must(x => x.Select(x => x.path).Distinct().Count() == x.Count())
@@ -80,17 +84,22 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                     });
 
                     // Oh. Check overlap with new User? Admin can it?
-                    //When(wt => GetOperationByPath(wt.Patch, WorkerUserIdPath) != null, () =>
-                    //{
-                    //    RuleFor(x => x.Patch.Operations)
-                    //    .UniqueOperationWithAllowedOp(WorkerUserIdPath, "add", "replace");
+                    When(wt => GetOperationByPath(wt.Patch, UserIdPath) != null, () =>
+                    {
+                        RuleFor(x => x.Patch.Operations)
+                        .UniqueOperationWithAllowedOp(UserIdPath, "add", "replace");
 
-                    //    //check exist?
-
-                    //    RuleFor(wt => (Guid)GetOperationByPath(wt.Patch, WorkerUserIdPath).value)
-                    //    .NotEmpty()
-                    //    .WithMessage($"{WorkerUserIdPath} must not be empty.");
-                    //});
+                        RuleFor(wt => (Guid)GetOperationByPath(wt.Patch, UserIdPath).value)
+                        .NotEmpty()
+                        .WithMessage($"{UserIdPath} must not be empty.")
+                        .DependentRules(() =>
+                        {
+                            RuleFor(wt => wt)
+                            .Must(wt => assignValidator.CanAssignUser(wt.CurrentUserId, (Guid)GetOperationByPath(wt.Patch, UserIdPath).value))
+                            .WithMessage("You cannot assign this user.");
+                        })
+                        .WithMessage("User does not exist.");
+                    });
 
                     When(wt => GetOperationByPath(wt.Patch, ProjectIdPath) != null, () =>
                     {
@@ -125,20 +134,20 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         RuleFor(wt => wt)
                         .Must(wt =>
                         {
-                            var oldWorkTime = repository.GetWorkTime(wt.WorkTimeId);
+                            var oldWorkTime = repository.GetWorkTimeById(wt.WorkTimeId);
                             var startTimeOperation = GetOperationByPath(wt.Patch, StartTimePath);
                             var endTimeOperation = GetOperationByPath(wt.Patch, EndTimePath);
-                            userId = oldWorkTime.WorkerUserId;
+                            userId = oldWorkTime.UserId;
                             oldWorkTimeId = oldWorkTime.Id;
 
-                            startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartTime;
-                            endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndTime;
+                            startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartDate;
+                            endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndDate;
 
                             return startTime < endTime;
                         })
                         .WithMessage("You cannot indicate that you worked zero hours or a negative amount.")
-                        .Must(wt => endTime - startTime <= WorkingLimit).WithMessage(time =>
-                            $"You cannot indicate that you worked more than {WorkingLimit.Hours} hours and {WorkingLimit.Minutes} minutes.")
+                        .Must(wt => endTime - startTime <= WorkingLimit)
+                        .WithMessage(time => $"You cannot indicate that you worked more than {WorkingLimit.Hours} hours and {WorkingLimit.Minutes} minutes.")
                         .Must(wt =>
                         {
                             var oldWorkTimes = repository.GetUserWorkTimes(
@@ -152,8 +161,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
                             return oldWorkTimes
                             .Where(oldWorkTime => oldWorkTime.Id != oldWorkTimeId)
-                            .All(oldWorkTime => endTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= startTime);
-                        }).WithMessage("New WorkTime should not overlap with old ones.");
+                            .All(oldWorkTime => endTime <= oldWorkTime.StartDate || oldWorkTime.EndDate <= startTime);
+                        })
+                        .WithMessage("New WorkTime should not overlap with old ones.");
                     });
                 });
         }

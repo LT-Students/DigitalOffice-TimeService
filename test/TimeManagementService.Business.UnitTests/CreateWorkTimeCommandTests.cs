@@ -28,22 +28,22 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
             request = new WorkTime()
             {
                 ProjectId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
-                EndTime = new DateTime(2020, 7, 29, 17, 0, 0),
+                StartDate = new DateTime(2020, 7, 29, 9, 0, 0),
+                EndDate = new DateTime(2020, 7, 29, 17, 0, 0),
                 Title = "I was working on a very important task",
                 Description = "I was asleep. I love sleep. I hope I get paid for this.",
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             createdWorkTime = new DbWorkTime()
             {
                 Id = Guid.NewGuid(),
                 ProjectId = request.ProjectId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
+                StartDate = request.StartDate,
+                EndDate = request.EndDate,
                 Title = request.Title,
                 Description = request.Description,
-                WorkerUserId = request.WorkerUserId
+                UserId = request.UserId
             };
         }
 

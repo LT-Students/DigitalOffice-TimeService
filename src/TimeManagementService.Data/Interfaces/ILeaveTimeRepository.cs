@@ -23,5 +23,19 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Interfaces
         /// <param name="leaveTime">Leave time to add.</param>
         /// <returns>Id of the added leave time.</returns>
         public Guid CreateLeaveTime(DbLeaveTime leaveTime);
+
+        /// <summary>
+        /// Change leave time in the database. Returns true if the operation is successful.
+        /// </summary>
+        /// <param name="leaveTime">New LeaveTime.</param>
+        /// <returns>True if the operation is successful.</returns>
+        public bool EditLeaveTime(DbLeaveTime leaveTime);
+
+        /// <summary>
+        /// Get leave time with specified id from the database.
+        /// </summary>
+        /// <param name="workTimeId">Leave time id.</param>
+        /// <returns>Model with specified id.</returns>
+        public DbLeaveTime GetLeaveTimeById(Guid leaveTimeId);
     }
 }

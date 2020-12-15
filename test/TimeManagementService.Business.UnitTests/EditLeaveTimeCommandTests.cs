@@ -14,47 +14,47 @@ using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
-    public class EditWorkTimeCommandTests
+    public class EditLeaveTimeCommandTests
     {
-        private Mock<IValidator<EditWorkTimeRequest>> validatorMock;
-        private Mock<IWorkTimeRepository> repositoryMock;
-        private IEditWorkTimeCommand command;
+        private Mock<IValidator<EditLeaveTimeRequest>> validatorMock;
+        private Mock<ILeaveTimeRepository> repositoryMock;
+        private IEditLeaveTimeCommand command;
 
-        private EditWorkTimeRequest request;
+        private EditLeaveTimeRequest request;
         private Guid currentUserId;
-        private DbWorkTime editedWorkTime;
+        private DbLeaveTime editedLeaveTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            request = new EditWorkTimeRequest
+            request = new EditLeaveTimeRequest
             {
-                WorkTimeId = Guid.NewGuid(),
-                Patch = new JsonPatchDocument<DbWorkTime>()
+                LeaveTimeId = Guid.NewGuid(),
+                Patch = new JsonPatchDocument<DbLeaveTime>()
             };
             currentUserId = Guid.NewGuid();
-            editedWorkTime = new DbWorkTime() {};
+            editedLeaveTime = new DbLeaveTime() {};
         }
 
         [SetUp]
         public void SetUp()
         {
-            validatorMock = new Mock<IValidator<EditWorkTimeRequest>>();
-            repositoryMock = new Mock<IWorkTimeRepository>();
+            validatorMock = new Mock<IValidator<EditLeaveTimeRequest>>();
+            repositoryMock = new Mock<ILeaveTimeRepository>();
 
             validatorMock
                  .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
                  .Returns(true);
 
             repositoryMock
-                .Setup(x => x.GetWorkTimeById(It.IsAny<Guid>()))
-                .Returns(new DbWorkTime());
+                .Setup(x => x.GetLeaveTimeById(It.IsAny<Guid>()))
+                .Returns(new DbLeaveTime());
 
             repositoryMock
-                .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
+                .Setup(x => x.EditLeaveTime(It.IsAny<DbLeaveTime>()))
                 .Returns(true);
 
-            command = new EditWorkTimeCommand(validatorMock.Object, repositoryMock.Object);
+            command = new EditLeaveTimeCommand(validatorMock.Object, repositoryMock.Object);
         }
 
         [Test]
@@ -65,14 +65,14 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 .Returns(false);
 
             Assert.Throws<ValidationException>(() => command.Execute(request, currentUserId));
-            repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
+            repositoryMock.Verify(repository => repository.EditLeaveTime(It.IsAny<DbLeaveTime>()), Times.Never);
         }
 
         [Test]
         public void ShouldThrowExceptionWhenRepositoryThrowsException()
         {
             repositoryMock
-                .Setup(x => x.EditWorkTime(It.IsAny<DbWorkTime>()))
+                .Setup(x => x.EditLeaveTime(It.IsAny<DbLeaveTime>()))
                 .Throws(new Exception());
 
             Assert.Throws<Exception>(() => command.Execute(request, currentUserId));
@@ -82,7 +82,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         public void ShouldEditNewWorkTimeWhenDataIsValid()
         {
             Assert.AreEqual(true, command.Execute(request, currentUserId));
-            repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
+            repositoryMock.Verify(repository => repository.EditLeaveTime(It.IsAny<DbLeaveTime>()), Times.Once);
         }
     }
 }

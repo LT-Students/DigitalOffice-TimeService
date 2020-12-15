@@ -32,19 +32,19 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 Comment = "I have a sore throat",
                 StartTime = new DateTime(2020, 7, 24),
                 EndTime = new DateTime(2020, 7, 27),
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             expectedDbLeaveTime = new DbLeaveTime
             {
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Comment = request.Comment,
                 LeaveType = (int)request.LeaveType
             };
 
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(request.WorkerUserId))
+            repositoryMock.Setup(x => x.GetUserLeaveTimes(request.UserId))
                 .Returns(new List<DbLeaveTime> { expectedDbLeaveTime });
         }
 
@@ -65,7 +65,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, workerUserId);
+            validator.ShouldHaveValidationErrorFor(x => x.UserId, workerUserId);
         }
         #endregion
 
@@ -122,7 +122,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var successfulRequest = new LeaveTime
             {
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime.AddHours(-6),
                 EndTime = request.StartTime.AddHours(-5.85),
                 Comment = request.Comment,
@@ -137,7 +137,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var failRequest = new LeaveTime
             {
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime.AddHours(-1),
                 EndTime = request.EndTime.AddHours(-1),
                 Comment = request.Comment,
@@ -152,7 +152,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var failRequest = new LeaveTime
             {
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime.AddHours(1),
                 EndTime = request.EndTime.AddHours(-1),
                 Comment = request.Comment,
@@ -167,7 +167,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             var failRequest = new LeaveTime
             {
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime.AddHours(1),
                 EndTime = request.EndTime.AddHours(1),
                 Comment = request.Comment,

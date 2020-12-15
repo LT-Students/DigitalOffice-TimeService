@@ -50,7 +50,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
 
             expectedDbLeaveTimeWithoutId = new DbLeaveTime
@@ -59,7 +59,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
         }
 
@@ -72,7 +72,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
 
             expectedLeaveTime = new LeaveTime
@@ -82,7 +82,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                WorkerUserId = workerUserId
+                UserId = workerUserId
             };
         }
         #endregion

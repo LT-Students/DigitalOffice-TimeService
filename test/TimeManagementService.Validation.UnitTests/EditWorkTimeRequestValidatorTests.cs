@@ -31,27 +31,27 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             variableWorkTime = new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now.AddHours(6),
-                WorkerUserId = Guid.NewGuid()
+                StartDate = DateTime.Now,
+                EndDate = DateTime.Now.AddHours(6),
+                UserId = Guid.NewGuid()
             };
 
             oldWorkTime = new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                StartTime = DateTime.Now.AddDays(-1),
-                EndTime = DateTime.Now.AddDays(-1).AddHours(6),
-                WorkerUserId = variableWorkTime.WorkerUserId
+                StartDate = DateTime.Now.AddDays(-1),
+                EndDate = DateTime.Now.AddDays(-1).AddHours(6),
+                UserId = variableWorkTime.UserId
             };
 
             mockRepository = new Mock<IWorkTimeRepository>();
 
             mockRepository
-                .Setup(x => x.GetWorkTime(variableWorkTime.Id))
+                .Setup(x => x.GetWorkTimeById(variableWorkTime.Id))
                 .Returns(variableWorkTime);
 
             mockRepository
-                .Setup(x => x.GetUserWorkTimes(variableWorkTime.WorkerUserId, It.IsAny<WorkTimeFilter>()))
+                .Setup(x => x.GetUserWorkTimes(variableWorkTime.UserId, It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime> { variableWorkTime, oldWorkTime });
 
             validator = new EditWorkTimeRequestValidator(mockRepository.Object);
@@ -82,7 +82,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldValidateEditProjectRequestWhenRequestIsCorrect2()
         {
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", variableWorkTime.StartTime.AddHours(1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", variableWorkTime.StartDate.AddHours(1)));
 
             validator.TestValidate(editRequest).ShouldNotHaveAnyValidationErrors();
         }
@@ -90,7 +90,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldValidateEditProjectRequestWhenRequestIsCorrect3()
         {
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", variableWorkTime.EndTime.AddHours(1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", variableWorkTime.EndDate.AddHours(1)));
 
             validator.TestValidate(editRequest).ShouldNotHaveAnyValidationErrors();
         }
@@ -182,8 +182,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldThrowsValidationExceptionWhenEndTimeIsLessThanStartTime()
         {
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", variableWorkTime.EndTime));
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", variableWorkTime.StartTime));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", variableWorkTime.EndDate));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", variableWorkTime.StartDate));
 
             validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
         }
@@ -200,8 +200,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldThrowsValidationExceptionWhenNewStartTimeIsLessThanOldStartTimeAndNewEndTimeLessThanOldEndTime()
         {
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", oldWorkTime.StartTime.AddHours(-1)));
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", oldWorkTime.EndTime.AddHours(-1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", oldWorkTime.StartDate.AddHours(-1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", oldWorkTime.EndDate.AddHours(-1)));
 
             validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
         }
@@ -209,8 +209,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldThrowsValidationExceptionWhenNewStartTimeIsLessThanOldStartTimeAndNewEndTimeGreatherThanOldEndTime()
         {
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", oldWorkTime.StartTime.AddHours(-1)));
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", oldWorkTime.EndTime.AddHours(1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", oldWorkTime.StartDate.AddHours(-1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", oldWorkTime.EndDate.AddHours(1)));
 
             validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
         }
@@ -218,8 +218,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldThrowsValidationExceptionWhenNewStartTimeIsGreatherThanOldStartTimeAndNewEndTimeLessThanOldEndTime()
         {
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", oldWorkTime.StartTime.AddHours(1)));
-            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", oldWorkTime.EndTime.AddHours(-1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/StartTime", "", oldWorkTime.StartDate.AddHours(1)));
+            editRequest.Patch.Operations.Add(new Operation<DbWorkTime>("replace", "/EndTime", "", oldWorkTime.EndDate.AddHours(-1)));
 
             validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
         }
