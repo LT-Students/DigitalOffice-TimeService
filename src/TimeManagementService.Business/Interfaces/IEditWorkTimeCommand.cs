@@ -1,6 +1,4 @@
-﻿using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using Microsoft.AspNetCore.JsonPatch;
+﻿using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces

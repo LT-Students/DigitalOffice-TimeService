@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeManagementService.Models.Db
         public int LeaveType { get; set; }
         public string Comment { get; set; }
 
-        public class DbProjectConfiguration : IEntityTypeConfiguration<DbLeaveTime>
+        public class DbLeaveTimeConfiguration : IEntityTypeConfiguration<DbLeaveTime>
         {
             public void Configure(EntityTypeBuilder<DbLeaveTime> builder)
             {

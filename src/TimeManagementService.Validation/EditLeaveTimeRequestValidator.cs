@@ -1,12 +1,10 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
-using MassTransit;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -32,7 +30,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
         public EditLeaveTimeRequestValidator(
             [FromServices] ILeaveTimeRepository repository,
-            [FromServices] IAssignValidator assignValidator)
+            [FromServices] IAssignUserValidator assignUserValidator)
         {
             RuleFor(x => x.Patch.Operations)
                 .Must(x => x.Select(x => x.path).Distinct().Count() == x.Count())
@@ -89,7 +87,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         .DependentRules(() =>
                         {
                             RuleFor(x => x)
-                            .Must(x => assignValidator.CanAssignUser(x.CurrentUserId, (Guid)GetOperationByPath(x.Patch, UserIdPath).value))
+                            .Must(x => assignUserValidator.CanAssignUser(x.CurrentUserId, (Guid)GetOperationByPath(x.Patch, UserIdPath).value))
                             .WithMessage("You cannot assign this user.");
                         })
                         .WithMessage("User does not exist.");
@@ -107,10 +105,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
                     When(x => x.Patch.Operations.FirstOrDefault(x => x.path == StartTimePath || x.path == EndTimePath) != null, () =>
                     {
-                        var userId = new Guid();
                         var startTime = new DateTime();
                         var endTime = new DateTime();
-                        var oldWorkTimeId = new Guid();
 
                         RuleFor(x => x)
                         .Must(x =>
@@ -118,33 +114,13 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                             var oldWorkTime = repository.GetLeaveTimeById(x.LeaveTimeId);
                             var startTimeOperation = GetOperationByPath(x.Patch, StartTimePath);
                             var endTimeOperation = GetOperationByPath(x.Patch, EndTimePath);
-                            userId = oldWorkTime.UserId;
-                            oldWorkTimeId = oldWorkTime.Id;
 
                             startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartTime;
                             endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndTime;
 
                             return startTime < endTime;
                         })
-                        .WithMessage("You cannot indicate that you worked zero hours or a negative amount.")
-                        .Must(x => endTime - startTime <= WorkingLimit)
-                        .WithMessage(x => $"You cannot indicate that you worked more than {WorkingLimit.Hours} hours and {WorkingLimit.Minutes} minutes.")
-                        .Must(x =>
-                        {
-                            var oldWorkTimes = repository.GetUserWorkTimes(
-                                userId,
-                                new WorkTimeFilter
-                                {
-                                    EndTime = endTime
-                                });
-
-                            if (oldWorkTimes == null) return true;
-
-                            return oldWorkTimes
-                            .Where(oldWorkTime => oldWorkTime.Id != oldWorkTimeId)
-                            .All(oldWorkTime => endTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= startTime);
-                        })
-                        .WithMessage("New WorkTime should not overlap with old ones.");
+                        .WithMessage("You cannot indicate that you worked zero hours or a negative amount.");
                     });
                 });
         }

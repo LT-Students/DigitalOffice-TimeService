@@ -1,9 +1,7 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;

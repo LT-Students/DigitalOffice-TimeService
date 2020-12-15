@@ -1,32 +1,24 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.Broker.Requests;
-using LT.DigitalOffice.Broker.Responses;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.Kernel.Exceptions;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
-using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
     public class LeaveTimeValidator : AbstractValidator<LeaveTime>
     {
         public LeaveTimeValidator(
-            [FromServices] ILeaveTimeRepository repository,
-            [FromServices] IAssignValidator assignValidator)
+            [FromServices] IAssignUserValidator assignUserValidator)
         {
             RuleFor(x => x.UserId)
                 .NotEmpty()
                 .DependentRules(() =>
                 {
                     RuleFor(x => x)
-                    .Must(x => assignValidator.CanAssignUser(x.CurrentUserId, x.UserId))
+                    .Must(x => assignUserValidator.CanAssignUser(x.CurrentUserId, x.UserId ?? x.CurrentUserId))
                     .WithMessage("You cannot assign this user.");
                 })
                 .WithMessage("User does not exist.");
@@ -44,14 +36,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                 .NotEqual(new DateTime());
 
             RuleFor(x => x)
-                .Must(x => x.StartTime < x.EndTime).WithMessage("Start time must be before end time.")
-                .Must(x =>
-                {
-                    var workTimes = repository.GetUserLeaveTimes(x.UserId);
-
-                    return workTimes.All(oldWorkTime =>
-                        x.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= x.StartTime);
-                }).WithMessage("New LeaveTime should not overlap with old ones.");
+                .Must(x => x.StartTime < x.EndTime).WithMessage("Start time must be before end time.");
         }
     }
 }

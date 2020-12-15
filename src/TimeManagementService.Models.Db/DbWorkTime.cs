@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeManagementService.Models.Db
         public DateTime CreatedAt { get; set; }
         public Guid CreatedBy { get; set; }
 
-        public class DbProjectConfiguration : IEntityTypeConfiguration<DbWorkTime>
+        public class DbWorkTimeConfiguration : IEntityTypeConfiguration<DbWorkTime>
         {
             public void Configure(EntityTypeBuilder<DbWorkTime> builder)
             {

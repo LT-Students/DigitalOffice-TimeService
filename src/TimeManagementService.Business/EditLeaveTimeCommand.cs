@@ -5,8 +5,6 @@ using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Business
 {

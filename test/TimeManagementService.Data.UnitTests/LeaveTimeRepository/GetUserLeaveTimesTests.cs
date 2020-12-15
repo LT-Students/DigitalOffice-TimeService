@@ -48,6 +48,9 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                 EndTime = new DateTime(2020, 7, 20),
                 UserId = secondWorkerId
             };
+
+            dbContext.LeaveTimes.AddRange(firstLeaveTime, secondLeaveTime);
+            dbContext.SaveChanges();
         }
 
         [TearDown]
@@ -62,10 +65,6 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [Test]
         public void ShouldReturnsLeaveTime()
         {
-            dbContext.Add(firstLeaveTime);
-            dbContext.Add(secondLeaveTime);
-            dbContext.SaveChanges();
-
             var leaveTimesOfFirstWorker = repository.GetUserLeaveTimes(firstWorkerId);
             var leaveTimesOfSecondWorker = repository.GetUserLeaveTimes(secondWorkerId);
 

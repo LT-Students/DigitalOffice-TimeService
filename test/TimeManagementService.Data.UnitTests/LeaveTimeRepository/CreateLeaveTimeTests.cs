@@ -13,10 +13,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         private TimeManagementDbContext dbContext;
         private ILeaveTimeRepository repository;
 
-        private Guid firstWorkerId;
-        private Guid secondWorkerId;
-        private DbLeaveTime firstLeaveTime;
-        private DbLeaveTime secondLeaveTime;
+        private DbLeaveTime leaveTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -27,26 +24,14 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             dbContext = new TimeManagementDbContext(dbOptions);
             repository = new LeaveTimeRepository(dbContext);
 
-            firstWorkerId = Guid.NewGuid();
-            secondWorkerId = Guid.NewGuid();
-
-            firstLeaveTime = new DbLeaveTime
+            leaveTime = new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
                 LeaveType = (int)LeaveType.SickLeave,
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 5),
                 EndTime = new DateTime(2020, 7, 25),
-                UserId = firstWorkerId
-            };
-            secondLeaveTime = new DbLeaveTime
-            {
-                Id = Guid.NewGuid(),
-                LeaveType = (int)LeaveType.Training,
-                Comment = "SickLeave",
-                StartTime = new DateTime(2020, 7, 10),
-                EndTime = new DateTime(2020, 7, 20),
-                UserId = secondWorkerId
+                UserId = Guid.NewGuid()
             };
         }
 
@@ -62,10 +47,10 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [Test]
         public void ShouldAddNewLeaveTimeInDb()
         {
-            var guidOfNewLeaveTime = repository.CreateLeaveTime(firstLeaveTime);
+            var guidOfNewLeaveTime = repository.CreateLeaveTime(leaveTime);
 
-            Assert.AreEqual(firstLeaveTime.Id, guidOfNewLeaveTime);
-            Assert.That(dbContext.LeaveTimes.Find(firstLeaveTime.Id), Is.EqualTo(firstLeaveTime));
+            Assert.AreEqual(leaveTime.Id, guidOfNewLeaveTime);
+            Assert.That(dbContext.LeaveTimes.Find(leaveTime.Id), Is.EqualTo(leaveTime));
         }
     }
 }

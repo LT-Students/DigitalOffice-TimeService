@@ -34,7 +34,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.Interfaces
         /// <summary>
         /// Get leave time with specified id from the database.
         /// </summary>
-        /// <param name="workTimeId">Leave time id.</param>
+        /// <param name="leaveTimeId">Leave time id.</param>
         /// <returns>Model with specified id.</returns>
         public DbLeaveTime GetLeaveTimeById(Guid leaveTimeId);
     }

@@ -1,14 +1,11 @@
-using LT.DigitalOffice.Kernel.Exceptions;
 using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
 {
@@ -23,9 +20,6 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         private Guid worker2;
         private List<DbWorkTime> workTimesOfWorker1;
         private List<DbWorkTime> workTimesOfWorker2;
-
-        private DbWorkTime time;
-        private Guid id;
 
         [SetUp]
         public void OneTimeSetUp()
@@ -76,19 +70,6 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                     StartDate = DateTime.Now.AddDays(-0.9),
                     EndDate = DateTime.Now.AddDays(-0.65)
                 }
-            };
-
-            id = Guid.NewGuid();
-
-            time = new DbWorkTime
-            {
-                Id = id,
-                UserId = Guid.NewGuid(),
-                StartDate = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndDate = new DateTime(2020, 2, 2, 2, 2, 2),
-                Title = "Example",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
             };
         }
 

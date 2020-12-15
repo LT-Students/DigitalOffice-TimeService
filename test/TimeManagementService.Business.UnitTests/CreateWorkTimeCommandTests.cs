@@ -1,5 +1,4 @@
 using FluentValidation;
-using FluentValidation.Results;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
@@ -8,7 +7,6 @@ using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
@@ -43,7 +41,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 EndDate = request.EndDate,
                 Title = request.Title,
                 Description = request.Description,
-                UserId = request.UserId
+                UserId = (Guid)request.UserId
             };
         }
 
@@ -64,7 +62,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
                 .Returns(false);
 
-            Assert.Throws<ValidationException>(() => command.Execute(request));
+            Assert.Throws<ValidationException>(() => command.Execute(request, Guid.NewGuid()));
             repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
         }
 
@@ -83,7 +81,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
                 .Throws(new Exception());
 
-            Assert.Throws<Exception>(() => command.Execute(request));
+            Assert.Throws<Exception>(() => command.Execute(request, Guid.NewGuid()));
         }
 
         [Test]
@@ -101,7 +99,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                 .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
                 .Returns(createdWorkTime.Id);
 
-            Assert.AreEqual(createdWorkTime.Id, command.Execute(request));
+            Assert.AreEqual(createdWorkTime.Id, command.Execute(request, Guid.NewGuid()));
             repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }

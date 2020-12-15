@@ -1,16 +1,12 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
 using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using Microsoft.AspNetCore.JsonPatch;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {

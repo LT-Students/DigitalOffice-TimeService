@@ -7,45 +7,20 @@ using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
-    public class AssignValidator : IAssignValidator
+    public class AssignUserValidator : IAssignUserValidator
     {
         private IRequestClient<IGetUserRequest> userRequestClient;
-        private IRequestClient<IGetProjectUserRequest> projectUserRequestClient;
         private IAccessValidator acessValidator;
 
-        public AssignValidator(
+        public AssignUserValidator(
             [FromServices] IRequestClient<IGetUserRequest> userRequestClient,
-            [FromServices] IRequestClient<IGetProjectUserRequest> projectUserRequestClient,
             [FromServices] IAccessValidator acessValidator)
         {
             this.userRequestClient = userRequestClient;
-            this.projectUserRequestClient = projectUserRequestClient;
             this.acessValidator = acessValidator;
-        }
-
-        public bool CanAssignProject(Guid assignedUserId, Guid assignedProjectId)
-        {
-            try
-            {
-                var projectUserInfoResponse = projectUserRequestClient.GetResponse<IOperationResult<IGetProjectUserResponse>>(
-                    IGetProjectUserRequest.CreateObj(assignedUserId, assignedProjectId));
-
-                if (projectUserInfoResponse.Result.Message.IsSuccess)
-                {
-                    return projectUserInfoResponse.Result.Message.Body.IsActive;
-                }
-
-                throw new Exception("It was not possible to check that the user exists.");
-            }
-            catch
-            {
-                throw new Exception("It was not possible to check that the user exists.");
-            }
         }
 
         public bool CanAssignUser(Guid currentUserId, Guid assignedUserId)
