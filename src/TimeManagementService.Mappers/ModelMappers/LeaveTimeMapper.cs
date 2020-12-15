@@ -18,7 +18,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers
             return new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
-                UserId = value.UserId,
+                UserId = value.UserId ?? value.CurrentUserId,
                 LeaveType = (int)value.LeaveType,
                 StartTime = value.StartTime,
                 EndTime = value.EndTime,

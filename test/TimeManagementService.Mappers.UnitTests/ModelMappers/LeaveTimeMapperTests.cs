@@ -19,7 +19,8 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         private const string comment = "I have a sore throat";
         private DateTime startTime = new DateTime(2020, 7, 24);
         private DateTime endTime = new DateTime(2020, 7, 27);
-        private Guid workerUserId = Guid.NewGuid();
+        private Guid userId = Guid.NewGuid();
+        private Guid currentUserId = Guid.NewGuid();
 
         private LeaveTime leaveTime;
         private DbLeaveTime expectedDbLeaveTimeWithoutId;
@@ -50,7 +51,8 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                UserId = workerUserId
+                UserId = userId,
+                CurrentUserId = currentUserId
             };
 
             expectedDbLeaveTimeWithoutId = new DbLeaveTime
@@ -59,7 +61,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                UserId = workerUserId
+                UserId = userId
             };
         }
 
@@ -72,7 +74,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                UserId = workerUserId
+                UserId = userId
             };
 
             expectedLeaveTime = new LeaveTime
@@ -82,7 +84,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Comment = comment,
                 StartTime = startTime,
                 EndTime = endTime,
-                UserId = workerUserId
+                UserId = userId
             };
         }
         #endregion
@@ -96,9 +98,21 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         }
 
         [Test]
-        public void ShouldReturnDbLeaveTimeWhenMappingValidLeaveTime()
+        public void ShouldReturnDbLeaveTimeWhenMappingValidLeaveTime1()
         {
             var resultDbLeaveTime = mapper.Map(leaveTime);
+            expectedDbLeaveTimeWithoutId.Id = resultDbLeaveTime.Id;
+
+            Assert.IsInstanceOf<Guid>(resultDbLeaveTime.Id);
+            SerializerAssert.AreEqual(expectedDbLeaveTimeWithoutId, resultDbLeaveTime);
+        }
+
+        [Test]
+        public void ShouldReturnDbLeaveTimeWhenMappingValidLeaveTime2()
+        {
+            leaveTime.UserId = null;
+            var resultDbLeaveTime = mapper.Map(leaveTime);
+            expectedDbLeaveTimeWithoutId.UserId = leaveTime.CurrentUserId;
             expectedDbLeaveTimeWithoutId.Id = resultDbLeaveTime.Id;
 
             Assert.IsInstanceOf<Guid>(resultDbLeaveTime.Id);

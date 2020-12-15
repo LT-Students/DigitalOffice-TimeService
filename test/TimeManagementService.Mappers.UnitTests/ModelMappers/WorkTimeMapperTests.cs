@@ -20,6 +20,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         private const string title = "I was working on a very important task";
         private const string description = "I was asleep. I love sleep. I hope I get paid for this.";
         private Guid workerUserId = Guid.NewGuid();
+        private Guid currentUserId = Guid.NewGuid();
 
         private WorkTime workTime;
         private DbWorkTime expectedDbWorkTimeWithoutId;
@@ -51,7 +52,8 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 EndDate = endTime,
                 Title = title,
                 Description = description,
-                UserId = workerUserId
+                UserId = workerUserId,
+                CurrentUserId = currentUserId
             };
 
             expectedDbWorkTimeWithoutId = new DbWorkTime
@@ -100,9 +102,21 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         }
 
         [Test]
-        public void ShouldReturnDbWorkTimeWhenMappingValidWorkTime()
+        public void ShouldReturnDbWorkTimeWhenMappingValidWorkTime1()
         {
             var newWorkTime = mapper.Map(workTime);
+            expectedDbWorkTimeWithoutId.Id = newWorkTime.Id;
+
+            Assert.IsInstanceOf<Guid>(newWorkTime.Id);
+            SerializerAssert.AreEqual(expectedDbWorkTimeWithoutId, newWorkTime);
+        }
+
+        [Test]
+        public void ShouldReturnDbWorkTimeWhenMappingValidWorkTime2()
+        {
+            workTime.UserId = null;
+            var newWorkTime = mapper.Map(workTime);
+            expectedDbWorkTimeWithoutId.UserId = workTime.CurrentUserId;
             expectedDbWorkTimeWithoutId.Id = newWorkTime.Id;
 
             Assert.IsInstanceOf<Guid>(newWorkTime.Id);

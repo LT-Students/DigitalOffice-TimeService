@@ -7,7 +7,7 @@ namespace LT.DigitalOffice.TimeManagementService.Models.Dto.Models
     public class LeaveTime
     {
         public Guid? Id { get; set; }
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public LeaveType LeaveType { get; set; }

@@ -15,8 +15,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// Get leave time of user with id <param name="userId">.
         /// </summary>
         /// <param name="userId">ID of the user who is looking for data.</param>
-        /// <param name="currentUserId">Id of the getting user.</param>
         /// <returns>Leave times with UserId <param name="userId">.</returns>
-        public IEnumerable<LeaveTime> Execute(Guid userId, Guid currentUserId);
+        public IEnumerable<LeaveTime> Execute(Guid userId);
     }
 }

@@ -6,7 +6,7 @@ namespace LT.DigitalOffice.TimeManagementService.Models.Dto.Models
     public class WorkTime
     {
         public Guid? Id { get; set; }
-        public Guid UserId { get; set; }
+        public Guid? UserId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }
         public int Minutes { get; set; }
