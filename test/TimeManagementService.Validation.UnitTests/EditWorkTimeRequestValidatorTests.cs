@@ -12,7 +12,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
@@ -28,6 +27,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [SetUp]
         public void SetUp()
         {
+            resolver = new CamelCasePropertyNamesContractResolver();
+
             editRequest = new EditWorkTimeRequest
             {
                 Patch = new JsonPatchDocument<DbWorkTime>(new List<Operation<DbWorkTime>>
@@ -58,7 +59,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             //    .Returns(true);
 
             validator = new EditWorkTimeRequestValidator(mockRepository.Object, mockUserValidator.Object, mockProjectValidator.Object);
-            resolver = new CamelCasePropertyNamesContractResolver();
         }
 
         Func<string, Operation> GetOperationByPath =>

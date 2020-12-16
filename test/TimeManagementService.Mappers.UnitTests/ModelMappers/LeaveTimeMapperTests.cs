@@ -2,7 +2,8 @@ using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers;
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using LT.DigitalOffice.UnitTestKernel;
 using NUnit.Framework;
 using System;
@@ -22,11 +23,11 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         private Guid userId = Guid.NewGuid();
         private Guid currentUserId = Guid.NewGuid();
 
-        private LeaveTime leaveTime;
+        private LeaveTimeRequest leaveTime;
         private DbLeaveTime expectedDbLeaveTimeWithoutId;
 
         private DbLeaveTime dbLeaveTime;
-        private LeaveTime expectedLeaveTime;
+        private LeaveTimeResponse expectedLeaveTime;
         #endregion
 
         #region SetUp
@@ -45,7 +46,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
 
         private void LeaveTimeToDbLeaveTime()
         {
-            leaveTime = new LeaveTime
+            leaveTime = new LeaveTimeRequest
             {
                 LeaveType = leaveType,
                 Comment = comment,
@@ -77,7 +78,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 UserId = userId
             };
 
-            expectedLeaveTime = new LeaveTime
+            expectedLeaveTime = new LeaveTimeResponse
             {
                 Id = id,
                 LeaveType = leaveType,
@@ -93,7 +94,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenLeaveTimeIsNull()
         {
-            LeaveTime leaveTime = null;
+            LeaveTimeRequest leaveTime = null;
             Assert.Throws<ArgumentNullException>(() => mapper.Map(leaveTime));
         }
 

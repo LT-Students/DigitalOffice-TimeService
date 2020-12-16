@@ -1,14 +1,15 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers
 {
     public class LeaveTimeMapper : ILeaveTimeMapper
     {
-        public DbLeaveTime Map(LeaveTime value)
+        public DbLeaveTime Map(LeaveTimeRequest value)
         {
             if (value == null)
             {
@@ -26,14 +27,14 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers
             };
         }
 
-        public LeaveTime Map(DbLeaveTime value)
+        public LeaveTimeResponse Map(DbLeaveTime value)
         {
             if (value == null)
             {
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return new LeaveTime
+            return new LeaveTimeResponse
             {
                 Id = value.Id,
                 UserId = value.UserId,

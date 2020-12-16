@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace LT.DigitalOffice.TimeManagementService.Models.Dto.Models
+namespace LT.DigitalOffice.TimeManagementService.Models.Dto.Requests
 {
-    public class WorkTime
+    public class WorkTimeRequest
     {
-        public Guid? Id { get; set; }
         public Guid? UserId { get; set; }
         public DateTime StartDate { get; set; }
         public DateTime EndDate { get; set; }

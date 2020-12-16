@@ -1,7 +1,8 @@
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers;
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using LT.DigitalOffice.UnitTestKernel;
 using NUnit.Framework;
 using System;
@@ -21,12 +22,13 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         private const string description = "I was asleep. I love sleep. I hope I get paid for this.";
         private Guid workerUserId = Guid.NewGuid();
         private Guid currentUserId = Guid.NewGuid();
+        private int minutes = 10;
 
-        private WorkTime workTime;
+        private WorkTimeRequest workTime;
         private DbWorkTime expectedDbWorkTimeWithoutId;
 
         private DbWorkTime dbWorkTime;
-        private WorkTime expectedWorkTime;
+        private WorkTimeResponse expectedWorkTime;
         #endregion
 
         #region SetUp
@@ -45,7 +47,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
 
         private void WorkTimeToDbWorkTimeSetUp()
         {
-            workTime = new WorkTime
+            workTime = new WorkTimeRequest
             {
                 ProjectId = projectId,
                 StartDate = startTime,
@@ -53,7 +55,8 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 Title = title,
                 Description = description,
                 UserId = workerUserId,
-                CurrentUserId = currentUserId
+                CurrentUserId = currentUserId,
+                Minutes = minutes
             };
 
             expectedDbWorkTimeWithoutId = new DbWorkTime
@@ -63,7 +66,9 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 EndDate = endTime,
                 Title = title,
                 Description = description,
-                UserId = workerUserId
+                UserId = workerUserId,
+                Minutes = minutes,
+                CreatedBy = currentUserId
             };
         }
 
@@ -77,10 +82,13 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 EndDate = endTime,
                 Title = title,
                 Description = description,
-                UserId = workerUserId
+                UserId = workerUserId,
+                Minutes = minutes,
+                CreatedAt = DateTime.Now,
+                CreatedBy = currentUserId
             };
 
-            expectedWorkTime = new WorkTime
+            expectedWorkTime = new WorkTimeResponse
             {
                 Id = id,
                 ProjectId = projectId,
@@ -88,7 +96,8 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
                 EndDate = endTime,
                 Title = title,
                 Description = description,
-                UserId = workerUserId
+                UserId = workerUserId,
+                Minutes = minutes,
             };
         }
         #endregion
@@ -97,7 +106,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenWorkTimeIsNull()
         {
-            WorkTime workTime = null;
+            WorkTimeRequest workTime = null;
             Assert.Throws<ArgumentNullException>(() => mapper.Map(workTime));
         }
 
@@ -106,6 +115,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
         {
             var newWorkTime = mapper.Map(workTime);
             expectedDbWorkTimeWithoutId.Id = newWorkTime.Id;
+            expectedDbWorkTimeWithoutId.CreatedAt = newWorkTime.CreatedAt;
 
             Assert.IsInstanceOf<Guid>(newWorkTime.Id);
             SerializerAssert.AreEqual(expectedDbWorkTimeWithoutId, newWorkTime);
@@ -118,6 +128,7 @@ namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests.ModelMappers
             var newWorkTime = mapper.Map(workTime);
             expectedDbWorkTimeWithoutId.UserId = workTime.CurrentUserId;
             expectedDbWorkTimeWithoutId.Id = newWorkTime.Id;
+            expectedDbWorkTimeWithoutId.CreatedAt = newWorkTime.CreatedAt;
 
             Assert.IsInstanceOf<Guid>(newWorkTime.Id);
             SerializerAssert.AreEqual(expectedDbWorkTimeWithoutId, newWorkTime);

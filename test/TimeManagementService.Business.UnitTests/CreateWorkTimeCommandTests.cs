@@ -3,7 +3,7 @@ using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -12,18 +12,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
     public class CreateWorkTimeCommandTests
     {
-        private Mock<IValidator<WorkTime>> validatorMock;
-        private Mock<IMapper<WorkTime, DbWorkTime>> mapperMock;
+        private Mock<IValidator<WorkTimeRequest>> validatorMock;
+        private Mock<IMapper<WorkTimeRequest, DbWorkTime>> mapperMock;
         private Mock<IWorkTimeRepository> repositoryMock;
         private ICreateWorkTimeCommand command;
 
-        private WorkTime request;
+        private WorkTimeRequest request;
         private DbWorkTime createdWorkTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            request = new WorkTime()
+            request = new WorkTimeRequest()
             {
                 ProjectId = Guid.NewGuid(),
                 StartDate = new DateTime(2020, 7, 29, 9, 0, 0),
@@ -48,8 +48,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [SetUp]
         public void SetUp()
         {
-            validatorMock = new Mock<IValidator<WorkTime>>();
-            mapperMock = new Mock<IMapper<WorkTime, DbWorkTime>>();
+            validatorMock = new Mock<IValidator<WorkTimeRequest>>();
+            mapperMock = new Mock<IMapper<WorkTimeRequest, DbWorkTime>>();
             repositoryMock = new Mock<IWorkTimeRepository>();
 
             command = new CreateWorkTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
@@ -74,7 +74,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                  .Returns(true);
 
             mapperMock
-                .Setup(x => x.Map(It.IsAny<WorkTime>()))
+                .Setup(x => x.Map(It.IsAny<WorkTimeRequest>()))
                 .Returns(createdWorkTime);
 
             repositoryMock
@@ -92,7 +92,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                  .Returns(true);
 
             mapperMock
-                .Setup(x => x.Map(It.IsAny<WorkTime>()))
+                .Setup(x => x.Map(It.IsAny<WorkTimeRequest>()))
                 .Returns(createdWorkTime);
 
             repositoryMock

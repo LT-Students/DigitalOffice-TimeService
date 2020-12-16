@@ -1,5 +1,5 @@
 ﻿using LT.DigitalOffice.TimeManagementService.Data.Filters;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using System;
 using System.Collections.Generic;
 
@@ -17,6 +17,6 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// <param name="userId">ID of the user who is looking for data.</param>
         /// <param name="filter">Limitations on request.</param>
         /// <returns>Work times with UserId <param name="userId">.</returns>
-        public IEnumerable<WorkTime> Execute(Guid userId, WorkTimeFilter filter);
+        public IEnumerable<WorkTimeResponse> Execute(Guid userId, WorkTimeFilter filter);
     }
 }

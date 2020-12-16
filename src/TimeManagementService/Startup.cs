@@ -13,8 +13,8 @@ using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.ModelMappers;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using LT.DigitalOffice.TimeManagementService.Validation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -57,25 +57,32 @@ namespace LT.DigitalOffice.TimeManagementService
 
         private void ConfigureCommands(IServiceCollection services)
         {
-            services.AddTransient<IEditWorkTimeCommand, EditWorkTimeCommand>();
-            services.AddTransient<ICreateLeaveTimeCommand, CreateLeaveTimeCommand>();
+            services.AddTransient<IGetUserWorkTimesCommand, GetUserWorkTimesCommand>();
             services.AddTransient<ICreateWorkTimeCommand, CreateWorkTimeCommand>();
+            services.AddTransient<IEditWorkTimeCommand, EditWorkTimeCommand>();
+
+            services.AddTransient<IGetUserLeaveTimesCommand, GetUserLeaveTimesCommand>();
+            services.AddTransient<ICreateLeaveTimeCommand, CreateLeaveTimeCommand>();
+            services.AddTransient<IEditLeaveTimeCommand, EditLeaveTimeCommand>();
+
         }
 
         private void ConfigureValidators(IServiceCollection services)
         {
-            services.AddTransient<IValidator<LeaveTime>, LeaveTimeValidator>();
-            services.AddTransient<IValidator<WorkTime>, WorkTimeValidator>();
+            services.AddTransient<IValidator<WorkTimeRequest>, WorkTimeRequestValidator>();
             services.AddTransient<IValidator<EditWorkTimeRequest>, EditWorkTimeRequestValidator>();
+
+            services.AddTransient<IValidator<LeaveTimeRequest>, LeaveTimeRequestValidator>();
+            services.AddTransient<IValidator<EditLeaveTimeRequest>, EditLeaveTimeRequestValidator>();
         }
 
         private void ConfigureMappers(IServiceCollection services)
         {
-            services.AddTransient<IMapper<LeaveTime, DbLeaveTime>, LeaveTimeMapper>();
-            services.AddTransient<IMapper<DbLeaveTime, LeaveTime>, LeaveTimeMapper>();
+            services.AddTransient<IMapper<LeaveTimeRequest, DbLeaveTime>, LeaveTimeMapper>();
+            services.AddTransient<IMapper<DbLeaveTime, LeaveTimeResponse>, LeaveTimeMapper>();
 
-            services.AddTransient<IMapper<WorkTime, DbWorkTime>, WorkTimeMapper>();
-            services.AddTransient<IMapper<DbWorkTime, WorkTime>, WorkTimeMapper>();
+            services.AddTransient<IMapper<WorkTimeRequest, DbWorkTime>, WorkTimeMapper>();
+            services.AddTransient<IMapper<DbWorkTime, WorkTimeResponse>, WorkTimeMapper>();
         }
 
         private void ConfigureRepositories(IServiceCollection services)

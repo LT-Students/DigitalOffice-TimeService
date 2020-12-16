@@ -4,7 +4,7 @@ using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -13,18 +13,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
     public class CreateLeaveTimeCommandTests
     {
-        private Mock<IValidator<LeaveTime>> validatorMock;
-        private Mock<IMapper<LeaveTime, DbLeaveTime>> mapperMock;
+        private Mock<IValidator<LeaveTimeRequest>> validatorMock;
+        private Mock<IMapper<LeaveTimeRequest, DbLeaveTime>> mapperMock;
         private Mock<ILeaveTimeRepository> repositoryMock;
         private ICreateLeaveTimeCommand command;
 
-        private LeaveTime request;
+        private LeaveTimeRequest request;
         private DbLeaveTime createdLeaveTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            request = new LeaveTime()
+            request = new LeaveTimeRequest()
             {
                 LeaveType = LeaveType.SickLeave,
                 Comment = "I have a sore throat",
@@ -47,8 +47,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [SetUp]
         public void SetUp()
         {
-            validatorMock = new Mock<IValidator<LeaveTime>>();
-            mapperMock = new Mock<IMapper<LeaveTime, DbLeaveTime>>();
+            validatorMock = new Mock<IValidator<LeaveTimeRequest>>();
+            mapperMock = new Mock<IMapper<LeaveTimeRequest, DbLeaveTime>>();
             repositoryMock = new Mock<ILeaveTimeRepository>();
 
             command = new CreateLeaveTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
@@ -73,7 +73,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                  .Returns(true);
 
             mapperMock
-                .Setup(x => x.Map(It.IsAny<LeaveTime>()))
+                .Setup(x => x.Map(It.IsAny<LeaveTimeRequest>()))
                 .Returns(createdLeaveTime);
 
             repositoryMock
@@ -91,7 +91,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
                  .Returns(true);
 
             mapperMock
-                .Setup(x => x.Map(It.IsAny<LeaveTime>()))
+                .Setup(x => x.Map(It.IsAny<LeaveTimeRequest>()))
                 .Returns(createdLeaveTime);
 
             repositoryMock

@@ -12,7 +12,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
@@ -20,7 +19,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
     {
         private Mock<ILeaveTimeRepository> mockRepository;
         private Mock<IAssignUserValidator> mockUserValidator;
-        private Mock<IAssignProjectValidator> mockProjectValidator;
         private IValidator<EditLeaveTimeRequest> validator;
         private EditLeaveTimeRequest editRequest;
         private IContractResolver resolver;
@@ -28,6 +26,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [SetUp]
         public void SetUp()
         {
+            resolver = new CamelCasePropertyNamesContractResolver();
+
             editRequest = new EditLeaveTimeRequest
             {
                 Patch = new JsonPatchDocument<DbLeaveTime>(new List<Operation<DbLeaveTime>>
@@ -39,7 +39,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 
             mockRepository = new Mock<ILeaveTimeRepository>();
             mockUserValidator = new Mock<IAssignUserValidator>();
-            mockProjectValidator = new Mock<IAssignProjectValidator>();
 
             //mockUserValidator
             //    .Setup(x => x.CanAssignUser(editRequest.CurrentUserId, (Guid)editRequest.UserId))
@@ -50,7 +49,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             //    .Returns(true);
 
             validator = new EditLeaveTimeRequestValidator(mockRepository.Object, mockUserValidator.Object);
-            resolver = new CamelCasePropertyNamesContractResolver();
         }
 
         Func<string, Operation> GetOperationByPath =>

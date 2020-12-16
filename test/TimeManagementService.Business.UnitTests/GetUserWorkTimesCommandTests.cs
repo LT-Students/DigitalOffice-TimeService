@@ -3,7 +3,8 @@ using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -13,16 +14,16 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
     public class GetUserWorkTimesCommandTests
     {
-        private Mock<IMapper<DbWorkTime, WorkTime>> mapperMock;
+        private Mock<IMapper<DbWorkTime, WorkTimeResponse>> mapperMock;
         private Mock<IWorkTimeRepository> repositoryMock;
         private IGetUserWorkTimesCommand command;
 
         private Guid userIdRequest;
         private WorkTimeFilter filterRequest;
         private DbWorkTime dbWorkTime1;
-        private WorkTime workTime1;
+        private WorkTimeResponse workTime1;
         private DbWorkTime dbWorkTime2;
-        private WorkTime workTime2;
+        private WorkTimeResponse workTime2;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -31,15 +32,15 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
             filterRequest = new WorkTimeFilter();
 
             dbWorkTime1 = new DbWorkTime { Id = Guid.NewGuid() };
-            workTime1 = new WorkTime { Id = dbWorkTime1.Id };
+            workTime1 = new WorkTimeResponse { Id = dbWorkTime1.Id };
             dbWorkTime2 = new DbWorkTime { Id = Guid.NewGuid() };
-            workTime2 = new WorkTime { Id = dbWorkTime2.Id };
+            workTime2 = new WorkTimeResponse { Id = dbWorkTime2.Id };
         }
 
         [SetUp]
         public void SetUp()
         {
-            mapperMock = new Mock<IMapper<DbWorkTime, WorkTime>>();
+            mapperMock = new Mock<IMapper<DbWorkTime, WorkTimeResponse>>();
             repositoryMock = new Mock<IWorkTimeRepository>();
 
             repositoryMock
@@ -63,8 +64,8 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [Test]
         public void ShouldReturnUserWorkTimesWhenRequestIsValid()
         {
-            Assert.AreEqual(new List<WorkTime> { workTime1 }, command.Execute(userIdRequest, filterRequest));
-            Assert.AreEqual(new List<WorkTime> { workTime2 }, command.Execute(userIdRequest, null));
+            Assert.AreEqual(new List<WorkTimeResponse> { workTime1 }, command.Execute(userIdRequest, filterRequest));
+            Assert.AreEqual(new List<WorkTimeResponse> { workTime2 }, command.Execute(userIdRequest, null));
         }
 
         [Test]

@@ -1,28 +1,25 @@
 ﻿using FluentValidation;
 using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
-    public class LeaveTimeValidatorTests
+    public class LeaveTimeRequestValidatorTests
     {
         private Mock<IAssignUserValidator> mockUserValidator;
-        private IValidator<LeaveTime> validator;
-        private LeaveTime request;
+        private IValidator<LeaveTimeRequest> validator;
+        private LeaveTimeRequest request;
 
         [SetUp]
         public void SetUp()
         {
-            request = new LeaveTime
+            request = new LeaveTimeRequest
             {
-                Id = null,
                 UserId = Guid.NewGuid(),
                 StartTime = DateTime.Now.AddDays(-1),
                 EndTime = DateTime.Now,
@@ -41,7 +38,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 .Setup(x => x.CanAssignUser(request.CurrentUserId, request.CurrentUserId))
                 .Returns(true);
 
-            validator = new LeaveTimeValidator(mockUserValidator.Object);
+            validator = new LeaveTimeRequestValidator(mockUserValidator.Object);
         }
 
         [Test]

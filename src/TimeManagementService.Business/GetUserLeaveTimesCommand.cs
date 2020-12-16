@@ -2,7 +2,7 @@
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -13,17 +13,17 @@ namespace LT.DigitalOffice.TimeManagementService.Business
     public class GetUserLeaveTimesCommand : IGetUserLeaveTimesCommand
     {
         private readonly ILeaveTimeRepository repository;
-        private readonly IMapper<DbLeaveTime, LeaveTime> mapper;
+        private readonly IMapper<DbLeaveTime, LeaveTimeResponse> mapper;
 
         public GetUserLeaveTimesCommand(
             [FromServices] ILeaveTimeRepository repository,
-            [FromServices] IMapper<DbLeaveTime, LeaveTime> mapper)
+            [FromServices] IMapper<DbLeaveTime, LeaveTimeResponse> mapper)
         {
             this.repository = repository;
             this.mapper = mapper;
         }
 
-        public IEnumerable<LeaveTime> Execute(Guid userId)
+        public IEnumerable<LeaveTimeResponse> Execute(Guid userId)
         {
             return repository.GetUserLeaveTimes(userId).Select(dblt => mapper.Map(dblt));
         }

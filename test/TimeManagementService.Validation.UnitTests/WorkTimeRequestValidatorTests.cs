@@ -1,28 +1,25 @@
 ﻿using FluentValidation;
 using FluentValidation.TestHelper;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
-    public class WorkTimeValidatorTests
+    public class WorkTimeRequestValidatorTests
     {
         private Mock<IAssignUserValidator> mockUserValidator;
         private Mock<IAssignProjectValidator> mockProjectValidator;
-        private IValidator<WorkTime> validator;
-        private WorkTime request;
+        private IValidator<WorkTimeRequest> validator;
+        private WorkTimeRequest request;
 
         [SetUp]
         public void SetUp()
         {
-            request = new WorkTime
+            request = new WorkTimeRequest
             {
-                Id = null,
                 UserId = Guid.NewGuid(),
                 StartDate = DateTime.Now.AddDays(-1),
                 EndDate = DateTime.Now,
@@ -52,7 +49,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 .Setup(x => x.CanAssignProject(request.CurrentUserId, request.ProjectId))
                 .Returns(true);
 
-            validator = new WorkTimeValidator(mockUserValidator.Object, mockProjectValidator.Object);
+            validator = new WorkTimeRequestValidator(mockUserValidator.Object, mockProjectValidator.Object);
         }
 
         [Test]

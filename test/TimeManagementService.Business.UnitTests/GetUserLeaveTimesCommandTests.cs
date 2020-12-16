@@ -2,7 +2,8 @@ using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Responses;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -12,13 +13,13 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 {
     public class GetUserLeaveTimesCommandTests
     {
-        private Mock<IMapper<DbLeaveTime, LeaveTime>> mapperMock;
+        private Mock<IMapper<DbLeaveTime, LeaveTimeResponse>> mapperMock;
         private Mock<ILeaveTimeRepository> repositoryMock;
         private IGetUserLeaveTimesCommand command;
 
         private Guid userIdRequest;
         private DbLeaveTime dbLeaveTime1;
-        private LeaveTime leaveTime1;
+        private LeaveTimeResponse leaveTime1;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -26,13 +27,13 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
             userIdRequest = Guid.NewGuid();
 
             dbLeaveTime1 = new DbLeaveTime { Id = Guid.NewGuid() };
-            leaveTime1 = new LeaveTime { Id = dbLeaveTime1.Id };
+            leaveTime1 = new LeaveTimeResponse { Id = dbLeaveTime1.Id };
         }
 
         [SetUp]
         public void SetUp()
         {
-            mapperMock = new Mock<IMapper<DbLeaveTime, LeaveTime>>();
+            mapperMock = new Mock<IMapper<DbLeaveTime, LeaveTimeResponse>>();
             repositoryMock = new Mock<ILeaveTimeRepository>();
 
             repositoryMock
@@ -49,7 +50,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [Test]
         public void ShouldReturnUserWorkTimesWhenRequestIsValid()
         {
-            Assert.AreEqual(new List<LeaveTime> { leaveTime1 }, command.Execute(userIdRequest));
+            Assert.AreEqual(new List<LeaveTimeResponse> { leaveTime1 }, command.Execute(userIdRequest));
         }
 
         [Test]

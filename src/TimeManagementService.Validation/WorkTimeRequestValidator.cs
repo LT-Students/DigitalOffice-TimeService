@@ -1,14 +1,14 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
-    public class WorkTimeValidator : AbstractValidator<WorkTime>
+    public class WorkTimeRequestValidator : AbstractValidator<WorkTimeRequest>
     {
-        public WorkTimeValidator(
+        public WorkTimeRequestValidator(
             [FromServices] IAssignUserValidator assignUserValidator,
             [FromServices] IAssignProjectValidator assignProjectValidator)
         {

@@ -1,4 +1,4 @@
-﻿using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
+﻿using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using System;
 
 namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
@@ -15,6 +15,6 @@ namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
         /// <param name="request">Work time data.</param>
         /// <param name="currentUserId">Id of the creating user.</param>
         /// <returns>Id of the added work time.</returns>
-        public Guid Execute(WorkTime request, Guid currentUserId);
+        public Guid Execute(WorkTimeRequest request, Guid currentUserId);
     }
 }
