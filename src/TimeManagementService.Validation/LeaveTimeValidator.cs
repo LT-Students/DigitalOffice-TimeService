@@ -1,10 +1,8 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Models;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Linq;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
@@ -13,21 +11,22 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
         public LeaveTimeValidator(
             [FromServices] IAssignUserValidator assignUserValidator)
         {
-            RuleFor(x => x.UserId)
+            When(x => x.UserId != null, () =>
+            {
+                RuleFor(x => x.UserId)
                 .NotEmpty()
-                .DependentRules(() =>
-                {
-                    RuleFor(x => x)
-                    .Must(x => assignUserValidator.CanAssignUser(x.CurrentUserId, x.UserId ?? x.CurrentUserId))
-                    .WithMessage("You cannot assign this user.");
-                })
                 .WithMessage("User does not exist.");
+            });
+
+            RuleFor(x => x)
+                .Must(x => assignUserValidator.CanAssignUser(x.CurrentUserId, x.UserId ?? x.CurrentUserId))
+                .WithMessage("You cannot assign this user.");
 
             RuleFor(x => x.LeaveType)
                 .IsInEnum();
 
             RuleFor(x => x.Comment)
-                .NotEmpty();
+                .MaximumLength(10000);
 
             RuleFor(x => x.StartTime)
                 .NotEqual(new DateTime());
@@ -36,7 +35,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                 .NotEqual(new DateTime());
 
             RuleFor(x => x)
-                .Must(x => x.StartTime < x.EndTime).WithMessage("Start time must be before end time.");
+                .Must(x => x.StartTime < x.EndTime).WithMessage("The start date must be before the end date.");
         }
     }
 }

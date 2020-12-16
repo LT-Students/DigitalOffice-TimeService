@@ -1,6 +1,5 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
-using LT.DigitalOffice.TimeManagementService.Data.Filters;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
@@ -19,12 +18,12 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
         private static List<string> Paths
             => new List<string> { DescriptionPath, TitlePath, ProjectIdPath, UserIdPath, StartTimePath, EndTimePath };
 
-        private static string DescriptionPath => $"/{nameof(DbWorkTime.Description)}";
-        private static string TitlePath => $"/{nameof(DbWorkTime.Title)}";
-        private static string ProjectIdPath => $"/{nameof(DbWorkTime.ProjectId)}";
-        private static string UserIdPath => $"/{nameof(DbWorkTime.UserId)}";
-        private static string StartTimePath => $"/{nameof(DbWorkTime.StartDate)}";
-        private static string EndTimePath => $"/{nameof(DbWorkTime.EndDate)}";
+        public static string DescriptionPath => $"/{nameof(DbWorkTime.Description)}";
+        public static string TitlePath => $"/{nameof(DbWorkTime.Title)}";
+        public static string ProjectIdPath => $"/{nameof(DbWorkTime.ProjectId)}";
+        public static string UserIdPath => $"/{nameof(DbWorkTime.UserId)}";
+        public static string StartTimePath => $"/{nameof(DbWorkTime.StartDate)}";
+        public static string EndTimePath => $"/{nameof(DbWorkTime.EndDate)}";
 
         Func<JsonPatchDocument<DbWorkTime>, string, Operation> GetOperationByPath =>
             (x, path) => x.Operations.FirstOrDefault(x => x.path == path);
@@ -82,7 +81,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         .WithMessage($"{TitlePath} is too short.");
                     });
 
-                    // Oh. Check overlap with new User? Admin can it?
                     When(wt => GetOperationByPath(wt.Patch, UserIdPath) != null, () =>
                     {
                         RuleFor(x => x.Patch.Operations)
@@ -141,9 +139,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
                     When(wt => wt.Patch.Operations.FirstOrDefault(x => x.path == StartTimePath || x.path == EndTimePath) != null, () =>
                     {
-                        var startTime = new DateTime();
-                        var endTime = new DateTime();
-
                         RuleFor(wt => wt)
                         .Must(wt =>
                         {
@@ -151,12 +146,12 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                             var startTimeOperation = GetOperationByPath(wt.Patch, StartTimePath);
                             var endTimeOperation = GetOperationByPath(wt.Patch, EndTimePath);
 
-                            startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartDate;
-                            endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndDate;
+                            var startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartDate;
+                            var endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndDate;
 
                             return startTime < endTime;
                         })
-                        .WithMessage("You cannot indicate that you worked zero hours or a negative amount.");
+                        .WithMessage("The start date must be before the end date.");
                     });
                 });
         }

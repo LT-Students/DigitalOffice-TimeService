@@ -1,15 +1,16 @@
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Data.Provider;
 using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
+namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests.WorkTimeRepositoryTests
 {
     public class CreateWorkTimeTests
     {
-        private TimeManagementDbContext dbContext;
+        private IDataProvider provider;
         private IWorkTimeRepository repository;
 
         private DbWorkTime dbWorkTime;
@@ -21,13 +22,13 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
                                     .UseInMemoryDatabase(databaseName: "InMemoryDatabase")
                                     .Options;
 
-            dbContext = new TimeManagementDbContext(dbOptions);
-            repository = new WorkTimeRepository(dbContext);
+            provider = new TimeManagementDbContext(dbOptions);
+            repository = new WorkTimeRepository(provider);
 
             dbWorkTime = new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                Title = $"WorkTime",
+                Title = "WorkTime",
                 UserId = Guid.NewGuid(),
                 ProjectId = Guid.NewGuid(),
                 StartDate = DateTime.Now.AddDays(-1),
@@ -38,9 +39,9 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [TearDown]
         public void CleanDb()
         {
-            if (dbContext.Database.IsInMemory())
+            if (provider.IsInMemory())
             {
-                dbContext.Database.EnsureDeleted();
+                provider.EnsureDeleted();
             }
         }
 
@@ -51,7 +52,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             var guidOfNewWorkTime = repository.CreateWorkTime(dbWorkTime);
 
             Assert.AreEqual(dbWorkTime.Id, guidOfNewWorkTime);
-            Assert.NotNull(dbContext.WorkTimes.Find(dbWorkTime.Id));
+            Assert.NotNull(provider.WorkTimes.Find(dbWorkTime.Id));
         }
     }
 }

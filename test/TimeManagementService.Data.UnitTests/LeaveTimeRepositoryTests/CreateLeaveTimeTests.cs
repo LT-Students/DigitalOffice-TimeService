@@ -1,4 +1,5 @@
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Data.Provider;
 using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
@@ -6,11 +7,11 @@ using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
+namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests.LeaveTimeRepositoryTests
 {
     public class CreateLeaveTimeTests
     {
-        private TimeManagementDbContext dbContext;
+        private IDataProvider provider;
         private ILeaveTimeRepository repository;
 
         private DbLeaveTime leaveTime;
@@ -21,8 +22,8 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             var dbOptions = new DbContextOptionsBuilder<TimeManagementDbContext>()
                                     .UseInMemoryDatabase("InMemoryDatabase")
                                     .Options;
-            dbContext = new TimeManagementDbContext(dbOptions);
-            repository = new LeaveTimeRepository(dbContext);
+            provider = new TimeManagementDbContext(dbOptions);
+            repository = new LeaveTimeRepository(provider);
 
             leaveTime = new DbLeaveTime
             {
@@ -38,9 +39,9 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [TearDown]
         public void CleanDb()
         {
-            if (dbContext.Database.IsInMemory())
+            if (provider.IsInMemory())
             {
-                dbContext.Database.EnsureDeleted();
+                provider.EnsureDeleted();
             }
         }
 
@@ -50,7 +51,7 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
             var guidOfNewLeaveTime = repository.CreateLeaveTime(leaveTime);
 
             Assert.AreEqual(leaveTime.Id, guidOfNewLeaveTime);
-            Assert.That(dbContext.LeaveTimes.Find(leaveTime.Id), Is.EqualTo(leaveTime));
+            Assert.That(provider.LeaveTimes.Find(leaveTime.Id), Is.EqualTo(leaveTime));
         }
     }
 }
