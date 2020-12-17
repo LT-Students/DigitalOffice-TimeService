@@ -28,7 +28,12 @@ namespace LT.DigitalOffice.TimeManagementService.Business
 
         public Guid Execute(WorkTimeRequest request, Guid currentUserId)
         {
+            if (request.UserId == null)
+            {
+                request.UserId = currentUserId;
+            }
             request.CurrentUserId = currentUserId;
+
             validator.ValidateAndThrowCustom(request);
 
             var dbWorkTime = mapper.Map(request);

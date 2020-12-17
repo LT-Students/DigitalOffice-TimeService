@@ -52,6 +52,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
             mapperMock = new Mock<IMapper<WorkTimeRequest, DbWorkTime>>();
             repositoryMock = new Mock<IWorkTimeRepository>();
 
+            validatorMock
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(true);
+
+            mapperMock
+                .Setup(x => x.Map(It.IsAny<WorkTimeRequest>()))
+                .Returns(createdWorkTime);
+
+            repositoryMock
+                .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
+                .Returns(createdWorkTime.Id);
+
             command = new CreateWorkTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
         }
 
@@ -67,16 +79,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         }
 
         [Test]
-        public void ShouldThrowExceptionWhenRepositoryThrowsException()
+        public void ShouldThrowExceptionWhenMapperThrowsException()
         {
-            validatorMock
-                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                 .Returns(true);
-
             mapperMock
                 .Setup(x => x.Map(It.IsAny<WorkTimeRequest>()))
-                .Returns(createdWorkTime);
+                .Throws(new Exception());
 
+            Assert.Throws<Exception>(() => command.Execute(request, Guid.NewGuid()));
+        }
+
+        [Test]
+        public void ShouldThrowExceptionWhenRepositoryThrowsException()
+        {
             repositoryMock
                 .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
                 .Throws(new Exception());
@@ -87,18 +101,6 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [Test]
         public void ShouldCreateNewWorkTimeWhenDataIsValid()
         {
-            validatorMock
-                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                 .Returns(true);
-
-            mapperMock
-                .Setup(x => x.Map(It.IsAny<WorkTimeRequest>()))
-                .Returns(createdWorkTime);
-
-            repositoryMock
-                .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
-                .Returns(createdWorkTime.Id);
-
             Assert.AreEqual(createdWorkTime.Id, command.Execute(request, Guid.NewGuid()));
             repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
         }

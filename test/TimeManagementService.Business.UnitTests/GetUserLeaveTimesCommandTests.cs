@@ -56,7 +56,9 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [Test]
         public void ShouldThrowExceptionWhenRepositoryThrowsIt()
         {
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>())).Throws(new Exception());
+            repositoryMock
+                .Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+                .Throws(new Exception());
 
             Assert.Throws<Exception>(() => command.Execute(userIdRequest));
         }
@@ -64,7 +66,9 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [Test]
         public void ShouldThrowExceptionWhenMapperThrowsIt()
         {
-            mapperMock.Setup(x => x.Map(It.IsAny<DbLeaveTime>())).Throws(new Exception());
+            mapperMock
+                .Setup(x => x.Map(It.IsAny<DbLeaveTime>()))
+                .Throws(new Exception());
 
             Assert.Throws<Exception>(() => command.Execute(userIdRequest));
         }

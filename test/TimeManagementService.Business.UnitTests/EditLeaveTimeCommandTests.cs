@@ -44,7 +44,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
 
             repositoryMock
                 .Setup(x => x.GetLeaveTimeById(It.IsAny<Guid>()))
-                .Returns(new DbLeaveTime());
+                .Returns(editedLeaveTime);
 
             repositoryMock
                 .Setup(x => x.EditLeaveTime(It.IsAny<DbLeaveTime>()))

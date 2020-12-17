@@ -137,9 +137,15 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         RuleFor(wt => wt)
                         .Must(wt =>
                         {
-                            var oldWorkTime = repository.GetWorkTimeById(wt.WorkTimeId);
                             var startTimeOperation = GetOperationByPath(wt.Patch, StartTimePath);
                             var endTimeOperation = GetOperationByPath(wt.Patch, EndTimePath);
+
+                            if (startTimeOperation != null && endTimeOperation != null)
+                            {
+                                return (DateTime)startTimeOperation.value < (DateTime)endTimeOperation.value;
+                            }
+
+                            var oldWorkTime = repository.GetWorkTimeById(wt.WorkTimeId);
 
                             var startTime = startTimeOperation != null ? (DateTime)startTimeOperation.value : oldWorkTime.StartDate;
                             var endTime = endTimeOperation != null ? (DateTime)endTimeOperation.value : oldWorkTime.EndDate;

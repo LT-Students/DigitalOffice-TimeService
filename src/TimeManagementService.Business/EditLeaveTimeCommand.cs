@@ -24,6 +24,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business
         public bool Execute(EditLeaveTimeRequest request, Guid currentUserId)
         {
             request.CurrentUserId = currentUserId;
+
             validator.ValidateAndThrowCustom(request);
 
             var dbLeaveTime = repository.GetLeaveTimeById(request.LeaveTimeId);

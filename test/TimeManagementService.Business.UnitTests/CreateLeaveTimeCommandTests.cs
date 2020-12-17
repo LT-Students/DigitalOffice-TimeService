@@ -51,6 +51,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
             mapperMock = new Mock<IMapper<LeaveTimeRequest, DbLeaveTime>>();
             repositoryMock = new Mock<ILeaveTimeRepository>();
 
+            validatorMock
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(true);
+
+            mapperMock
+                .Setup(x => x.Map(It.IsAny<LeaveTimeRequest>()))
+                .Returns(createdLeaveTime);
+
+            repositoryMock
+                .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
+                .Returns(createdLeaveTime.Id);
+
             command = new CreateLeaveTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
         }
 
@@ -66,16 +78,18 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         }
 
         [Test]
-        public void ShouldThrowExceptionWhenRepositoryThrowsException()
+        public void ShouldThrowExceptionWhenMapperThrowsException()
         {
-            validatorMock
-                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                 .Returns(true);
-
             mapperMock
                 .Setup(x => x.Map(It.IsAny<LeaveTimeRequest>()))
-                .Returns(createdLeaveTime);
+                .Throws(new Exception());
 
+            Assert.Throws<Exception>(() => command.Execute(request, Guid.NewGuid()));
+        }
+
+        [Test]
+        public void ShouldThrowExceptionWhenRepositoryThrowsException()
+        {
             repositoryMock
                 .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
                 .Throws(new Exception());
@@ -86,17 +100,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
         [Test]
         public void ShouldCreateNewLeaveTimeWhenDataIsValid()
         {
-            validatorMock
-                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                 .Returns(true);
 
-            mapperMock
-                .Setup(x => x.Map(It.IsAny<LeaveTimeRequest>()))
-                .Returns(createdLeaveTime);
-
-            repositoryMock
-                .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
-                .Returns(createdLeaveTime.Id);
 
             Assert.AreEqual(createdLeaveTime.Id, command.Execute(request, Guid.NewGuid()));
             repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Once);

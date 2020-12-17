@@ -24,6 +24,7 @@ namespace LT.DigitalOffice.TimeManagementService.Business
         public bool Execute(EditWorkTimeRequest request, Guid currentUserId)
         {
             request.CurrentUserId = currentUserId;
+
             validator.ValidateAndThrowCustom(request);
 
             var dbWorkTime = repository.GetWorkTimeById(request.WorkTimeId);
