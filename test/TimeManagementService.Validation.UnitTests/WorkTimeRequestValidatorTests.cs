@@ -141,6 +141,16 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         }
 
         [Test]
+        public void ShouldHaveValidationErrorWhenTitleIsTooSmall()
+        {
+            request.Title = "";
+            validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.Title);
+
+            request.Title = "a";
+            validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.Title);
+        }
+
+        [Test]
         public void ShouldHaveValidationErrorWhenTitleIsTooLong()
         {
             request.Title = "".PadLeft(129);

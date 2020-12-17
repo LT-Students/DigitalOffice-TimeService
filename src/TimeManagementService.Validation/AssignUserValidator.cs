@@ -43,7 +43,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
                     if (userInfoResponse.Result.Message.IsSuccess)
                     {
-                        return true;
+                        return userInfoResponse.Result.Message.Body.IsActive;
                     }
 
                     throw new Exception("It was not possible to check that the user exists.");

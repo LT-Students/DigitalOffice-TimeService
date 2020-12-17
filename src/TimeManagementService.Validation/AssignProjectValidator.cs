@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
             try
             {
                 var projectUserInfoResponse = projectUserRequestClient.GetResponse<IOperationResult<IGetProjectUserResponse>>(
-                    IGetProjectUserRequest.CreateObj(assignedUserId, assignedProjectId));
+                    IGetProjectUserRequest.CreateObj(assignedProjectId, assignedUserId));
 
                 if (projectUserInfoResponse.Result.Message.IsSuccess)
                 {

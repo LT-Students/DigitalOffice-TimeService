@@ -24,6 +24,10 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         private EditWorkTimeRequest editRequest;
         private IContractResolver resolver;
 
+        private Guid currentUserId = Guid.NewGuid();
+        private Guid assignedUserId = Guid.NewGuid();
+        private Guid assignedProjectId = Guid.NewGuid();
+
         [SetUp]
         public void SetUp()
         {
@@ -33,30 +37,36 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             {
                 Patch = new JsonPatchDocument<DbWorkTime>(new List<Operation<DbWorkTime>>
                 {
-                    //new Operation<DbWorkTime>("replace", "/Description", "", "Example description"),
+                    new Operation<DbWorkTime>("replace", EditWorkTimeRequestValidator.ProjectIdPath, "", assignedProjectId),
+                    new Operation<DbWorkTime>("replace", EditWorkTimeRequestValidator.UserIdPath, "", assignedUserId),
+                    new Operation<DbWorkTime>("replace", EditWorkTimeRequestValidator.StartTimePath, "", DateTime.Now.AddDays(-1)),
+                    new Operation<DbWorkTime>("replace", EditWorkTimeRequestValidator.EndTimePath, "", DateTime.Now),
+                    new Operation<DbWorkTime>("replace", EditWorkTimeRequestValidator.TitlePath, "", "Example title"),
+                    new Operation<DbWorkTime>("replace", EditWorkTimeRequestValidator.DescriptionPath, "", "Example description")
                 }, resolver),
-                WorkTimeId = Guid.NewGuid()
+                WorkTimeId = Guid.NewGuid(),
+                CurrentUserId = currentUserId
             };
 
             mockRepository = new Mock<IWorkTimeRepository>();
             mockUserValidator = new Mock<IAssignUserValidator>();
             mockProjectValidator = new Mock<IAssignProjectValidator>();
 
-            //mockUserValidator
-            //    .Setup(x => x.CanAssignUser(editRequest.CurrentUserId, (Guid)editRequest.UserId))
-            //    .Returns(true);
+            mockUserValidator
+                .Setup(x => x.CanAssignUser(currentUserId, assignedUserId))
+                .Returns(true);
 
-            //mockUserValidator
-            //    .Setup(x => x.CanAssignUser(editRequest.CurrentUserId, editRequest.CurrentUserId))
-            //    .Returns(true);
+            mockUserValidator
+                .Setup(x => x.CanAssignUser(currentUserId, currentUserId))
+                .Returns(true);
 
-            //mockProjectValidator
-            //    .Setup(x => x.CanAssignProject((Guid)editRequest.UserId, editRequest.ProjectId))
-            //    .Returns(true);
+            mockProjectValidator
+                .Setup(x => x.CanAssignProject(assignedUserId, assignedProjectId))
+                .Returns(true);
 
-            //mockProjectValidator
-            //    .Setup(x => x.CanAssignProject(editRequest.CurrentUserId, editRequest.ProjectId))
-            //    .Returns(true);
+            mockProjectValidator
+                .Setup(x => x.CanAssignProject(currentUserId, assignedProjectId))
+                .Returns(true);
 
             validator = new EditWorkTimeRequestValidator(mockRepository.Object, mockUserValidator.Object, mockProjectValidator.Object);
         }
@@ -97,7 +107,113 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         #endregion
 
         #region field validations
-        // ADD TESTS
+        [Test]
+        public void ShouldHaveValidationErrorWhenStartTimeAfterEndTime()
+        {
+            var temp = GetOperationByPath(EditWorkTimeRequestValidator.StartTimePath).value;
+
+            GetOperationByPath(EditWorkTimeRequestValidator.StartTimePath).value =
+                GetOperationByPath(EditWorkTimeRequestValidator.EndTimePath).value;
+
+            GetOperationByPath(EditWorkTimeRequestValidator.EndTimePath).value = temp;
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        // test assignedUserId
+        // test assignedProjectId
+
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenUserIdIsValid()
+        {
+            SuccessTestsWithOperationsForPath(EditWorkTimeRequestValidator.UserIdPath, false);
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenUserIdIsEmpty()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.UserIdPath).value = Guid.Empty;
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenProjectIdIsValid()
+        {
+            SuccessTestsWithOperationsForPath(EditWorkTimeRequestValidator.ProjectIdPath, false);
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenProjectIdIsEmpty()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.ProjectIdPath).value = Guid.Empty;
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenStartTimeIsValid()
+        {
+            SuccessTestsWithOperationsForPath(EditWorkTimeRequestValidator.StartTimePath, false);
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenStartTimeIsEmpty()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.StartTimePath).value = new DateTime();
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenEndTimeIsValid()
+        {
+            SuccessTestsWithOperationsForPath(EditWorkTimeRequestValidator.EndTimePath, false);
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenEndTimeIsEmpty()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.EndTimePath).value = new DateTime();
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenTitleIsValid()
+        {
+            SuccessTestsWithOperationsForPath(EditWorkTimeRequestValidator.TitlePath, false);
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenTitleIsTooSmall()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.TitlePath).value = "a";
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenTitleIsTooLong()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.TitlePath).value = "".PadLeft(33);
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ShouldValidateEditProjectRequestWhenDescriptionIsValid()
+        {
+            SuccessTestsWithOperationsForPath(EditWorkTimeRequestValidator.DescriptionPath, false);
+        }
+
+        [Test]
+        public void ShouldHaveValidationErrorWhenDescriptionIsTooLong()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.DescriptionPath).value = "".PadLeft(501);
+
+            validator.TestValidate(editRequest).ShouldHaveAnyValidationError();
+        }
 
         public void SuccessTestsWithOperationsForPath(string path, bool nullable)
         {

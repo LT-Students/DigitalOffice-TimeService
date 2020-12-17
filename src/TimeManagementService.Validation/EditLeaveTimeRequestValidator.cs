@@ -2,6 +2,7 @@
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
@@ -67,11 +68,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         RuleFor(x => x.Patch.Operations)
                         .UniqueOperationWithAllowedOp(LeaveTypePath, "add", "replace");
 
-                        RuleFor(x => (string)GetOperationByPath(x.Patch, LeaveTypePath).value)
-                        .MaximumLength(32)
-                        .WithMessage($"{LeaveTypePath} is too long.")
-                        .MinimumLength(2)
-                        .WithMessage($"{LeaveTypePath} is too short.");
+                        RuleFor(x => (LeaveType)GetOperationByPath(x.Patch, LeaveTypePath).value)
+                        .IsInEnum();
                     });
 
                     When(lt => GetOperationByPath(lt.Patch, UserIdPath) != null, () =>
@@ -94,7 +92,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                     When(x => GetOperationByPath(x.Patch, CommentPath) != null, () =>
                     {
                         RuleFor(x => x.Patch.Operations)
-                        .UniqueOperationWithAllowedOp(CommentPath, "add", "replace");
+                        .UniqueOperationWithAllowedOp(CommentPath, "add", "replace", "remove");
 
                         RuleFor(x => (string)GetOperationByPath(x.Patch, CommentPath).value)
                         .MaximumLength(500)

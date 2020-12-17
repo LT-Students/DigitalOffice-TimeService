@@ -33,6 +33,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                 .GreaterThan(0);
 
             RuleFor(x => x.Title)
+                .MinimumLength(2)
                 .MaximumLength(128);
 
             RuleFor(x => x.Description)

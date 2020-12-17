@@ -28,11 +28,6 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
         Func<JsonPatchDocument<DbWorkTime>, string, Operation> GetOperationByPath =>
             (x, path) => x.Operations.FirstOrDefault(x => x.path == path);
 
-        /// <summary>
-        /// Limit on working hours in a row.
-        /// </summary>
-        public static TimeSpan WorkingLimit { get; } = new TimeSpan(24, 0, 0);
-
         public EditWorkTimeRequestValidator(
             [FromServices] IWorkTimeRepository repository,
             [FromServices] IAssignUserValidator assignUserValidator,
