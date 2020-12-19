@@ -5,6 +5,7 @@ using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Text;
 
 namespace LT.DigitalOffice.TimeManagementService.Validation
 {
@@ -30,7 +31,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                     return projectUserInfoResponse.Result.Message.Body.IsActive;
                 }
 
-                throw new Exception("It was not possible to check that the user exists.");
+                throw new Exception(new StringBuilder().AppendJoin("\n", projectUserInfoResponse.Result.Message.Errors).ToString());
             }
             catch
             {
