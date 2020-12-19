@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -10,8 +10,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
     public class WorkTimeRequestValidatorTests
     {
-        private Mock<IAssignUserValidator> mockUserValidator;
-        private Mock<IAssignProjectValidator> mockProjectValidator;
+        private Mock<IUserAssignmentValidator> mockUserValidator;
+        private Mock<IProjectAssignmentValidator> mockProjectValidator;
         private IValidator<WorkTimeRequest> validator;
         private WorkTimeRequest request;
 
@@ -30,23 +30,23 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 Minutes = 5
             };
 
-            mockUserValidator = new Mock<IAssignUserValidator>();
-            mockProjectValidator = new Mock<IAssignProjectValidator>();
+            mockUserValidator = new Mock<IUserAssignmentValidator>();
+            mockProjectValidator = new Mock<IProjectAssignmentValidator>();
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, (Guid)request.UserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, (Guid)request.UserId))
                 .Returns(true);
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, request.CurrentUserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, request.CurrentUserId))
                 .Returns(true);
 
             mockProjectValidator
-                .Setup(x => x.CanAssignProject((Guid)request.UserId, request.ProjectId))
+                .Setup(x => x.CanAssignUserToProject((Guid)request.UserId, request.ProjectId))
                 .Returns(true);
 
             mockProjectValidator
-                .Setup(x => x.CanAssignProject(request.CurrentUserId, request.ProjectId))
+                .Setup(x => x.CanAssignUserToProject(request.CurrentUserId, request.ProjectId))
                 .Returns(true);
 
             validator = new WorkTimeRequestValidator(mockUserValidator.Object, mockProjectValidator.Object);
@@ -70,7 +70,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenAssignUserValidatorReturnFalse1()
         {
             mockProjectValidator
-                .Setup(x => x.CanAssignProject((Guid)request.UserId, request.ProjectId))
+                .Setup(x => x.CanAssignUserToProject((Guid)request.UserId, request.ProjectId))
                 .Returns(false);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
@@ -81,7 +81,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             request.UserId = null;
             mockProjectValidator
-                .Setup(x => x.CanAssignProject(request.CurrentUserId, request.ProjectId))
+                .Setup(x => x.CanAssignUserToProject(request.CurrentUserId, request.ProjectId))
                 .Returns(false);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
@@ -91,7 +91,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenAssignProjectValidatorReturnFalse1()
         {
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, (Guid)request.UserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, (Guid)request.UserId))
                 .Returns(false);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
@@ -102,7 +102,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             request.UserId = null;
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, request.CurrentUserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, request.CurrentUserId))
                 .Returns(false);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();

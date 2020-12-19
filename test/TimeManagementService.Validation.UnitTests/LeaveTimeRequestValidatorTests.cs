@@ -2,7 +2,7 @@
 using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -11,7 +11,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
 {
     public class LeaveTimeRequestValidatorTests
     {
-        private Mock<IAssignUserValidator> mockUserValidator;
+        private Mock<IUserAssignmentValidator> mockUserValidator;
         private IValidator<LeaveTimeRequest> validator;
         private LeaveTimeRequest request;
 
@@ -28,14 +28,14 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 CurrentUserId = Guid.NewGuid()
             };
 
-            mockUserValidator = new Mock<IAssignUserValidator>();
+            mockUserValidator = new Mock<IUserAssignmentValidator>();
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, (Guid)request.UserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, (Guid)request.UserId))
                 .Returns(true);
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, request.CurrentUserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, request.CurrentUserId))
                 .Returns(true);
 
             validator = new LeaveTimeRequestValidator(mockUserValidator.Object);
@@ -59,7 +59,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenAssignUserValidatorReturnFalse1()
         {
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, (Guid)request.UserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, (Guid)request.UserId))
                 .Returns(false);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();
@@ -70,7 +70,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         {
             request.UserId = null;
             mockUserValidator
-                .Setup(x => x.CanAssignUser(request.CurrentUserId, request.CurrentUserId))
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, request.CurrentUserId))
                 .Returns(false);
 
             validator.TestValidate(request).ShouldHaveAnyValidationError();

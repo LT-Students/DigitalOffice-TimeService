@@ -1,7 +1,8 @@
 ﻿using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Broker.Responses;
 using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Helpers;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using LT.DigitalOffice.TimeManagementService.Validation.UnitTests.Utils;
 using MassTransit;
 using Moq;
@@ -11,7 +12,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
+namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests.Helpers
 {
     public class GetProjectUserResponse : IGetProjectUserResponse
     {
@@ -19,9 +20,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public bool IsActive { get; set; }
     }
 
-    class AssignProjectValidatorTests
+    class ProjectAssignmentValidatorTests
     {
-        private IAssignProjectValidator validator;
+        private IProjectAssignmentValidator validator;
 
         private Mock<IRequestClient<IGetProjectUserRequest>> requestClientMock;
         private OperationResult<IGetProjectUserResponse> operationResult;
@@ -33,7 +34,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public void OneTimeSetUp()
         {
             BrokerSetUp();
-            validator = new AssignProjectValidator(requestClientMock.Object);
+            validator = new ProjectAssignmentValidator(requestClientMock.Object);
         }
 
         private void BrokerSetUp()
@@ -60,7 +61,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             operationResult.Errors = new List<string>();
             operationResult.Body = new GetProjectUserResponse { Id = Guid.NewGuid(), IsActive = false };
 
-            Assert.False(validator.CanAssignProject(assignedUserId, projectId));
+            Assert.False(validator.CanAssignUserToProject(assignedUserId, projectId));
         }
 
         [Test]
@@ -70,7 +71,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             operationResult.Errors = new List<string>();
             operationResult.Body = new GetProjectUserResponse { Id = Guid.NewGuid(), IsActive = false };
 
-            Assert.False(validator.CanAssignProject(assignedUserId, projectId));
+            Assert.False(validator.CanAssignUserToProject(assignedUserId, projectId));
         }
 
         [Test]
@@ -80,7 +81,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             operationResult.Errors = new List<string>();
             operationResult.Body = null;
 
-            Assert.Throws<Exception>(() => validator.CanAssignProject(assignedUserId, projectId));
+            Assert.Throws<Exception>(() => validator.CanAssignUserToProject(assignedUserId, projectId));
         }
     }
 }

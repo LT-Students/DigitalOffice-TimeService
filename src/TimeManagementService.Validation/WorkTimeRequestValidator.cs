@@ -1,6 +1,6 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -9,8 +9,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
     public class WorkTimeRequestValidator : AbstractValidator<WorkTimeRequest>
     {
         public WorkTimeRequestValidator(
-            [FromServices] IAssignUserValidator assignUserValidator,
-            [FromServices] IAssignProjectValidator assignProjectValidator)
+            [FromServices] IUserAssignmentValidator assignUserValidator,
+            [FromServices] IProjectAssignmentValidator assignProjectValidator)
         {
             When(x => x.UserId != null, () =>
             {
@@ -20,8 +20,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
             });
 
             RuleFor(x => x)
-                .Must(x => assignUserValidator.CanAssignUser(x.CurrentUserId, x.UserId ?? x.CurrentUserId))
-                .WithMessage("You cannot assign this user.");
+                .Must(x => assignUserValidator.UserCanAssignUser(x.CurrentUserId, x.UserId ?? x.CurrentUserId))
+                .WithMessage("You cannot assign inactive user.");
 
             RuleFor(x => x.StartDate)
                 .NotEqual(new DateTime());
@@ -48,7 +48,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                 .DependentRules(() =>
                 {
                     RuleFor(x => x)
-                    .Must(x => assignProjectValidator.CanAssignProject(x.UserId ?? x.CurrentUserId, x.ProjectId))
+                    .Must(x => assignProjectValidator.CanAssignUserToProject(x.UserId ?? x.CurrentUserId, x.ProjectId))
                     .WithMessage("You cannot assign this user on this project.");
                 })
                 .WithMessage("Project does not exist.");

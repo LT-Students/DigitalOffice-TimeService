@@ -4,7 +4,7 @@ using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
     class EditLeaveTimeRequestValidatorTests
     {
         private Mock<ILeaveTimeRepository> mockRepository;
-        private Mock<IAssignUserValidator> mockUserValidator;
+        private Mock<IUserAssignmentValidator> mockUserValidator;
         private IValidator<EditLeaveTimeRequest> validator;
         private EditLeaveTimeRequest editRequest;
         private IContractResolver resolver;
@@ -47,14 +47,14 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             };
 
             mockRepository = new Mock<ILeaveTimeRepository>();
-            mockUserValidator = new Mock<IAssignUserValidator>();
+            mockUserValidator = new Mock<IUserAssignmentValidator>();
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(currentUserId, assignedUserId))
+                .Setup(x => x.UserCanAssignUser(currentUserId, assignedUserId))
                 .Returns(true);
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(currentUserId, currentUserId))
+                .Setup(x => x.UserCanAssignUser(currentUserId, currentUserId))
                 .Returns(true);
 
             validator = new EditLeaveTimeRequestValidator(mockRepository.Object, mockUserValidator.Object);

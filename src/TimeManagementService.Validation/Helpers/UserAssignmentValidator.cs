@@ -3,21 +3,21 @@ using LT.DigitalOffice.Broker.Responses;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Exceptions;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 using System.Text;
 
-namespace LT.DigitalOffice.TimeManagementService.Validation
+namespace LT.DigitalOffice.TimeManagementService.Validation.Helpers
 {
-    public class AssignUserValidator : IAssignUserValidator
+    public class UserAssignmentValidator : IUserAssignmentValidator
     {
         private IRequestClient<IGetUserRequest> userRequestClient;
         private IAccessValidator acessValidator;
 
-        public AssignUserValidator(
+        public UserAssignmentValidator(
             [FromServices] IRequestClient<IGetUserRequest> userRequestClient,
             [FromServices] IAccessValidator acessValidator)
         {
@@ -25,7 +25,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
             this.acessValidator = acessValidator;
         }
 
-        public bool CanAssignUser(Guid currentUserId, Guid assignedUserId)
+        public bool UserCanAssignUser(Guid currentUserId, Guid assignedUserId)
         {
             if (currentUserId == assignedUserId)
             {
@@ -48,7 +48,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         return userInfoResponse.Result.Message.Body.IsActive;
                     }
 
-                    throw new Exception(new StringBuilder().AppendJoin("\n", userInfoResponse.Result.Message.Errors).ToString());
+                    throw new NotFoundException($"User with id {assignedUserId} not exist.");
                 }
                 catch
                 {

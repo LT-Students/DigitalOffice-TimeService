@@ -1,25 +1,26 @@
 ﻿using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Broker.Responses;
 using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.Kernel.Exceptions;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Text;
 
-namespace LT.DigitalOffice.TimeManagementService.Validation
+namespace LT.DigitalOffice.TimeManagementService.Validation.Helpers
 {
-    public class AssignProjectValidator : IAssignProjectValidator
+    public class ProjectAssignmentValidator : IProjectAssignmentValidator
     {
         private IRequestClient<IGetProjectUserRequest> projectUserRequestClient;
 
-        public AssignProjectValidator(
+        public ProjectAssignmentValidator(
             [FromServices] IRequestClient<IGetProjectUserRequest> projectUserRequestClient)
         {
             this.projectUserRequestClient = projectUserRequestClient;
         }
 
-        public bool CanAssignProject(Guid assignedUserId, Guid assignedProjectId)
+        public bool CanAssignUserToProject(Guid assignedUserId, Guid assignedProjectId)
         {
             try
             {
@@ -31,7 +32,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                     return projectUserInfoResponse.Result.Message.Body.IsActive;
                 }
 
-                throw new Exception(new StringBuilder().AppendJoin("\n", projectUserInfoResponse.Result.Message.Errors).ToString());
+                throw new NotFoundException($"User with id {assignedUserId} cannot be assigned to a project with id {assignedProjectId}.");
             }
             catch
             {

@@ -3,7 +3,7 @@ using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
@@ -18,8 +18,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
     class EditWorkTimeRequestValidatorTests
     {
         private Mock<IWorkTimeRepository> mockRepository;
-        private Mock<IAssignUserValidator> mockUserValidator;
-        private Mock<IAssignProjectValidator> mockProjectValidator;
+        private Mock<IUserAssignmentValidator> mockUserValidator;
+        private Mock<IProjectAssignmentValidator> mockProjectValidator;
         private IValidator<EditWorkTimeRequest> validator;
         private EditWorkTimeRequest editRequest;
         private IContractResolver resolver;
@@ -49,23 +49,23 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             };
 
             mockRepository = new Mock<IWorkTimeRepository>();
-            mockUserValidator = new Mock<IAssignUserValidator>();
-            mockProjectValidator = new Mock<IAssignProjectValidator>();
+            mockUserValidator = new Mock<IUserAssignmentValidator>();
+            mockProjectValidator = new Mock<IProjectAssignmentValidator>();
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(currentUserId, assignedUserId))
+                .Setup(x => x.UserCanAssignUser(currentUserId, assignedUserId))
                 .Returns(true);
 
             mockUserValidator
-                .Setup(x => x.CanAssignUser(currentUserId, currentUserId))
+                .Setup(x => x.UserCanAssignUser(currentUserId, currentUserId))
                 .Returns(true);
 
             mockProjectValidator
-                .Setup(x => x.CanAssignProject(assignedUserId, assignedProjectId))
+                .Setup(x => x.CanAssignUserToProject(assignedUserId, assignedProjectId))
                 .Returns(true);
 
             mockProjectValidator
-                .Setup(x => x.CanAssignProject(currentUserId, assignedProjectId))
+                .Setup(x => x.CanAssignUserToProject(currentUserId, assignedProjectId))
                 .Returns(true);
 
             validator = new EditWorkTimeRequestValidator(mockRepository.Object, mockUserValidator.Object, mockProjectValidator.Object);

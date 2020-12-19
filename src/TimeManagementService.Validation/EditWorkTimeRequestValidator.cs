@@ -3,7 +3,7 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
 using LT.DigitalOffice.TimeManagementService.Models.Db;
 using LT.DigitalOffice.TimeManagementService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.AspNetCore.Mvc;
@@ -30,8 +30,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
 
         public EditWorkTimeRequestValidator(
             [FromServices] IWorkTimeRepository repository,
-            [FromServices] IAssignUserValidator assignUserValidator,
-            [FromServices] IAssignProjectValidator assignProjectValidator)
+            [FromServices] IUserAssignmentValidator assignUserValidator,
+            [FromServices] IProjectAssignmentValidator assignProjectValidator)
         {
             RuleFor(x => x.Patch.Operations)
                 .Must(x => x.Select(x => x.path).Distinct().Count() == x.Count())
@@ -87,8 +87,8 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                         .DependentRules(() =>
                         {
                             RuleFor(wt => wt)
-                            .Must(wt => assignUserValidator.CanAssignUser(wt.CurrentUserId, (Guid)GetOperationByPath(wt.Patch, UserIdPath).value))
-                            .WithMessage("You cannot assign this user.");
+                            .Must(wt => assignUserValidator.UserCanAssignUser(wt.CurrentUserId, (Guid)GetOperationByPath(wt.Patch, UserIdPath).value))
+                            .WithMessage("You cannot assign inactive user.");
                         })
                         .WithMessage("User does not exist.");
                     });
@@ -105,15 +105,15 @@ namespace LT.DigitalOffice.TimeManagementService.Validation
                             When(wt => GetOperationByPath(wt.Patch, UserIdPath) != null, () =>
                             {
                                 RuleFor(x => x)
-                                .Must(x => assignProjectValidator.CanAssignProject(
+                                .Must(x => assignProjectValidator.CanAssignUserToProject(
                                     (Guid)GetOperationByPath(x.Patch, UserIdPath).value,
                                     (Guid)GetOperationByPath(x.Patch, ProjectIdPath).value))
-                                .WithMessage("You cannot assign this user on this project.");
+                                .WithMessage("You cannot assign inactive project.");
                             })
                             .Otherwise(() =>
                             {
                                 RuleFor(x => x)
-                                .Must(x => assignProjectValidator.CanAssignProject(
+                                .Must(x => assignProjectValidator.CanAssignUserToProject(
                                     repository.GetWorkTimeById(x.WorkTimeId).UserId,
                                     (Guid)GetOperationByPath(x.Patch, ProjectIdPath).value))
                                 .WithMessage("You cannot assign this user on this project.");

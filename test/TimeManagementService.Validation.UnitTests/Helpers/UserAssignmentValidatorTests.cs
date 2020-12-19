@@ -3,7 +3,8 @@ using LT.DigitalOffice.Broker.Responses;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Exceptions;
-using LT.DigitalOffice.TimeManagementService.Validation.Interfaces;
+using LT.DigitalOffice.TimeManagementService.Validation.Helpers;
+using LT.DigitalOffice.TimeManagementService.Validation.Interfaces.Helpers;
 using LT.DigitalOffice.TimeManagementService.Validation.UnitTests.Utils;
 using MassTransit;
 using Moq;
@@ -13,7 +14,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
+namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests.Helpers
 {
     public class GetUserResponse : IGetUserResponse
     {
@@ -25,9 +26,9 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         public string LastName { get; set; }
     }
 
-    class AssignUserValidatorTests
+    class UserAssignmentValidatorTests
     {
-        private IAssignUserValidator validator;
+        private IUserAssignmentValidator validator;
 
         private Mock<IAccessValidator> accessValidatorMock;
         private Mock<IRequestClient<IGetUserRequest>> requestClientMock;
@@ -46,7 +47,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 .Returns(true);
 
             BrokerSetUp();
-            validator = new AssignUserValidator(requestClientMock.Object, accessValidatorMock.Object);
+            validator = new UserAssignmentValidator(requestClientMock.Object, accessValidatorMock.Object);
         }
 
         private void BrokerSetUp()
@@ -73,7 +74,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             operationResult.Errors = new List<string>();
             operationResult.Body = new GetUserResponse { Id = Guid.NewGuid(), IsActive = false };
 
-            Assert.False(validator.CanAssignUser(currentUserId, assignedUserId));
+            Assert.False(validator.UserCanAssignUser(currentUserId, assignedUserId));
         }
 
         [Test]
@@ -83,7 +84,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             operationResult.Errors = new List<string>();
             operationResult.Body = new GetUserResponse { Id = Guid.NewGuid(), IsActive = false };
 
-            Assert.False(validator.CanAssignUser(currentUserId, assignedUserId));
+            Assert.False(validator.UserCanAssignUser(currentUserId, assignedUserId));
         }
 
         [Test]
@@ -93,7 +94,7 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
             operationResult.Errors = new List<string>();
             operationResult.Body = null;
 
-            Assert.Throws<Exception>(() => validator.CanAssignUser(currentUserId, assignedUserId));
+            Assert.Throws<Exception>(() => validator.UserCanAssignUser(currentUserId, assignedUserId));
         }
 
         [Test]
@@ -103,13 +104,13 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
                 .Setup(x => x.IsAdmin())
                 .Returns(false);
 
-            Assert.Throws<ForbiddenException>(() => validator.CanAssignUser(currentUserId, assignedUserId));
+            Assert.Throws<ForbiddenException>(() => validator.UserCanAssignUser(currentUserId, assignedUserId));
         }
 
         [Test]
         public void ShouldReturnTrueWhenUserDesignatesHimself()
         {
-            Assert.True(validator.CanAssignUser(currentUserId, currentUserId));
+            Assert.True(validator.UserCanAssignUser(currentUserId, currentUserId));
         }
     }
 }
