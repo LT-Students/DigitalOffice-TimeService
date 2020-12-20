@@ -27,5 +27,14 @@ namespace LT.DigitalOffice.TimeManagementService.Controllers
         {
             return command.Execute(leaveTime, currentUserId);
         }
+
+        [HttpPatch("editLeaveTime")]
+        public bool EditLeaveTime(
+            [FromQuery] EditLeaveTimeRequest request,
+            [FromHeader] Guid currentUserId,
+            [FromServices] IEditLeaveTimeCommand command)
+        {
+            return command.Execute(request, currentUserId);
+        }
     }
 }
