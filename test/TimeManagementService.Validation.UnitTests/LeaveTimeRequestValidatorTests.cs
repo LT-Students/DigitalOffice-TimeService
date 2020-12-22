@@ -79,6 +79,10 @@ namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
         [Test]
         public void ShouldHaveValidationErrorWhenUserIdIsEmpty()
         {
+            mockUserValidator
+                .Setup(x => x.UserCanAssignUser(request.CurrentUserId, Guid.Empty))
+                .Returns(true);
+
             request.UserId = Guid.Empty;
 
             validator.TestValidate(request).ShouldHaveValidationErrorFor(x => x.UserId);
