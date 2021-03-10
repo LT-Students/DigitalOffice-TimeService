@@ -2,6 +2,7 @@
 
 <Project>
   <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>LT.DigitalOffice.$(MSBuildProjectName)</AssemblyName>
     <RootNamespace>LT.DigitalOffice.$(MSBuildProjectName)</RootNamespace>
   </PropertyGroup>
@@ -18,6 +19,10 @@
     <DebugType>full</DebugType>
     <Optimize>true</Optimize>
     <DefineConstants>TRACE;RELEASE</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(AssemblyName.Contains('.UnitTests'))">
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
   <ItemGroup Condition="$(AssemblyName.Contains('.UnitTests')) != 'true'">
