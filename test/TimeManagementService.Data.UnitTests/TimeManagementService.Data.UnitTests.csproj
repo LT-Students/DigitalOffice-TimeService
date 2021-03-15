@@ -2,12 +2,6 @@
 
   <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
 
-  <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-
-    <IsPackable>false</IsPackable>
-  </PropertyGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\TimeManagementService.Data.Provider.MsSql.Ef\TimeManagementService.Data.Provider.MsSql.Ef.csproj" />
     <ProjectReference Include="..\..\src\TimeManagementService.Data\TimeManagementService.Data.csproj" />
