@@ -1,12 +1,12 @@
-﻿using LT.DigitalOffice.TimeManagementService.Models.Db;
+﻿using LT.DigitalOffice.TimeService.Models.Db;
 using System;
 using System.Collections.Generic;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.Interfaces
+namespace LT.DigitalOffice.TimeService.Data.Interfaces
 {
     /// <summary>
     /// Represents interface of repository in repository pattern.
-    /// Provides methods for working with the database of TimeManagementService.
+    /// Provides methods for working with the database of TimeService.
     /// </summary>
     public interface ILeaveTimeRepository
     {

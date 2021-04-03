@@ -1,11 +1,11 @@
-﻿using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+﻿using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Controllers
+namespace LT.DigitalOffice.TimeService.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("[controller]")]
     [ApiController]
     public class LeaveTimeController : ControllerBase
     {

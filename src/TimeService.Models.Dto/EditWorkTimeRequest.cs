@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Models.Dto
+namespace LT.DigitalOffice.TimeService.Models.Dto
 {
     public class EditWorkTimeRequest
     {

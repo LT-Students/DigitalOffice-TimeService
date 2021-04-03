@@ -1,15 +1,13 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
-using Microsoft.AspNetCore.Mvc;
+using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeManagementService.Business
+namespace LT.DigitalOffice.TimeService.Business
 {
     public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
     {
@@ -18,9 +16,9 @@ namespace LT.DigitalOffice.TimeManagementService.Business
         private readonly ILeaveTimeRepository repository;
 
         public CreateLeaveTimeCommand(
-            [FromServices] IValidator<CreateLeaveTimeRequest> validator,
-            [FromServices] IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper,
-            [FromServices] ILeaveTimeRepository repository)
+            IValidator<CreateLeaveTimeRequest> validator,
+            IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper,
+            ILeaveTimeRepository repository)
         {
             this.validator = validator;
             this.mapper = mapper;

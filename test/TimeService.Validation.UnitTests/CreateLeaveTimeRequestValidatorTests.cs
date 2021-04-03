@@ -1,15 +1,15 @@
 using FluentValidation;
 using FluentValidation.TestHelper;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace LT.DigitalOffice.TimeManagementService.Validation.UnitTests
+namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     public class CreateLeaveTimeRequestValidatorTests
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.Filters
+namespace LT.DigitalOffice.TimeService.Data.Filters
 {
     public class WorkTimeFilter
     {

@@ -1,11 +1,11 @@
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.UnitTestKernel;
 using NUnit.Framework;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Mappers.UnitTests
+namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 {
     public class WorkTimeMapperTests
     {

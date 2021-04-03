@@ -1,16 +1,16 @@
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto.Enums;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
+namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
     public class CreateLeaveTimeTests
     {
-        private TimeManagementDbContext dbContext;
+        private TimeServiceDbContext dbContext;
         private ILeaveTimeRepository repository;
 
         private Guid firstWorkerId;
@@ -21,10 +21,10 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            var dbOptions = new DbContextOptionsBuilder<TimeManagementDbContext>()
+            var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
                                     .UseInMemoryDatabase("InMemoryDatabase")
                                     .Options;
-            dbContext = new TimeManagementDbContext(dbOptions);
+            dbContext = new TimeServiceDbContext(dbOptions);
             repository = new LeaveTimeRepository(dbContext);
 
             firstWorkerId = Guid.NewGuid();

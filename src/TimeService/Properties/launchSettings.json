@@ -15,7 +15,7 @@
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
     },
-    "TimeManagementService": {
+    "TimeService": {
       "commandName": "Project",
       "launchBrowser": false,
       "applicationUrl": "https://localhost:9805;http://localhost:9806",

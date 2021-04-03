@@ -1,7 +1,7 @@
-using LT.DigitalOffice.TimeManagementService.Data.Filters;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
@@ -9,11 +9,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
+namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
     public class CreateWorkTimeTests
     {
-        private TimeManagementDbContext dbContext;
+        private TimeServiceDbContext dbContext;
         private IWorkTimeRepository repository;
 
         private Guid project1;
@@ -29,11 +29,11 @@ namespace LT.DigitalOffice.TimeManagementService.Data.UnitTests
         [SetUp]
         public void OneTimeSetUp()
         {
-            var dbOptions = new DbContextOptionsBuilder<TimeManagementDbContext>()
+            var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
                                     .UseInMemoryDatabase(databaseName: "InMemoryDatabase")
                                     .Options;
 
-            dbContext = new TimeManagementDbContext(dbOptions);
+            dbContext = new TimeServiceDbContext(dbOptions);
             repository = new WorkTimeRepository(dbContext);
 
             project1 = Guid.NewGuid();

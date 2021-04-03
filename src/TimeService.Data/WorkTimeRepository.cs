@@ -1,13 +1,13 @@
 ﻿using LinqKit;
-using LT.DigitalOffice.TimeManagementService.Data.Filters;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Provider;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Provider;
+using LT.DigitalOffice.TimeService.Models.Db;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeManagementService.Data
+namespace LT.DigitalOffice.TimeService.Data
 {
     public class WorkTimeRepository : IWorkTimeRepository
     {

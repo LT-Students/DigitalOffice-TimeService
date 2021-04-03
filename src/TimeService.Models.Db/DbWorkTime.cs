@@ -1,7 +1,7 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace LT.DigitalOffice.TimeManagementService.Models.Db
+namespace LT.DigitalOffice.TimeService.Models.Db
 {
     public class DbWorkTime
     {

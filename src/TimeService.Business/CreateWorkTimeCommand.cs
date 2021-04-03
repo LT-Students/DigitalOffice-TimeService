@@ -1,14 +1,14 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeManagementService.Business
+namespace LT.DigitalOffice.TimeService.Business
 {
     public class CreateWorkTimeCommand : ICreateWorkTimeCommand
     {

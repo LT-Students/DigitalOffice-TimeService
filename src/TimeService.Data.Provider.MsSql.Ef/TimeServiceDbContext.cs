@@ -1,19 +1,19 @@
 using LT.DigitalOffice.Kernel.Database;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Db;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef
+namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef
 {
     /// <summary>
-    /// A class that defines the tables and its properties in the database of TimeManagementService.
+    /// A class that defines the tables and its properties in the database of TimeService.
     /// </summary>
-    public class TimeManagementDbContext : DbContext, IDataProvider
+    public class TimeServiceDbContext : DbContext, IDataProvider
     {
         public DbSet<DbLeaveTime> LeaveTimes { get; set; }
         public DbSet<DbWorkTime> WorkTimes { get; set; }
 
-        public TimeManagementDbContext(DbContextOptions<TimeManagementDbContext> options) : base(options)
+        public TimeServiceDbContext(DbContextOptions<TimeServiceDbContext> options) : base(options)
         {
         }
 

@@ -1,7 +1,7 @@
-﻿using LT.DigitalOffice.TimeManagementService.Models.Dto;
+﻿using LT.DigitalOffice.TimeService.Models.Dto;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService.Business.Interfaces
+namespace LT.DigitalOffice.TimeService.Business.Interfaces
 {
     /// <summary>
     /// Represents interface for a command in command pattern.

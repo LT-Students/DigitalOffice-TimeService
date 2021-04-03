@@ -1,12 +1,12 @@
 ﻿using FluentValidation;
-using LT.DigitalOffice.TimeManagementService.Data.Filters;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeManagementService.Validation
+namespace LT.DigitalOffice.TimeService.Validation
 {
     public class EditWorkTimeRequestValidator : AbstractValidator<EditWorkTimeRequest>
     {

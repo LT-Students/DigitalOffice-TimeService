@@ -1,4 +1,4 @@
-namespace LT.DigitalOffice.TimeManagementService.Models.Dto.Enums
+namespace LT.DigitalOffice.TimeService.Models.Dto.Enums
 {
     public enum LeaveType
     {

@@ -1,4 +1,4 @@
-﻿namespace LT.DigitalOffice.TimeManagementService.Mappers.Interfaces
+﻿namespace LT.DigitalOffice.TimeService.Mappers.Interfaces
 {
     /// <summary>
     /// Represents interface for a mapper in mapper pattern.

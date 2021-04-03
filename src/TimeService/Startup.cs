@@ -3,18 +3,18 @@ using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Kernel;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
-using LT.DigitalOffice.TimeManagementService.Business;
-using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Configuration;
-using LT.DigitalOffice.TimeManagementService.Data;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Provider;
-using LT.DigitalOffice.TimeManagementService.Data.Provider.MsSql.Ef;
-using LT.DigitalOffice.TimeManagementService.Mappers;
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
-using LT.DigitalOffice.TimeManagementService.Validation;
+using LT.DigitalOffice.TimeService.Business;
+using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Configuration;
+using LT.DigitalOffice.TimeService.Data;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Provider;
+using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
+using LT.DigitalOffice.TimeService.Mappers;
+using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -23,7 +23,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace LT.DigitalOffice.TimeManagementService
+namespace LT.DigitalOffice.TimeService
 {
     public class Startup
     {
@@ -44,7 +44,7 @@ namespace LT.DigitalOffice.TimeManagementService
                 connStr = Configuration.GetConnectionString("SQLConnectionString");
             }
 
-            services.AddDbContext<TimeManagementDbContext>(options =>
+            services.AddDbContext<TimeServiceDbContext>(options =>
             {
                 options.UseSqlServer(connStr);
             });
@@ -83,7 +83,7 @@ namespace LT.DigitalOffice.TimeManagementService
 
         private void ConfigureRepositories(IServiceCollection services)
         {
-            services.AddTransient<IDataProvider, TimeManagementDbContext>();
+            services.AddTransient<IDataProvider, TimeServiceDbContext>();
 
             services.AddTransient<ILeaveTimeRepository, LeaveTimeRepository>();
             services.AddTransient<IWorkTimeRepository, WorkTimeRepository>();
@@ -123,7 +123,7 @@ namespace LT.DigitalOffice.TimeManagementService
         {
             using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
 
-            using var context = serviceScope.ServiceProvider.GetService<TimeManagementDbContext>();
+            using var context = serviceScope.ServiceProvider.GetService<TimeServiceDbContext>();
 
             context.Database.Migrate();
         }

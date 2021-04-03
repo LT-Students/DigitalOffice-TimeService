@@ -1,8 +1,8 @@
 ﻿using LT.DigitalOffice.Kernel.Database;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Db;
 using Microsoft.EntityFrameworkCore;
 
-namespace LT.DigitalOffice.TimeManagementService.Data.Provider
+namespace LT.DigitalOffice.TimeService.Data.Provider
 {
     public interface IDataProvider : IBaseDataProvider
     {

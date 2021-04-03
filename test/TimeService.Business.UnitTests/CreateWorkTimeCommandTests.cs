@@ -1,16 +1,16 @@
 using FluentValidation;
 using FluentValidation.Results;
-using LT.DigitalOffice.TimeManagementService.Business.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Data.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeManagementService.Models.Db;
-using LT.DigitalOffice.TimeManagementService.Models.Dto;
+using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 
-namespace LT.DigitalOffice.TimeManagementService.Business.UnitTests
+namespace LT.DigitalOffice.TimeService.Business.UnitTests
 {
     public class CreateWorkTimeCommandTests
     {
