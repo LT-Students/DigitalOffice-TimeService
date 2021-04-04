@@ -3,6 +3,12 @@
   <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
 
   <ItemGroup>
+    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="5.0.1" />
+    <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="5.0.2" />
+    <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="5.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\TimeService.Business\TimeService.Business.csproj" />
     <ProjectReference Include="..\TimeService.Data.Provider.MsSql.Ef\TimeService.Data.Provider.MsSql.Ef.csproj" />
     <ProjectReference Include="..\TimeService.Models.Dto\TimeService.Models.Dto.csproj" />

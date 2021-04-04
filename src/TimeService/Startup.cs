@@ -1,7 +1,9 @@
 using FluentValidation;
+using HealthChecks.UI.Client;
 using LT.DigitalOffice.Broker.Requests;
 using LT.DigitalOffice.Kernel;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
 using LT.DigitalOffice.TimeService.Business;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
@@ -17,10 +19,12 @@ using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Validation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 
 namespace LT.DigitalOffice.TimeService
@@ -36,9 +40,15 @@ namespace LT.DigitalOffice.TimeService
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHealthChecks();
+            services.AddHttpContextAccessor();
+
+            services.AddKernelExtensions();
 
             string connStr = Environment.GetEnvironmentVariable("ConnectionString");
+
+            services.AddHealthChecks()
+                .AddSqlServer(connStr);
+
             if (string.IsNullOrEmpty(connStr))
             {
                 connStr = Configuration.GetConnectionString("SQLConnectionString");
@@ -89,11 +99,11 @@ namespace LT.DigitalOffice.TimeService
             services.AddTransient<IWorkTimeRepository, WorkTimeRepository>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
             app.UseHealthChecks("/api/healthcheck");
 
-            app.UseExceptionHandler(tempApp => tempApp.Run(CustomExceptionHandler.HandleCustomException));
+            app.AddExceptionsHandler(loggerFactory);
 
             UpdateDatabase(app);
 
@@ -113,9 +123,19 @@ namespace LT.DigitalOffice.TimeService
 
             app.UseMiddleware<TokenMiddleware>();
 
+            var rabbitMqConfig = Configuration
+                .GetSection(BaseRabbitMqOptions.RabbitMqSectionName)
+                .Get<RabbitMqConfig>();
+
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+
+                endpoints.MapHealthChecks($"/{rabbitMqConfig.Password}/hc", new HealthCheckOptions
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
             });
         }
 
