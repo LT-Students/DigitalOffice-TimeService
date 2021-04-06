@@ -1,7 +1,6 @@
 using FluentValidation;
 using HealthChecks.UI.Client;
 using LT.DigitalOffice.Broker.Requests;
-using LT.DigitalOffice.Kernel;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
@@ -20,7 +19,6 @@ using LT.DigitalOffice.TimeService.Validation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,24 +29,36 @@ namespace LT.DigitalOffice.TimeService
 {
     public class Startup
     {
+        private readonly RabbitMqConfig _rabbitMqConfig;
+
         public IConfiguration Configuration { get; }
+
+        #region public methods
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            _rabbitMqConfig = Configuration
+                .GetSection(BaseRabbitMqOptions.RabbitMqSectionName)
+                .Get<RabbitMqConfig>();
         }
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<BaseRabbitMqOptions>(Configuration.GetSection(BaseRabbitMqOptions.RabbitMqSectionName));
+
             services.AddHttpContextAccessor();
 
             services.AddKernelExtensions();
 
             string connStr = Environment.GetEnvironmentVariable("ConnectionString");
 
-            services.AddHealthChecks()
+            // TODO: Fix HealthChecks work with RabbitMQ
+            services
+                .AddHealthChecks()
                 .AddSqlServer(connStr);
-
+                
             if (string.IsNullOrEmpty(connStr))
             {
                 connStr = Configuration.GetConnectionString("SQLConnectionString");
@@ -69,6 +79,44 @@ namespace LT.DigitalOffice.TimeService
             ConfigureRepositories(services);
             ConfigureRabbitMq(services);
         }
+
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        {
+            app.AddExceptionsHandler(loggerFactory);
+
+            UpdateDatabase(app);
+
+#if RELEASE
+            app.UseHttpsRedirection();
+#endif
+
+            app.UseRouting();
+
+            string corsUrl = Configuration.GetSection("Settings")["CorsUrl"];
+
+            app.UseCors(builder =>
+                builder
+                    .WithOrigins(corsUrl)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod());
+
+            app.UseMiddleware<TokenMiddleware>();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+
+                endpoints.MapHealthChecks($"/{_rabbitMqConfig.Password}/hc", new HealthCheckOptions
+                {
+                    Predicate = _ => true,
+                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                });
+            });
+        }
+
+        #endregion
+
+        #region private methods
 
         private void ConfigureCommands(IServiceCollection services)
         {
@@ -99,46 +147,6 @@ namespace LT.DigitalOffice.TimeService
             services.AddTransient<IWorkTimeRepository, WorkTimeRepository>();
         }
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
-        {
-            app.UseHealthChecks("/api/healthcheck");
-
-            app.AddExceptionsHandler(loggerFactory);
-
-            UpdateDatabase(app);
-
-#if RELEASE
-            app.UseHttpsRedirection();
-#endif
-
-            app.UseRouting();
-
-            string corsUrl = Configuration.GetSection("Settings")["CorsUrl"];
-
-            app.UseCors(builder =>
-                builder
-                    .WithOrigins(corsUrl)
-                    .AllowAnyHeader()
-                    .AllowAnyMethod());
-
-            app.UseMiddleware<TokenMiddleware>();
-
-            var rabbitMqConfig = Configuration
-                .GetSection(BaseRabbitMqOptions.RabbitMqSectionName)
-                .Get<RabbitMqConfig>();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-
-                endpoints.MapHealthChecks($"/{rabbitMqConfig.Password}/hc", new HealthCheckOptions
-                {
-                    Predicate = _ => true,
-                    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                });
-            });
-        }
-
         private void UpdateDatabase(IApplicationBuilder app)
         {
             using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
@@ -150,26 +158,24 @@ namespace LT.DigitalOffice.TimeService
 
         private void ConfigureRabbitMq(IServiceCollection services)
         {
-            var rabbitMqConfig = Configuration
-                .GetSection(BaseRabbitMqOptions.RabbitMqSectionName)
-                .Get<BaseRabbitMqOptions>();
-
             services.AddMassTransit(x =>
             {
                 x.UsingRabbitMq((context, cfg) =>
                 {
-                    cfg.Host(rabbitMqConfig.Host, "/", host =>
+                    cfg.Host(_rabbitMqConfig.Host, "/", host =>
                     {
-                        host.Username($"{rabbitMqConfig.Username}_{rabbitMqConfig.Password}");
-                        host.Password(rabbitMqConfig.Password);
+                        host.Username($"{_rabbitMqConfig.Username}_{_rabbitMqConfig.Password}");
+                        host.Password(_rabbitMqConfig.Password);
                     });
                 });
 
                 x.AddRequestClient<ICheckTokenRequest>(
-                    new Uri($"{rabbitMqConfig.BaseUrl}/{rabbitMqConfig.ValidateTokenEndpoint}"));
+                    new Uri($"{_rabbitMqConfig.BaseUrl}/{_rabbitMqConfig.ValidateTokenEndpoint}"));
             });
 
             services.AddMassTransitHostedService();
         }
+
+        #endregion
     }
 }
