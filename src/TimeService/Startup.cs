@@ -171,6 +171,8 @@ namespace LT.DigitalOffice.TimeService
 
                 x.AddRequestClient<ICheckTokenRequest>(
                     new Uri($"{_rabbitMqConfig.BaseUrl}/{_rabbitMqConfig.ValidateTokenEndpoint}"));
+
+                x.ConfigureKernelMassTransit(_rabbitMqConfig);
             });
 
             services.AddMassTransitHostedService();
