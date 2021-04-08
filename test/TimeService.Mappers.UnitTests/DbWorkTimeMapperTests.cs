@@ -8,17 +8,20 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 {
-    public class CreateWorkTimeMapperTests
+    public class DbWorkTimeMapperTests
     {
-        private ICreateWorkTimeMapper _createRequestMapper;
+        private IDbWorkTimeMapper _createRequestMapper;
+        private IDbWorkTimeMapper _editRequestMapper;
 
+        private EditWorkTimeRequest _editRequest;
         private CreateWorkTimeRequest _createRequest;
         private DbWorkTime _expectedDbWorkTimeWithoutId;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            _createRequestMapper = new CreateWorkTimeMapper();
+            _createRequestMapper = new DbWorkTimeMapper();
+            _editRequestMapper = new DbWorkTimeMapper();
         }
 
         [SetUp]
@@ -32,6 +35,17 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 Title = "I was working on a very important task",
                 Description = "I was asleep. I love sleep. I hope I get paid for this.",
                 WorkerUserId = Guid.NewGuid()
+            };
+
+            _editRequest = new EditWorkTimeRequest
+            {
+                Id = Guid.NewGuid(),
+                ProjectId = _createRequest.ProjectId,
+                StartTime = _createRequest.StartTime,
+                EndTime = _createRequest.EndTime,
+                Title = _createRequest.Title,
+                Description = _createRequest.Description,
+                WorkerUserId = _createRequest.WorkerUserId
             };
 
             _expectedDbWorkTimeWithoutId = new DbWorkTime
@@ -48,7 +62,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenCreateWorkTimeRequestIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => _createRequestMapper.Map(null));
+            CreateWorkTimeRequest createWorkTimeRequest = null;
+            Assert.Throws<ArgumentNullException>(() => _createRequestMapper.Map(createWorkTimeRequest));
         }
 
         [Test]
@@ -72,6 +87,22 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             Assert.IsInstanceOf<Guid>(newWortTime.Id);
             Assert.IsTrue(string.IsNullOrEmpty(newWortTime.Description));
             SerializerAssert.AreEqual(_expectedDbWorkTimeWithoutId, newWortTime);
+        }
+
+        [Test]
+        public void ShouldThrowArgumentNullExceptionWhenEditWorkTimeRequestIsNull()
+        {
+            EditWorkTimeRequest editWorkTimeRequest = null;
+            Assert.Throws<ArgumentNullException>(() => _editRequestMapper.Map(editWorkTimeRequest));
+        }
+
+        [Test]
+        public void ShouldReturnDbWorkTimeWhenMappingValidEditWorkTimeRequest()
+        {
+            var workTime = _editRequestMapper.Map(_editRequest);
+            _expectedDbWorkTimeWithoutId.Id = _editRequest.Id;
+
+            SerializerAssert.AreEqual(_expectedDbWorkTimeWithoutId, workTime);
         }
     }
 }

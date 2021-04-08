@@ -9,9 +9,9 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 {
-    public class CreateLeaveTimeMapperTests
+    public class DbLeaveTimeMapperTests
     {
-        private ICreateLeaveTimeMapper _mapper;
+        private IDbLeaveTimeMapper _mapper;
 
         private CreateLeaveTimeRequest _request;
         private DbLeaveTime _expectedDbLeaveTimeWithoutId;
@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            _mapper = new CreateLeaveTimeMapper();
+            _mapper = new DbLeaveTimeMapper();
         }
 
         [SetUp]

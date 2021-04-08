@@ -6,7 +6,7 @@ using LT.DigitalOffice.TimeService.Models.Dto;
 namespace LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces
 {
     [AutoInject]
-    public interface IEditWorkTimeMapper : IMapper<EditWorkTimeRequest, DbWorkTime>
+    public interface IDbWorkTimeMapper : IMapper<CreateWorkTimeRequest, DbWorkTime>, IMapper<EditWorkTimeRequest, DbWorkTime>
     {
     }
 }

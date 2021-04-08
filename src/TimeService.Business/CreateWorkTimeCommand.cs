@@ -15,12 +15,12 @@ namespace LT.DigitalOffice.TimeService.Business
     public class CreateWorkTimeCommand : ICreateWorkTimeCommand
     {
         private readonly ICreateWorkTimeRequestValidator _validator;
-        private readonly ICreateWorkTimeMapper _mapper;
+        private readonly IDbWorkTimeMapper _mapper;
         private readonly IWorkTimeRepository _repository;
 
         public CreateWorkTimeCommand(
             [FromServices] ICreateWorkTimeRequestValidator validator,
-            [FromServices] ICreateWorkTimeMapper mapper,
+            [FromServices] IDbWorkTimeMapper mapper,
             [FromServices] IWorkTimeRepository repository)
         {
             _validator = validator;

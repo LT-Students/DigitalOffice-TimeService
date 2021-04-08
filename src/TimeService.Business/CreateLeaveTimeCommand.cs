@@ -14,12 +14,12 @@ namespace LT.DigitalOffice.TimeService.Business
     public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
     {
         private readonly ICreateLeaveTimeRequestValidator _validator;
-        private readonly ICreateLeaveTimeMapper _mapper;
+        private readonly IDbLeaveTimeMapper _mapper;
         private readonly ILeaveTimeRepository _repository;
 
         public CreateLeaveTimeCommand(
             ICreateLeaveTimeRequestValidator validator,
-            ICreateLeaveTimeMapper mapper,
+            IDbLeaveTimeMapper mapper,
             ILeaveTimeRepository repository)
         {
             _validator = validator;

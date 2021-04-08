@@ -5,24 +5,23 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Requests
 {
-    public class CreateWorkTimeMapper : ICreateWorkTimeMapper
+    public class DbLeaveTimeMapper : IDbLeaveTimeMapper
     {
-        public DbWorkTime Map(CreateWorkTimeRequest request)
+        public DbLeaveTime Map(CreateLeaveTimeRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return new DbWorkTime
+            return new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
                 WorkerUserId = request.WorkerUserId,
+                LeaveType = (int)request.LeaveType,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
-                Title = request.Title,
-                ProjectId = request.ProjectId,
-                Description = request.Description
+                Comment = request.Comment
             };
         }
     }

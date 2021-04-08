@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
     public class EditWorkTimeCommandTests
     {
         private Mock<IEditWorkTimeRequestValidator> _validatorMock;
-        private Mock<IEditWorkTimeMapper> _mapperMock;
+        private Mock<IDbWorkTimeMapper> _mapperMock;
         private Mock<IWorkTimeRepository> _repositoryMock;
         private IEditWorkTimeCommand _command;
 
@@ -53,7 +53,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
         public void SetUp()
         {
             _validatorMock = new Mock<IEditWorkTimeRequestValidator>();
-            _mapperMock = new Mock<IEditWorkTimeMapper>();
+            _mapperMock = new Mock<IDbWorkTimeMapper>();
             _repositoryMock = new Mock<IWorkTimeRepository>();
 
             _command = new EditWorkTimeCommand(_validatorMock.Object, _repositoryMock.Object, _mapperMock.Object);

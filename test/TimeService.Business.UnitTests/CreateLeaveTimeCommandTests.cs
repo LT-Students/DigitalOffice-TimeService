@@ -17,7 +17,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
     public class CreateLeaveTimeCommandTests
     {
         private Mock<ICreateLeaveTimeRequestValidator> _validatorMock;
-        private Mock<ICreateLeaveTimeMapper> _mapperMock;
+        private Mock<IDbLeaveTimeMapper> _mapperMock;
         private Mock<ILeaveTimeRepository> _repositoryMock;
         private ICreateLeaveTimeCommand _command;
 
@@ -51,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
         public void SetUp()
         {
             _validatorMock = new Mock<ICreateLeaveTimeRequestValidator>();
-            _mapperMock = new Mock<ICreateLeaveTimeMapper>();
+            _mapperMock = new Mock<IDbLeaveTimeMapper>();
             _repositoryMock = new Mock<ILeaveTimeRepository>();
 
             _command = new CreateLeaveTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object);

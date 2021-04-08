@@ -15,12 +15,12 @@ namespace LT.DigitalOffice.TimeService.Business
     {
         private readonly IEditWorkTimeRequestValidator _validator;
         private readonly IWorkTimeRepository _repository;
-        private readonly IEditWorkTimeMapper _mapper;
+        private readonly IDbWorkTimeMapper _mapper;
 
         public EditWorkTimeCommand(
             [FromServices] IEditWorkTimeRequestValidator validator,
             [FromServices] IWorkTimeRepository repository,
-            [FromServices] IEditWorkTimeMapper mapper)
+            [FromServices] IDbWorkTimeMapper mapper)
         {
             _validator = validator;
             _repository = repository;
