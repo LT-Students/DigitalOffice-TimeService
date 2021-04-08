@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TimeService.Validation
         /// </summary>
         public static TimeSpan WorkingLimit { get; } = new TimeSpan(24, 0, 0);
 
-        public EditWorkTimeRequestValidator([FromServices] IWorkTimeRepository repository)
+        public EditWorkTimeRequestValidator(IWorkTimeRepository repository)
         {
             RuleFor(wt => wt.Id)
                 .NotEmpty()

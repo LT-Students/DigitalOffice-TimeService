@@ -10,7 +10,7 @@ namespace LT.DigitalOffice.TimeService.Validation
 {
     public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
     {
-        public CreateLeaveTimeRequestValidator([FromServices] ILeaveTimeRepository repository)
+        public CreateLeaveTimeRequestValidator(ILeaveTimeRepository repository)
         {
             RuleFor(lt => lt.WorkerUserId)
                 .NotEmpty();

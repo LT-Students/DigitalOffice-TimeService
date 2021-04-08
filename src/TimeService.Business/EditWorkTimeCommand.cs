@@ -1,12 +1,9 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Business
@@ -18,9 +15,9 @@ namespace LT.DigitalOffice.TimeService.Business
         private readonly IDbWorkTimeMapper _mapper;
 
         public EditWorkTimeCommand(
-            [FromServices] IEditWorkTimeRequestValidator validator,
-            [FromServices] IWorkTimeRepository repository,
-            [FromServices] IDbWorkTimeMapper mapper)
+            IEditWorkTimeRequestValidator validator,
+            IWorkTimeRepository repository,
+            IDbWorkTimeMapper mapper)
         {
             _validator = validator;
             _repository = repository;

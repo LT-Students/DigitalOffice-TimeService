@@ -29,7 +29,7 @@ namespace LT.DigitalOffice.TimeService.Validation
         private readonly DateTime toDateTime = DateTime.Now.AddDays(ToDay);
         private readonly CultureInfo culture = CultureInfo.CreateSpecificCulture("en-GB");
 
-        public CreateWorkTimeRequestValidator([FromServices] IWorkTimeRepository repository)
+        public CreateWorkTimeRequestValidator(IWorkTimeRepository repository)
         {
             RuleFor(wt => wt.WorkerUserId)
                     .NotEmpty();

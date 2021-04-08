@@ -1,9 +1,7 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using System;
