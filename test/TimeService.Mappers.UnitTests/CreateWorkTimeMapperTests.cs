@@ -57,7 +57,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             var newWorkTime = _createRequestMapper.Map(_createRequest);
             _expectedDbWorkTimeWithoutId.Id = newWorkTime.Id;
 
-            Assert.IsInstanceOf<Guid>(newWorkTime.Id);
             SerializerAssert.AreEqual(_expectedDbWorkTimeWithoutId, newWorkTime);
         }
 

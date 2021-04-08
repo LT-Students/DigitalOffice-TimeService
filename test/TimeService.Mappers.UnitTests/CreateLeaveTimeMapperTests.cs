@@ -56,7 +56,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             var newLeaveTime = _mapper.Map(_request);
             _expectedDbLeaveTimeWithoutId.Id = newLeaveTime.Id;
 
-            Assert.IsInstanceOf<Guid>(newLeaveTime.Id);
             SerializerAssert.AreEqual(_expectedDbLeaveTimeWithoutId, newLeaveTime);
         }
     }
