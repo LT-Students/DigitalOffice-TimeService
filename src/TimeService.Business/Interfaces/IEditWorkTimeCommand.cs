@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Models.Dto;
+﻿using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.TimeService.Models.Dto;
 
 namespace LT.DigitalOffice.TimeService.Business.Interfaces
 {
@@ -6,6 +7,7 @@ namespace LT.DigitalOffice.TimeService.Business.Interfaces
     /// Represents interface for a command in command pattern.
     /// Provides method for change work time.
     /// </summary>
+    [AutoInject]
     public interface IEditWorkTimeCommand
     {
         /// <summary>

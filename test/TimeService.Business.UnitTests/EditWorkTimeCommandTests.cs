@@ -1,17 +1,17 @@
-﻿using FluentValidation;
-using LT.DigitalOffice.TimeService.Business.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests
 {
     public class EditWorkTimeCommandTests
     {
-        private Mock<IValidator<EditWorkTimeRequest>> validatorMock;
-        private Mock<IMapper<EditWorkTimeRequest, DbWorkTime>> mapperMock;
+        private Mock<IEditWorkTimeRequestValidator> validatorMock;
+        private Mock<IEditWorkTimeMapper> mapperMock;
         private Mock<IWorkTimeRepository> repositoryMock;
         private IEditWorkTimeCommand command;
 

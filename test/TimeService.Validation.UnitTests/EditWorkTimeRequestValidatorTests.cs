@@ -4,6 +4,7 @@ using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -13,46 +14,46 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     class EditWorkTimeRequestValidatorTests
     {
-        private IValidator<EditWorkTimeRequest> validator;
+        private IEditWorkTimeRequestValidator _validator;
 
-        private Mock<IWorkTimeRepository> repositoryMock;
+        private Mock<IWorkTimeRepository> _repositoryMock;
 
         [SetUp]
         public void SetUp()
         {
-            repositoryMock = new Mock<IWorkTimeRepository>();
+            _repositoryMock = new Mock<IWorkTimeRepository>();
 
-            validator = new EditWorkTimeRequestValidator(repositoryMock.Object);
+            _validator = new EditWorkTimeRequestValidator(_repositoryMock.Object);
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenIdIsEmpty()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.Id, Guid.Empty);
+            _validator.ShouldHaveValidationErrorFor(x => x.Id, Guid.Empty);
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenWorkerUserIdIsEmpty()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, Guid.Empty);
+            _validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, Guid.Empty);
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenStartTimeIsEmpty()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.StartTime, new DateTime());
+            _validator.ShouldHaveValidationErrorFor(x => x.StartTime, new DateTime());
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenEndTimeIsEmpty()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.EndTime, new DateTime());
+            _validator.ShouldHaveValidationErrorFor(x => x.EndTime, new DateTime());
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenTitleIsEmpty()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.Title, "");
+            _validator.ShouldHaveValidationErrorFor(x => x.Title, "");
         }
 
         [Test]
@@ -60,19 +61,19 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var title = "123" + new string('a', 30);
 
-            validator.ShouldHaveValidationErrorFor(x => x.Title, title);
+            _validator.ShouldHaveValidationErrorFor(x => x.Title, title);
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenTitleIsTooShort()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.Title, "A");
+            _validator.ShouldHaveValidationErrorFor(x => x.Title, "A");
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenProjectIdIsEmpty()
         {
-            validator.ShouldHaveValidationErrorFor(x => x.ProjectId, Guid.Empty);
+            _validator.ShouldHaveValidationErrorFor(x => x.ProjectId, Guid.Empty);
         }
 
         [Test]
@@ -80,7 +81,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var comment = "1" + new string('a', 500);
 
-            validator.ShouldHaveValidationErrorFor(x => x.Description, comment);
+            _validator.ShouldHaveValidationErrorFor(x => x.Description, comment);
         }
 
         [Test]
@@ -97,7 +98,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = "ExampleDescription"
             };
 
-            Assert.Throws<ValidationException>(() => validator.ValidateAndThrow(request));
+            Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
         }
 
         [Test]
@@ -114,7 +115,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = "ExampleDescription"
             };
 
-            Assert.Throws<ValidationException>(() => validator.ValidateAndThrow(request));
+            Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
         }
 
         [Test]
@@ -141,10 +142,10 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = request.Description
             };
 
-            repositoryMock.Setup(x => x.GetUserWorkTimes(request.WorkerUserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.GetUserWorkTimes(request.WorkerUserId, It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime> { time });
 
-            Assert.Throws<ValidationException>(() => validator.ValidateAndThrow(request));
+            Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
         }
 
         [Test]
@@ -161,7 +162,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = "ExampleDescription"
             };
 
-            Assert.DoesNotThrow(() => validator.ValidateAndThrow(request));
+            Assert.DoesNotThrow(() => _validator.ValidateAndThrow(request));
         }
     }
 }

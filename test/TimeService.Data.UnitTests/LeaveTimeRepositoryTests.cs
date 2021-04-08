@@ -10,13 +10,13 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
     public class CreateLeaveTimeTests
     {
-        private TimeServiceDbContext dbContext;
-        private ILeaveTimeRepository repository;
+        private TimeServiceDbContext _dbContext;
+        private ILeaveTimeRepository _repository;
 
-        private Guid firstWorkerId;
-        private Guid secondWorkerId;
-        private DbLeaveTime firstLeaveTime;
-        private DbLeaveTime secondLeaveTime;
+        private Guid _firstWorkerId;
+        private Guid _secondWorkerId;
+        private DbLeaveTime _firstLeaveTime;
+        private DbLeaveTime _secondLeaveTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -24,38 +24,38 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
                                     .UseInMemoryDatabase("InMemoryDatabase")
                                     .Options;
-            dbContext = new TimeServiceDbContext(dbOptions);
-            repository = new LeaveTimeRepository(dbContext);
+            _dbContext = new TimeServiceDbContext(dbOptions);
+            _repository = new LeaveTimeRepository(_dbContext);
 
-            firstWorkerId = Guid.NewGuid();
-            secondWorkerId = Guid.NewGuid();
+            _firstWorkerId = Guid.NewGuid();
+            _secondWorkerId = Guid.NewGuid();
 
-            firstLeaveTime = new DbLeaveTime
+            _firstLeaveTime = new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
                 LeaveType = (int)LeaveType.SickLeave,
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 5),
                 EndTime = new DateTime(2020, 7, 25),
-                WorkerUserId = firstWorkerId
+                WorkerUserId = _firstWorkerId
             };
-            secondLeaveTime = new DbLeaveTime
+            _secondLeaveTime = new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
                 LeaveType = (int)LeaveType.Training,
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 10),
                 EndTime = new DateTime(2020, 7, 20),
-                WorkerUserId = secondWorkerId
+                WorkerUserId = _secondWorkerId
             };
         }
 
         [TearDown]
         public void CleanDb()
         {
-            if (dbContext.Database.IsInMemory())
+            if (_dbContext.Database.IsInMemory())
             {
-                dbContext.Database.EnsureDeleted();
+                _dbContext.Database.EnsureDeleted();
             }
         }
 
@@ -63,10 +63,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void ShouldAddNewLeaveTimeInDb()
         {
-            var guidOfNewLeaveTime = repository.CreateLeaveTime(firstLeaveTime);
+            var guidOfNewLeaveTime = _repository.CreateLeaveTime(_firstLeaveTime);
 
-            Assert.AreEqual(firstLeaveTime.Id, guidOfNewLeaveTime);
-            Assert.That(dbContext.LeaveTimes.Find(firstLeaveTime.Id), Is.EqualTo(firstLeaveTime));
+            Assert.AreEqual(_firstLeaveTime.Id, guidOfNewLeaveTime);
+            Assert.That(_dbContext.LeaveTimes.Find(_firstLeaveTime.Id), Is.EqualTo(_firstLeaveTime));
         }
         #endregion
 
@@ -74,16 +74,16 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void ShouldReturnsLeaveTime()
         {
-            dbContext.Add(firstLeaveTime);
-            dbContext.Add(secondLeaveTime);
-            dbContext.SaveChanges();
+            _dbContext.Add(_firstLeaveTime);
+            _dbContext.Add(_secondLeaveTime);
+            _dbContext.SaveChanges();
 
-            var leaveTimesOfFirstWorker = repository.GetUserLeaveTimes(firstWorkerId);
-            var leaveTimesOfSecondWorker = repository.GetUserLeaveTimes(secondWorkerId);
+            var leaveTimesOfFirstWorker = _repository.GetUserLeaveTimes(_firstWorkerId);
+            var leaveTimesOfSecondWorker = _repository.GetUserLeaveTimes(_secondWorkerId);
 
-            Assert.That(leaveTimesOfFirstWorker, Is.EquivalentTo(new[] {firstLeaveTime}));
-            Assert.That(leaveTimesOfSecondWorker, Is.EquivalentTo(new[] {secondLeaveTime}));
-            Assert.That(dbContext.LeaveTimes, Is.EquivalentTo(new[] {firstLeaveTime, secondLeaveTime}));
+            Assert.That(leaveTimesOfFirstWorker, Is.EquivalentTo(new[] {_firstLeaveTime}));
+            Assert.That(leaveTimesOfSecondWorker, Is.EquivalentTo(new[] {_secondLeaveTime}));
+            Assert.That(_dbContext.LeaveTimes, Is.EquivalentTo(new[] {_firstLeaveTime, _secondLeaveTime}));
         }
         #endregion
     }

@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Models.Dto;
+﻿using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.TimeService.Models.Dto;
 using System;
 
 namespace LT.DigitalOffice.TimeService.Business.Interfaces
@@ -7,6 +8,7 @@ namespace LT.DigitalOffice.TimeService.Business.Interfaces
     /// Represents interface for a command in command pattern.
     /// Provides method for adding a new leave time.
     /// </summary>
+    [AutoInject]
     public interface ICreateLeaveTimeCommand
     {
         /// <summary>

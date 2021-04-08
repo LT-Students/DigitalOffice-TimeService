@@ -1,8 +1,8 @@
-﻿using LT.DigitalOffice.Kernel.Broker;
+﻿using LT.DigitalOffice.Kernel.Configurations;
 
 namespace LT.DigitalOffice.TimeService.Configuration
 {
-    public class RabbitMqConfig : BaseRabbitMqOptions
+    public class RabbitMqConfig : BaseRabbitMqConfig
     {
         public string AuthenticationServiceValidationUrl { get; set; }
     }

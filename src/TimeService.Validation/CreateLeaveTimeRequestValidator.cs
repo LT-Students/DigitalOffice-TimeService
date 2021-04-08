@@ -1,13 +1,14 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Validation
 {
-    public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>
+    public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
     {
         public CreateLeaveTimeRequestValidator([FromServices] ILeaveTimeRepository repository)
         {

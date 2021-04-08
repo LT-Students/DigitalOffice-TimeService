@@ -1,27 +1,28 @@
-﻿using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Mappers
+namespace LT.DigitalOffice.TimeService.Mappers.Requests
 {
-    public class LeaveTimeMapper : IMapper<CreateLeaveTimeRequest, DbLeaveTime>
+    public class CreateWorkTimeMapper : ICreateWorkTimeMapper
     {
-        public DbLeaveTime Map(CreateLeaveTimeRequest request)
+        public DbWorkTime Map(CreateWorkTimeRequest request)
         {
             if (request == null)
             {
                 throw new ArgumentNullException(nameof(request));
             }
 
-            return new DbLeaveTime
+            return new DbWorkTime
             {
                 Id = Guid.NewGuid(),
                 WorkerUserId = request.WorkerUserId,
-                LeaveType = (int)request.LeaveType,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
-                Comment = request.Comment
+                Title = request.Title,
+                ProjectId = request.ProjectId,
+                Description = request.Description
             };
         }
     }

@@ -1,63 +1,64 @@
-using FluentValidation;
 using HealthChecks.UI.Client;
-using LT.DigitalOffice.Broker.Requests;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
-using LT.DigitalOffice.TimeService.Business;
-using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Configuration;
-using LT.DigitalOffice.TimeService.Data;
-using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
-using LT.DigitalOffice.TimeService.Mappers;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
-using LT.DigitalOffice.TimeService.Validation;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService
 {
     public class Startup
     {
         private readonly RabbitMqConfig _rabbitMqConfig;
+        private readonly BaseServiceInfoConfig _serviceInfoConfig;
+        private readonly ILogger<Startup> _logger;
 
         public IConfiguration Configuration { get; }
-
-        #region public methods
 
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
 
             _rabbitMqConfig = Configuration
-                .GetSection(BaseRabbitMqOptions.RabbitMqSectionName)
+                .GetSection(BaseRabbitMqConfig.SectionName)
                 .Get<RabbitMqConfig>();
+
+            _serviceInfoConfig = Configuration
+                .GetSection(BaseServiceInfoConfig.SectionName)
+                .Get<BaseServiceInfoConfig>();
+
+            using var loggerFactory = LoggerFactory.Create(builder =>
+            {
+                builder
+                    .AddFilter("LT.DigitalOffice.TimeService.Startup", LogLevel.Trace)
+                    .AddConsole();
+            });
+
+            _logger = loggerFactory.CreateLogger<Startup>();
         }
+
+        #region public methods
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<BaseRabbitMqOptions>(Configuration.GetSection(BaseRabbitMqOptions.RabbitMqSectionName));
+            services.Configure<TokenConfiguration>(Configuration.GetSection("CheckTokenMiddleware"));
+            services.Configure<BaseRabbitMqConfig>(Configuration.GetSection(BaseRabbitMqConfig.SectionName));
+            services.Configure<BaseServiceInfoConfig>(Configuration.GetSection(BaseServiceInfoConfig.SectionName));
 
             services.AddHttpContextAccessor();
-
-            services.AddKernelExtensions();
+            services.AddControllers();
 
             string connStr = Environment.GetEnvironmentVariable("ConnectionString");
-
-            // TODO: Fix HealthChecks work with RabbitMQ
-            services
-                .AddHealthChecks()
-                .AddSqlServer(connStr);
                 
             if (string.IsNullOrEmpty(connStr))
             {
@@ -69,20 +70,19 @@ namespace LT.DigitalOffice.TimeService
                 options.UseSqlServer(connStr);
             });
 
-            services.AddControllers();
+            services.AddBusinessObjects(_logger);
 
-            services.Configure<TokenConfiguration>(Configuration);
+            ConfigureMassTransit(services);
 
-            ConfigureCommands(services);
-            ConfigureValidators(services);
-            ConfigureMappers(services);
-            ConfigureRepositories(services);
-            ConfigureRabbitMq(services);
+            services
+                .AddHealthChecks()
+                .AddSqlServer(connStr)
+                .AddRabbitMqCheck();
         }
 
         public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
-            app.AddExceptionsHandler(loggerFactory);
+            app.UseExceptionsHandler(loggerFactory);
 
             UpdateDatabase(app);
 
@@ -106,9 +106,15 @@ namespace LT.DigitalOffice.TimeService
             {
                 endpoints.MapControllers();
 
-                endpoints.MapHealthChecks($"/{_rabbitMqConfig.Password}/hc", new HealthCheckOptions
+                endpoints.MapHealthChecks($"/{_serviceInfoConfig.Id}/hc", new HealthCheckOptions
                 {
-                    Predicate = _ => true,
+                    ResultStatusCodes = new Dictionary<HealthStatus, int>
+                    {
+                        { HealthStatus.Unhealthy, 200 },
+                        { HealthStatus.Healthy, 200 },
+                        { HealthStatus.Degraded, 200 },
+                    },
+                    Predicate = check => check.Name != "masstransit-bus",
                     ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
                 });
             });
@@ -118,45 +124,18 @@ namespace LT.DigitalOffice.TimeService
 
         #region private methods
 
-        private void ConfigureCommands(IServiceCollection services)
-        {
-            services.AddTransient<IEditWorkTimeCommand, EditWorkTimeCommand>();
-            services.AddTransient<ICreateLeaveTimeCommand, CreateLeaveTimeCommand>();
-            services.AddTransient<ICreateWorkTimeCommand, CreateWorkTimeCommand>();
-        }
-
-        private void ConfigureValidators(IServiceCollection services)
-        {
-            services.AddTransient<IValidator<CreateLeaveTimeRequest>, CreateLeaveTimeRequestValidator>();
-            services.AddTransient<IValidator<CreateWorkTimeRequest>, CreateWorkTimeRequestValidator>();
-            services.AddTransient<IValidator<EditWorkTimeRequest>, EditWorkTimeRequestValidator>();
-        }
-
-        private void ConfigureMappers(IServiceCollection services)
-        {
-            services.AddTransient<IMapper<CreateLeaveTimeRequest, DbLeaveTime>, LeaveTimeMapper>();
-            services.AddTransient<IMapper<CreateWorkTimeRequest, DbWorkTime>, WorkTimeMapper>();
-            services.AddTransient<IMapper<EditWorkTimeRequest, DbWorkTime>, WorkTimeMapper>();
-        }
-
-        private void ConfigureRepositories(IServiceCollection services)
-        {
-            services.AddTransient<IDataProvider, TimeServiceDbContext>();
-
-            services.AddTransient<ILeaveTimeRepository, LeaveTimeRepository>();
-            services.AddTransient<IWorkTimeRepository, WorkTimeRepository>();
-        }
-
         private void UpdateDatabase(IApplicationBuilder app)
         {
-            using var serviceScope = app.ApplicationServices.GetRequiredService<IServiceScopeFactory>().CreateScope();
+            using var serviceScope = app.ApplicationServices
+                .GetRequiredService<IServiceScopeFactory>()
+                .CreateScope();
 
             using var context = serviceScope.ServiceProvider.GetService<TimeServiceDbContext>();
 
             context.Database.Migrate();
         }
 
-        private void ConfigureRabbitMq(IServiceCollection services)
+        private void ConfigureMassTransit(IServiceCollection services)
         {
             services.AddMassTransit(x =>
             {
@@ -164,15 +143,12 @@ namespace LT.DigitalOffice.TimeService
                 {
                     cfg.Host(_rabbitMqConfig.Host, "/", host =>
                     {
-                        host.Username($"{_rabbitMqConfig.Username}_{_rabbitMqConfig.Password}");
-                        host.Password(_rabbitMqConfig.Password);
+                        host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
+                        host.Password(_serviceInfoConfig.Id);
                     });
                 });
 
-                x.AddRequestClient<ICheckTokenRequest>(
-                    new Uri($"{_rabbitMqConfig.BaseUrl}/{_rabbitMqConfig.ValidateTokenEndpoint}"));
-
-                x.ConfigureKernelMassTransit(_rabbitMqConfig);
+                x.AddRequestClients(_rabbitMqConfig, _logger);
             });
 
             services.AddMassTransitHostedService();

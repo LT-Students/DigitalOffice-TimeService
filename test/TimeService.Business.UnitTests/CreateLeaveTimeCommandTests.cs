@@ -1,17 +1,17 @@
-using FluentValidation;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests
 {
     public class CreateLeaveTimeCommandTests
     {
-        private Mock<IValidator<CreateLeaveTimeRequest>> validatorMock;
-        private Mock<IMapper<CreateLeaveTimeRequest, DbLeaveTime>> mapperMock;
+        private Mock<ICreateLeaveTimeRequestValidator> validatorMock;
+        private Mock<ICreateLeaveTimeMapper> mapperMock;
         private Mock<ILeaveTimeRepository> repositoryMock;
         private ICreateLeaveTimeCommand command;
 

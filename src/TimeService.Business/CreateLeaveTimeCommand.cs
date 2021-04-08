@@ -2,8 +2,10 @@
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using System;
 using System.Linq;
 
@@ -11,23 +13,23 @@ namespace LT.DigitalOffice.TimeService.Business
 {
     public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
     {
-        private readonly IValidator<CreateLeaveTimeRequest> validator;
-        private readonly IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper;
-        private readonly ILeaveTimeRepository repository;
+        private readonly ICreateLeaveTimeRequestValidator _validator;
+        private readonly ICreateLeaveTimeMapper _mapper;
+        private readonly ILeaveTimeRepository _repository;
 
         public CreateLeaveTimeCommand(
-            IValidator<CreateLeaveTimeRequest> validator,
-            IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper,
+            ICreateLeaveTimeRequestValidator validator,
+            ICreateLeaveTimeMapper mapper,
             ILeaveTimeRepository repository)
         {
-            this.validator = validator;
-            this.mapper = mapper;
-            this.repository = repository;
+            _validator = validator;
+            _mapper = mapper;
+            _repository = repository;
         }
 
         public Guid Execute(CreateLeaveTimeRequest request)
         {
-            var validationResult = validator.Validate(request);
+            var validationResult = _validator.Validate(request);
 
             if (validationResult != null && !validationResult.IsValid)
             {
@@ -37,11 +39,11 @@ namespace LT.DigitalOffice.TimeService.Business
                 throw new ValidationException(message);
             }
 
-            validator.ValidateAndThrow(request);
+            _validator.ValidateAndThrow(request);
 
-            var dbLeaveTime = mapper.Map(request);
+            var dbLeaveTime = _mapper.Map(request);
 
-            return repository.CreateLeaveTime(dbLeaveTime);
+            return _repository.CreateLeaveTime(dbLeaveTime);
         }
     }
 }

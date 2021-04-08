@@ -2,8 +2,10 @@
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
@@ -11,23 +13,23 @@ namespace LT.DigitalOffice.TimeService.Business
 {
     public class EditWorkTimeCommand: IEditWorkTimeCommand
     {
-        private readonly IValidator<EditWorkTimeRequest> validator;
-        private readonly IWorkTimeRepository repository;
-        private readonly IMapper<EditWorkTimeRequest, DbWorkTime> mapper;
+        private readonly IEditWorkTimeRequestValidator _validator;
+        private readonly IWorkTimeRepository _repository;
+        private readonly IEditWorkTimeMapper _mapper;
 
         public EditWorkTimeCommand(
-            [FromServices] IValidator<EditWorkTimeRequest> validator,
+            [FromServices] IEditWorkTimeRequestValidator validator,
             [FromServices] IWorkTimeRepository repository,
-            [FromServices] IMapper<EditWorkTimeRequest, DbWorkTime> mapper)
+            [FromServices] IEditWorkTimeMapper mapper)
         {
-            this.validator = validator;
-            this.repository = repository;
-            this.mapper = mapper;
+            _validator = validator;
+            _repository = repository;
+            _mapper = mapper;
         }
 
         public bool Execute(EditWorkTimeRequest request)
         {
-            var validationResult = validator.Validate(request);
+            var validationResult = _validator.Validate(request);
 
             if (validationResult != null && !validationResult.IsValid)
             {
@@ -37,7 +39,7 @@ namespace LT.DigitalOffice.TimeService.Business
                 throw new ValidationException(message);
             }
 
-            return repository.EditWorkTime(mapper.Map(request));
+            return _repository.EditWorkTime(_mapper.Map(request));
         }
     }
 }

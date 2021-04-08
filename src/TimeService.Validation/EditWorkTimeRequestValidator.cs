@@ -2,13 +2,14 @@
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Validation
 {
-    public class EditWorkTimeRequestValidator : AbstractValidator<EditWorkTimeRequest>
+    public class EditWorkTimeRequestValidator : AbstractValidator<EditWorkTimeRequest>, IEditWorkTimeRequestValidator
     {
         /// <summary>
         /// Limit on working hours in a row.
