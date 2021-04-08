@@ -1,9 +1,9 @@
-using FluentValidation;
 using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -13,20 +13,20 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     public class CreateLeaveTimeRequestValidatorTests
     {
-        private Mock<ILeaveTimeRepository> repositoryMock;
-        private IValidator<CreateLeaveTimeRequest> validator;
+        private Mock<ILeaveTimeRepository> _repositoryMock;
+        private ICreateLeaveTimeRequestValidator _validator;
 
-        private CreateLeaveTimeRequest request;
-        private DbLeaveTime expectedDbLeaveTime;
+        private CreateLeaveTimeRequest _request;
+        private DbLeaveTime _expectedDbLeaveTime;
 
         [SetUp]
         public void Setup()
         {
-            repositoryMock = new Mock<ILeaveTimeRepository>();
+            _repositoryMock = new Mock<ILeaveTimeRepository>();
 
-            validator = new CreateLeaveTimeRequestValidator(repositoryMock.Object);
+            _validator = new CreateLeaveTimeRequestValidator(_repositoryMock.Object);
 
-            request = new CreateLeaveTimeRequest
+            _request = new CreateLeaveTimeRequest
             {
                 LeaveType = LeaveType.SickLeave,
                 Comment = "I have a sore throat",
@@ -35,26 +35,26 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 WorkerUserId = Guid.NewGuid()
             };
 
-            expectedDbLeaveTime = new DbLeaveTime
+            _expectedDbLeaveTime = new DbLeaveTime
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                Comment = request.Comment,
-                LeaveType = (int)request.LeaveType
+                WorkerUserId = _request.WorkerUserId,
+                StartTime = _request.StartTime,
+                EndTime = _request.EndTime,
+                Comment = _request.Comment,
+                LeaveType = (int)_request.LeaveType
             };
 
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(request.WorkerUserId))
-                .Returns(new List<DbLeaveTime> { expectedDbLeaveTime });
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(_request.WorkerUserId))
+                .Returns(new List<DbLeaveTime> { _expectedDbLeaveTime });
         }
 
         [Test]
         public void ShouldNotHaveAnyValidationErrorsWhenRequestIsValid()
         {
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.TestValidate(request).ShouldNotHaveAnyValidationErrors();
+            _validator.TestValidate(_request).ShouldNotHaveAnyValidationErrors();
         }
 
         #region WorkerUserId
@@ -62,10 +62,10 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenWorkerUserIdIsEmpty()
         {
             var workerUserId = Guid.Empty;
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, workerUserId);
+            _validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, workerUserId);
         }
         #endregion
 
@@ -74,10 +74,10 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenStartTimeIsEqualToDefaultDateTime()
         {
             var startTime = default(DateTime);
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
+            _validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
         }
         #endregion
 
@@ -86,10 +86,10 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenEndTimeIsEqualToDefaultDateTime()
         {
             var endTime = default(DateTime);
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.EndTime, endTime);
+            _validator.ShouldHaveValidationErrorFor(x => x.EndTime, endTime);
         }
         #endregion
 
@@ -98,10 +98,10 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenCommentIsEmpty()
         {
             var comment = string.Empty;
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.Comment, comment);
+            _validator.ShouldHaveValidationErrorFor(x => x.Comment, comment);
         }
         #endregion
 
@@ -110,10 +110,10 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenLeaveTypeIsNotInEnum()
         {
             const LeaveType leaveType = (LeaveType) 4;
-            repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
-            validator.ShouldHaveValidationErrorFor(x => x.LeaveType, leaveType);
+            _validator.ShouldHaveValidationErrorFor(x => x.LeaveType, leaveType);
         }
         #endregion
 
@@ -122,14 +122,14 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var successfulRequest = new CreateLeaveTimeRequest
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(-6),
-                EndTime = request.StartTime.AddHours(-5.85),
-                Comment = request.Comment,
-                LeaveType = request.LeaveType
+                WorkerUserId = _request.WorkerUserId,
+                StartTime = _request.StartTime.AddHours(-6),
+                EndTime = _request.StartTime.AddHours(-5.85),
+                Comment = _request.Comment,
+                LeaveType = _request.LeaveType
             };
 
-            validator.TestValidate(successfulRequest).ShouldNotHaveAnyValidationErrors();
+            _validator.TestValidate(successfulRequest).ShouldNotHaveAnyValidationErrors();
         }
 
         [Test]
@@ -137,14 +137,14 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var failRequest = new CreateLeaveTimeRequest
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(-1),
-                EndTime = request.EndTime.AddHours(-1),
-                Comment = request.Comment,
-                LeaveType = request.LeaveType
+                WorkerUserId = _request.WorkerUserId,
+                StartTime = _request.StartTime.AddHours(-1),
+                EndTime = _request.EndTime.AddHours(-1),
+                Comment = _request.Comment,
+                LeaveType = _request.LeaveType
             };
 
-            validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
+            _validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
         }
 
         [Test]
@@ -152,14 +152,14 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var failRequest = new CreateLeaveTimeRequest
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(1),
-                EndTime = request.EndTime.AddHours(-1),
-                Comment = request.Comment,
-                LeaveType = request.LeaveType
+                WorkerUserId = _request.WorkerUserId,
+                StartTime = _request.StartTime.AddHours(1),
+                EndTime = _request.EndTime.AddHours(-1),
+                Comment = _request.Comment,
+                LeaveType = _request.LeaveType
             };
 
-            validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
+            _validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
         }
 
         [Test]
@@ -167,14 +167,14 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var failRequest = new CreateLeaveTimeRequest
             {
-                WorkerUserId = request.WorkerUserId,
-                StartTime = request.StartTime.AddHours(1),
-                EndTime = request.EndTime.AddHours(1),
-                Comment = request.Comment,
-                LeaveType = request.LeaveType
+                WorkerUserId = _request.WorkerUserId,
+                StartTime = _request.StartTime.AddHours(1),
+                EndTime = _request.EndTime.AddHours(1),
+                Comment = _request.Comment,
+                LeaveType = _request.LeaveType
             };
 
-            validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
+            _validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
         }
     }
 }

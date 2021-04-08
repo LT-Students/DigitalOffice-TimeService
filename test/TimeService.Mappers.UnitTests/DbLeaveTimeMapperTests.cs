@@ -1,4 +1,5 @@
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
@@ -8,23 +9,23 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 {
-    public class LeaveTimeMapperTests
+    public class DbLeaveTimeMapperTests
     {
-        private IMapper<CreateLeaveTimeRequest, DbLeaveTime> mapper;
+        private IDbLeaveTimeMapper _mapper;
 
-        private CreateLeaveTimeRequest request;
-        private DbLeaveTime expectedDbLeaveTimeWithoutId;
+        private CreateLeaveTimeRequest _request;
+        private DbLeaveTime _expectedDbLeaveTimeWithoutId;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            mapper = new LeaveTimeMapper();
+            _mapper = new DbLeaveTimeMapper();
         }
 
         [SetUp]
         public void SetUp()
         {
-            request = new CreateLeaveTimeRequest
+            _request = new CreateLeaveTimeRequest
             {
                 LeaveType = LeaveType.SickLeave,
                 Comment = "I have a sore throat",
@@ -33,30 +34,29 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 WorkerUserId = Guid.NewGuid()
             };
 
-            expectedDbLeaveTimeWithoutId = new DbLeaveTime
+            _expectedDbLeaveTimeWithoutId = new DbLeaveTime
             {
-                LeaveType = (int)request.LeaveType,
-                Comment = request.Comment,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                WorkerUserId = request.WorkerUserId
+                LeaveType = (int)_request.LeaveType,
+                Comment = _request.Comment,
+                StartTime = _request.StartTime,
+                EndTime = _request.EndTime,
+                WorkerUserId = _request.WorkerUserId
             };
         }
 
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenCreateLeaveTimeRequestIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => mapper.Map(null));
+            Assert.Throws<ArgumentNullException>(() => _mapper.Map(null));
         }
 
         [Test]
         public void ShouldReturnDbLeaveTimeWhenMappingValidCreateLeaveTimeRequest()
         {
-            var newLeaveTime = mapper.Map(request);
-            expectedDbLeaveTimeWithoutId.Id = newLeaveTime.Id;
+            var newLeaveTime = _mapper.Map(_request);
+            _expectedDbLeaveTimeWithoutId.Id = newLeaveTime.Id;
 
-            Assert.IsInstanceOf<Guid>(newLeaveTime.Id);
-            SerializerAssert.AreEqual(expectedDbLeaveTimeWithoutId, newLeaveTime);
+            SerializerAssert.AreEqual(_expectedDbLeaveTimeWithoutId, newLeaveTime);
         }
     }
 }

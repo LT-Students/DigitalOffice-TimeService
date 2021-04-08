@@ -2,10 +2,11 @@ using FluentValidation;
 using FluentValidation.Results;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
@@ -15,97 +16,97 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
 {
     public class CreateLeaveTimeCommandTests
     {
-        private Mock<IValidator<CreateLeaveTimeRequest>> validatorMock;
-        private Mock<IMapper<CreateLeaveTimeRequest, DbLeaveTime>> mapperMock;
-        private Mock<ILeaveTimeRepository> repositoryMock;
-        private ICreateLeaveTimeCommand command;
+        private Mock<ICreateLeaveTimeRequestValidator> _validatorMock;
+        private Mock<IDbLeaveTimeMapper> _mapperMock;
+        private Mock<ILeaveTimeRepository> _repositoryMock;
+        private ICreateLeaveTimeCommand _command;
 
-        private CreateLeaveTimeRequest request;
-        private DbLeaveTime createdLeaveTime;
+        private CreateLeaveTimeRequest _request;
+        private DbLeaveTime _createdLeaveTime;
 
-        //[OneTimeSetUp]
-        //public void OneTimeSetUp()
-        //{
-        //    request = new CreateLeaveTimeRequest()
-        //    {
-        //        LeaveType = LeaveType.SickLeave,
-        //        Comment = "I have a sore throat",
-        //        StartTime = new DateTime(2020, 7, 24),
-        //        EndTime = new DateTime(2020, 7, 27),
-        //        WorkerUserId = Guid.NewGuid()
-        //    };
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _request = new CreateLeaveTimeRequest()
+            {
+                LeaveType = LeaveType.SickLeave,
+                Comment = "I have a sore throat",
+                StartTime = new DateTime(2020, 7, 24),
+                EndTime = new DateTime(2020, 7, 27),
+                WorkerUserId = Guid.NewGuid()
+            };
 
-        //    createdLeaveTime = new DbLeaveTime()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        LeaveType = (int)request.LeaveType,
-        //        Comment = request.Comment,
-        //        StartTime = request.StartTime,
-        //        EndTime = request.EndTime,
-        //        WorkerUserId = request.WorkerUserId
-        //    };
-        //}
+            _createdLeaveTime = new DbLeaveTime()
+            {
+                Id = Guid.NewGuid(),
+                LeaveType = (int)_request.LeaveType,
+                Comment = _request.Comment,
+                StartTime = _request.StartTime,
+                EndTime = _request.EndTime,
+                WorkerUserId = _request.WorkerUserId
+            };
+        }
 
-        //[SetUp]
-        //public void SetUp()
-        //{
-        //    validatorMock = new Mock<IValidator<CreateLeaveTimeRequest>>();
-        //    mapperMock = new Mock<IMapper<CreateLeaveTimeRequest, DbLeaveTime>>();
-        //    repositoryMock = new Mock<ILeaveTimeRepository>();
+        [SetUp]
+        public void SetUp()
+        {
+            _validatorMock = new Mock<ICreateLeaveTimeRequestValidator>();
+            _mapperMock = new Mock<IDbLeaveTimeMapper>();
+            _repositoryMock = new Mock<ILeaveTimeRepository>();
 
-        //    command = new CreateLeaveTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
-        //}
+            _command = new CreateLeaveTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object);
+        }
 
-        //[Test]
-        //public void ShouldThrowExceptionWhenValidatorThrowsException()
-        //{
-        //    validatorMock
-        //        .Setup(x => x.Validate(It.IsAny<CreateLeaveTimeRequest>()))
-        //        .Returns(new ValidationResult(
-        //            new List<ValidationFailure>
-        //            {
-        //                new ValidationFailure("test", "something", null)
-        //            }));
+        [Test]
+        public void ShouldThrowExceptionWhenValidatorThrowsException()
+        {
+            _validatorMock
+                .Setup(x => x.Validate(It.IsAny<CreateLeaveTimeRequest>()))
+                .Returns(new ValidationResult(
+                    new List<ValidationFailure>
+                    {
+                        new ValidationFailure("test", "something", null)
+                    }));
 
-        //    Assert.Throws<ValidationException>(() => command.Execute(request));
-        //    repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Never);
-        //}
+            Assert.Throws<ValidationException>(() => _command.Execute(_request));
+            _repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Never);
+        }
 
-        //[Test]
-        //public void ShouldThrowExceptionWhenRepositoryThrowsException()
-        //{
-        //    validatorMock
-        //         .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-        //         .Returns(true);
+        [Test]
+        public void ShouldThrowExceptionWhenRepositoryThrowsException()
+        {
+            _validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
 
-        //    mapperMock
-        //        .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>()))
-        //        .Returns(createdLeaveTime);
+            _mapperMock
+                .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>()))
+                .Returns(_createdLeaveTime);
 
-        //    repositoryMock
-        //        .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
-        //        .Throws(new Exception());
+            _repositoryMock
+                .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
+                .Throws(new Exception());
 
-        //    Assert.Throws<Exception>(() => command.Execute(request));
-        //}
+            Assert.Throws<Exception>(() => _command.Execute(_request));
+        }
 
-        //[Test]
-        //public void ShouldCreateNewLeaveTimeWhenDataIsValid()
-        //{
-        //    validatorMock
-        //         .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-        //         .Returns(true);
+        [Test]
+        public void ShouldCreateNewLeaveTimeWhenDataIsValid()
+        {
+            _validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
 
-        //    mapperMock
-        //        .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>()))
-        //        .Returns(createdLeaveTime);
+            _mapperMock
+                .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>()))
+                .Returns(_createdLeaveTime);
 
-        //    repositoryMock
-        //        .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
-        //        .Returns(createdLeaveTime.Id);
+            _repositoryMock
+                .Setup(x => x.CreateLeaveTime(It.IsAny<DbLeaveTime>()))
+                .Returns(_createdLeaveTime.Id);
 
-        //    Assert.AreEqual(createdLeaveTime.Id, command.Execute(request));
-        //    repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Once);
-        //}
+            Assert.AreEqual(_createdLeaveTime.Id, _command.Execute(_request));
+            _repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Once);
+        }
     }
 }

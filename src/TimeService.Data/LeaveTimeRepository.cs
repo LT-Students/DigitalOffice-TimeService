@@ -9,24 +9,24 @@ namespace LT.DigitalOffice.TimeService.Data
 {
     public class LeaveTimeRepository : ILeaveTimeRepository
     {
-        private readonly IDataProvider provider;
+        private readonly IDataProvider _provider;
 
         public LeaveTimeRepository(IDataProvider provider)
         {
-            this.provider = provider;
+            _provider = provider;
         }
 
         public Guid CreateLeaveTime(DbLeaveTime leaveTime)
         {
-            provider.LeaveTimes.Add(leaveTime);
-            provider.Save();
+            _provider.LeaveTimes.Add(leaveTime);
+            _provider.Save();
 
             return leaveTime.Id;
         }
 
         public ICollection<DbLeaveTime> GetUserLeaveTimes(Guid userId)
         {
-            return provider.LeaveTimes
+            return _provider.LeaveTimes
                 .Where(lt => lt.WorkerUserId == userId)
                 .ToList();
         }

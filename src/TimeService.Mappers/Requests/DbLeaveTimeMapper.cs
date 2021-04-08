@@ -1,11 +1,11 @@
-﻿using LT.DigitalOffice.TimeService.Mappers.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Mappers
+namespace LT.DigitalOffice.TimeService.Mappers.Requests
 {
-    public class LeaveTimeMapper : IMapper<CreateLeaveTimeRequest, DbLeaveTime>
+    public class DbLeaveTimeMapper : IDbLeaveTimeMapper
     {
         public DbLeaveTime Map(CreateLeaveTimeRequest request)
         {

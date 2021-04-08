@@ -11,17 +11,17 @@ namespace LT.DigitalOffice.TimeService.Data
 {
     public class WorkTimeRepository : IWorkTimeRepository
     {
-        private readonly IDataProvider provider;
+        private readonly IDataProvider _provider;
 
         public WorkTimeRepository(IDataProvider provider)
         {
-            this.provider = provider;
+            _provider = provider;
         }
 
         public Guid CreateWorkTime(DbWorkTime workTime)
         {
-            provider.WorkTimes.Add(workTime);
-            provider.Save();
+            _provider.WorkTimes.Add(workTime);
+            _provider.Save();
 
             return workTime.Id;
         }
@@ -34,7 +34,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
             if (filter == null)
             {
-                return provider.WorkTimes.Where(predicate).ToList();
+                return _provider.WorkTimes.Where(predicate).ToList();
             }
 
             if (filter.StartTime != null)
@@ -47,12 +47,12 @@ namespace LT.DigitalOffice.TimeService.Data
                 predicate.And(wt => wt.EndTime <= filter.EndTime);
             }
 
-            return provider.WorkTimes.Where(predicate).ToList();
+            return _provider.WorkTimes.Where(predicate).ToList();
         }
 
         public bool EditWorkTime(DbWorkTime workTime)
         {
-            var time = provider.WorkTimes.Find(workTime.Id);
+            var time = _provider.WorkTimes.Find(workTime.Id);
 
             if (time == null)
             {
@@ -66,8 +66,8 @@ namespace LT.DigitalOffice.TimeService.Data
             time.ProjectId = workTime.ProjectId;
             time.Description = workTime.Description;
 
-            provider.WorkTimes.Update(time);
-            provider.Save();
+            _provider.WorkTimes.Update(time);
+            _provider.Save();
 
             return true;
         }

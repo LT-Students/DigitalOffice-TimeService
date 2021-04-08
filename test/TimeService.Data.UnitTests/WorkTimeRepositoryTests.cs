@@ -13,18 +13,18 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
     public class CreateWorkTimeTests
     {
-        private TimeServiceDbContext dbContext;
-        private IWorkTimeRepository repository;
+        private TimeServiceDbContext _dbContext;
+        private IWorkTimeRepository _repository;
 
-        private Guid project1;
-        private Guid project2;
-        private Guid worker1;
-        private Guid worker2;
-        private List<DbWorkTime> workTimesOfWorker1;
-        private List<DbWorkTime> workTimesOfWorker2;
+        private Guid _project1;
+        private Guid _project2;
+        private Guid _worker1;
+        private Guid _worker2;
+        private List<DbWorkTime> _workTimesOfWorker1;
+        private List<DbWorkTime> _workTimesOfWorker2;
 
-        private DbWorkTime time;
-        private Guid id;
+        private DbWorkTime _time;
+        private Guid _id;
 
         [SetUp]
         public void OneTimeSetUp()
@@ -33,22 +33,22 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                                     .UseInMemoryDatabase(databaseName: "InMemoryDatabase")
                                     .Options;
 
-            dbContext = new TimeServiceDbContext(dbOptions);
-            repository = new WorkTimeRepository(dbContext);
+            _dbContext = new TimeServiceDbContext(dbOptions);
+            _repository = new WorkTimeRepository(_dbContext);
 
-            project1 = Guid.NewGuid();
-            project2 = Guid.NewGuid();
-            worker1 = Guid.NewGuid();
-            worker2 = Guid.NewGuid();
+            _project1 = Guid.NewGuid();
+            _project2 = Guid.NewGuid();
+            _worker1 = Guid.NewGuid();
+            _worker2 = Guid.NewGuid();
 
-            workTimesOfWorker1 = new List<DbWorkTime>
+            _workTimesOfWorker1 = new List<DbWorkTime>
             {
                 new DbWorkTime
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = worker1,
-                    ProjectId = project1,
+                    WorkerUserId = _worker1,
+                    ProjectId = _project1,
                     StartTime = DateTime.Now.AddDays(-1),
                     EndTime = DateTime.Now.AddDays(-0.75)
                 },
@@ -57,31 +57,31 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = worker1,
-                    ProjectId = project2,
+                    WorkerUserId = _worker1,
+                    ProjectId = _project2,
                     StartTime = DateTime.Now.AddDays(-0.7),
                     EndTime = DateTime.Now.AddDays(-0.45)
                 }
             };
 
-            workTimesOfWorker2 = new List<DbWorkTime>
+            _workTimesOfWorker2 = new List<DbWorkTime>
             {
                 new DbWorkTime
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = worker2,
-                    ProjectId = project1,
+                    WorkerUserId = _worker2,
+                    ProjectId = _project1,
                     StartTime = DateTime.Now.AddDays(-0.9),
                     EndTime = DateTime.Now.AddDays(-0.65)
                 }
             };
 
-            id = Guid.NewGuid();
+            _id = Guid.NewGuid();
 
-            time = new DbWorkTime
+            _time = new DbWorkTime
             {
-                Id = id,
+                Id = _id,
                 WorkerUserId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
@@ -94,9 +94,9 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [TearDown]
         public void CleanDb()
         {
-            if (dbContext.Database.IsInMemory())
+            if (_dbContext.Database.IsInMemory())
             {
-                dbContext.Database.EnsureDeleted();
+                _dbContext.Database.EnsureDeleted();
             }
         }
 
@@ -104,10 +104,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void SuccessfulAddNewWorkTimeInDb()
         {
-            var guidOfNewWorkTime = repository.CreateWorkTime(workTimesOfWorker1.First());
+            var guidOfNewWorkTime = _repository.CreateWorkTime(_workTimesOfWorker1.First());
 
-            Assert.AreEqual(workTimesOfWorker1.First().Id, guidOfNewWorkTime);
-            Assert.NotNull(dbContext.WorkTimes.Find(workTimesOfWorker1.First().Id));
+            Assert.AreEqual(_workTimesOfWorker1.First().Id, guidOfNewWorkTime);
+            Assert.NotNull(_dbContext.WorkTimes.Find(_workTimesOfWorker1.First().Id));
         }
         #endregion
 
@@ -115,16 +115,16 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void CorrectlyReturnsWorkTime()
         {
-            foreach (var wt in workTimesOfWorker1)
+            foreach (var wt in _workTimesOfWorker1)
             {
-                dbContext.Add(wt);
+                _dbContext.Add(wt);
             }
 
-            foreach (var wt in workTimesOfWorker2)
+            foreach (var wt in _workTimesOfWorker2)
             {
-                dbContext.Add(wt);
+                _dbContext.Add(wt);
             }
-            dbContext.SaveChanges();
+            _dbContext.SaveChanges();
 
             var filterForGetNothing = new WorkTimeFilter
             {
@@ -145,22 +145,22 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             };
 
             Assert.AreEqual(
-                repository.GetUserWorkTimes(worker1, filterForGetEverything).Count,
-                workTimesOfWorker1.Count);
+                _repository.GetUserWorkTimes(_worker1, filterForGetEverything).Count,
+                _workTimesOfWorker1.Count);
 
             Assert.AreEqual(
-                repository.GetUserWorkTimes(worker2, filterForGetEverything).Count,
-                workTimesOfWorker2.Count);
+                _repository.GetUserWorkTimes(_worker2, filterForGetEverything).Count,
+                _workTimesOfWorker2.Count);
 
-            Assert.AreEqual(repository.GetUserWorkTimes(worker1, filterForGetNothing).Count, 0);
+            Assert.AreEqual(_repository.GetUserWorkTimes(_worker1, filterForGetNothing).Count, 0);
 
-            Assert.AreEqual(repository.GetUserWorkTimes(worker2, filterForGetNothing).Count, 0);
+            Assert.AreEqual(_repository.GetUserWorkTimes(_worker2, filterForGetNothing).Count, 0);
 
-            Assert.AreEqual(repository.GetUserWorkTimes(worker1, filerForGetOnlyWorkTime2).Count, 0);
+            Assert.AreEqual(_repository.GetUserWorkTimes(_worker1, filerForGetOnlyWorkTime2).Count, 0);
 
             Assert.AreEqual(
-                repository.GetUserWorkTimes(worker2, filerForGetOnlyWorkTime2).Count,
-                workTimesOfWorker2.Count);
+                _repository.GetUserWorkTimes(_worker2, filerForGetOnlyWorkTime2).Count,
+                _workTimesOfWorker2.Count);
         }
         #endregion
 
@@ -170,7 +170,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         {
             var newTime = new DbWorkTime
             {
-                Id = id,
+                Id = _id,
                 WorkerUserId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
@@ -179,12 +179,12 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 Description = "Example"
             };
 
-            dbContext.WorkTimes.Add(time);
-            dbContext.SaveChanges();
+            _dbContext.WorkTimes.Add(_time);
+            _dbContext.SaveChanges();
 
-            Assert.True(repository.EditWorkTime(newTime));
+            Assert.True(_repository.EditWorkTime(newTime));
 
-            var result = dbContext.WorkTimes.Find(id);
+            var result = _dbContext.WorkTimes.Find(_id);
 
             SerializerAssert.AreEqual(newTime, result);
         }
@@ -192,7 +192,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void ShouldThrowExceptionWhenIdIsNotExist()
         {
-            Assert.Throws<Exception>(() => repository.EditWorkTime(time));
+            Assert.Throws<Exception>(() => _repository.EditWorkTime(_time));
         }
         #endregion
     }

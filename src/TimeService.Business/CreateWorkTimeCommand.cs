@@ -1,10 +1,9 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto;
-using Microsoft.AspNetCore.Mvc;
+using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using System;
 using System.Linq;
 
@@ -12,23 +11,23 @@ namespace LT.DigitalOffice.TimeService.Business
 {
     public class CreateWorkTimeCommand : ICreateWorkTimeCommand
     {
-        private readonly IValidator<CreateWorkTimeRequest> validator;
-        private readonly IMapper<CreateWorkTimeRequest, DbWorkTime> mapper;
-        private readonly IWorkTimeRepository repository;
+        private readonly ICreateWorkTimeRequestValidator _validator;
+        private readonly IDbWorkTimeMapper _mapper;
+        private readonly IWorkTimeRepository _repository;
 
         public CreateWorkTimeCommand(
-            [FromServices] IValidator<CreateWorkTimeRequest> validator,
-            [FromServices] IMapper<CreateWorkTimeRequest, DbWorkTime> mapper,
-            [FromServices] IWorkTimeRepository repository)
+            ICreateWorkTimeRequestValidator validator,
+            IDbWorkTimeMapper mapper,
+            IWorkTimeRepository repository)
         {
-            this.validator = validator;
-            this.mapper = mapper;
-            this.repository = repository;
+            _validator = validator;
+            _mapper = mapper;
+            _repository = repository;
         }
 
         public Guid Execute(CreateWorkTimeRequest request)
         {
-            var validationResult = validator.Validate(request);
+            var validationResult = _validator.Validate(request);
 
             if (validationResult != null && !validationResult.IsValid)
             {
@@ -38,9 +37,9 @@ namespace LT.DigitalOffice.TimeService.Business
                 throw new ValidationException(message);
             }
 
-            var dbWorkTime = mapper.Map(request);
+            var dbWorkTime = _mapper.Map(request);
 
-            return repository.CreateWorkTime(dbWorkTime);
+            return _repository.CreateWorkTime(dbWorkTime);
         }
     }
 }
