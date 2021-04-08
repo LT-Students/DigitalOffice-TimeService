@@ -1,3 +1,5 @@
+using FluentValidation;
+using FluentValidation.Results;
 using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
@@ -5,104 +7,107 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests
 {
     public class CreateWorkTimeCommandTests
     {
-        private Mock<ICreateWorkTimeRequestValidator> validatorMock;
-        private Mock<ICreateWorkTimeMapper> mapperMock;
-        private Mock<IWorkTimeRepository> repositoryMock;
-        private ICreateWorkTimeCommand command;
+        private Mock<ICreateWorkTimeRequestValidator> _validatorMock;
+        private Mock<ICreateWorkTimeMapper> _mapperMock;
+        private Mock<IWorkTimeRepository> _repositoryMock;
+        private ICreateWorkTimeCommand _command;
 
         private CreateWorkTimeRequest request;
         private DbWorkTime createdWorkTime;
 
-        //[OneTimeSetUp]
-        //public void OneTimeSetUp()
-        //{
-        //    request = new CreateWorkTimeRequest()
-        //    {
-        //        ProjectId = Guid.NewGuid(),
-        //        StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
-        //        EndTime = new DateTime(2020, 7, 29, 17, 0, 0),
-        //        Title = "I was working on a very important task",
-        //        Description = "I was asleep. I love sleep. I hope I get paid for this.",
-        //        WorkerUserId = Guid.NewGuid()
-        //    };
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            request = new CreateWorkTimeRequest()
+            {
+                ProjectId = Guid.NewGuid(),
+                StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
+                EndTime = new DateTime(2020, 7, 29, 17, 0, 0),
+                Title = "I was working on a very important task",
+                Description = "I was asleep. I love sleep. I hope I get paid for this.",
+                WorkerUserId = Guid.NewGuid()
+            };
 
-        //    createdWorkTime = new DbWorkTime()
-        //    {
-        //        Id = Guid.NewGuid(),
-        //        ProjectId = request.ProjectId,
-        //        StartTime = request.StartTime,
-        //        EndTime = request.EndTime,
-        //        Title = request.Title,
-        //        Description = request.Description,
-        //        WorkerUserId = request.WorkerUserId
-        //    };
-        //}
+            createdWorkTime = new DbWorkTime()
+            {
+                Id = Guid.NewGuid(),
+                ProjectId = request.ProjectId,
+                StartTime = request.StartTime,
+                EndTime = request.EndTime,
+                Title = request.Title,
+                Description = request.Description,
+                WorkerUserId = request.WorkerUserId
+            };
+        }
 
-        //[SetUp]
-        //public void SetUp()
-        //{
-        //    validatorMock = new Mock<IValidator<CreateWorkTimeRequest>>();
-        //    mapperMock = new Mock<IMapper<CreateWorkTimeRequest, DbWorkTime>>();
-        //    repositoryMock = new Mock<IWorkTimeRepository>();
+        [SetUp]
+        public void SetUp()
+        {
+            _validatorMock = new Mock<ICreateWorkTimeRequestValidator>();
+            _mapperMock = new Mock<ICreateWorkTimeMapper>();
+            _repositoryMock = new Mock<IWorkTimeRepository>();
 
-        //    command = new CreateWorkTimeCommand(validatorMock.Object, mapperMock.Object, repositoryMock.Object);
-        //}
+            _command = new CreateWorkTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object);
+        }
 
-        //[Test]
-        //public void ShouldThrowExceptionWhenValidatorThrowsException()
-        //{
-        //    validatorMock
-        //        .Setup(x => x.Validate(It.IsAny<CreateWorkTimeRequest>()))
-        //        .Returns(new ValidationResult(
-        //            new List<ValidationFailure>
-        //            {
-        //                new ValidationFailure("test", "something", null)
-        //            }));
+        [Test]
+        public void ShouldThrowExceptionWhenValidatorThrowsException()
+        {
+            _validatorMock
+                .Setup(x => x.Validate(It.IsAny<CreateWorkTimeRequest>()))
+                .Returns(new ValidationResult(
+                    new List<ValidationFailure>
+                    {
+                        new ValidationFailure("test", "something", null)
+                    }));
 
-        //    Assert.Throws<ValidationException>(() => command.Execute(request));
-        //    repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
-        //}
+            Assert.Throws<ValidationException>(() => _command.Execute(request));
+            _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
+        }
 
-        //[Test]
-        //public void ShouldThrowExceptionWhenRepositoryThrowsException()
-        //{
-        //    validatorMock
-        //         .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-        //         .Returns(true);
+        [Test]
+        public void ShouldThrowExceptionWhenRepositoryThrowsException()
+        {
+            _validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
 
-        //    mapperMock
-        //        .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
-        //        .Returns(createdWorkTime);
+            _mapperMock
+                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
+                .Returns(createdWorkTime);
 
-        //    repositoryMock
-        //        .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
-        //        .Throws(new Exception());
+            _repositoryMock
+                .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
+                .Throws(new Exception());
 
-        //    Assert.Throws<Exception>(() => command.Execute(request));
-        //}
+            Assert.Throws<Exception>(() => _command.Execute(request));
+        }
 
-        //[Test]
-        //public void ShouldCreateNewWorkTimeWhenDataIsValid()
-        //{
-        //    validatorMock
-        //         .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-        //         .Returns(true);
+        [Test]
+        public void ShouldCreateNewWorkTimeWhenDataIsValid()
+        {
+            _validatorMock
+                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                 .Returns(true);
 
-        //    mapperMock
-        //        .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
-        //        .Returns(createdWorkTime);
+            _mapperMock
+                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
+                .Returns(createdWorkTime);
 
-        //    repositoryMock
-        //        .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
-        //        .Returns(createdWorkTime.Id);
+            _repositoryMock
+                .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
+                .Returns(createdWorkTime.Id);
 
-        //    Assert.AreEqual(createdWorkTime.Id, command.Execute(request));
-        //    repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
-        //}
+            Assert.AreEqual(createdWorkTime.Id, _command.Execute(request));
+            _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
+        }
     }
 }
