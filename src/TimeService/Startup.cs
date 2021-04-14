@@ -1,6 +1,7 @@
 using HealthChecks.UI.Client;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
+using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
 using LT.DigitalOffice.TimeService.Configuration;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
@@ -17,7 +18,7 @@ using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService
 {
-    public class Startup
+    public class Startup : BaseApiInfo
     {
         private readonly RabbitMqConfig _rabbitMqConfig;
         private readonly BaseServiceInfoConfig _serviceInfoConfig;
@@ -36,6 +37,11 @@ namespace LT.DigitalOffice.TimeService
             _serviceInfoConfig = Configuration
                 .GetSection(BaseServiceInfoConfig.SectionName)
                 .Get<BaseServiceInfoConfig>();
+
+            Version = "1.1.3";
+            Description = "TimeService is an API intended to work with the users time managment";
+            StartTime = DateTime.UtcNow;
+            ApiName = $"LT Digital Office - {_serviceInfoConfig.Name}";
 
             using var loggerFactory = LoggerFactory.Create(builder =>
             {
@@ -59,7 +65,7 @@ namespace LT.DigitalOffice.TimeService
             services.AddControllers();
 
             string connStr = Environment.GetEnvironmentVariable("ConnectionString");
-                
+
             if (string.IsNullOrEmpty(connStr))
             {
                 connStr = Configuration.GetConnectionString("SQLConnectionString");
@@ -101,6 +107,7 @@ namespace LT.DigitalOffice.TimeService
                     .AllowAnyMethod());
 
             app.UseMiddleware<TokenMiddleware>();
+            app.UseApiInformation();
 
             app.UseEndpoints(endpoints =>
             {
