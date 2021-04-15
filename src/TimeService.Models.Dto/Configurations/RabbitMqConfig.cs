@@ -1,6 +1,6 @@
 ﻿using LT.DigitalOffice.Kernel.Configurations;
 
-namespace LT.DigitalOffice.TimeService.Configuration
+namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
 {
     public class RabbitMqConfig : BaseRabbitMqConfig
     {
