@@ -1,9 +1,8 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Globalization;
 using System.Linq;

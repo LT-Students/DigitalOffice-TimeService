@@ -2,7 +2,7 @@ using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
@@ -38,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 
             _expectedDbWorkTime = new DbWorkTime
             {
-                WorkerUserId = _request.WorkerUserId,
+                UserId = _request.WorkerUserId,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
                 Title = _request.Title,

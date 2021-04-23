@@ -1,7 +1,7 @@
-using LT.DigitalOffice.TimeService.Mappers.Requests;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Db;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.UnitTestKernel;
 using NUnit.Framework;
@@ -40,7 +40,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
-                WorkerUserId = _request.WorkerUserId
+                UserId = _request.WorkerUserId
             };
         }
 

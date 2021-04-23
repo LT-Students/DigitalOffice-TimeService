@@ -1,13 +1,12 @@
-﻿using FluentValidation;
-using LT.DigitalOffice.TimeService.Business.Interfaces;
+﻿using LT.DigitalOffice.Kernel.FluentValidationExtensions;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using System;
-using System.Linq;
 
-namespace LT.DigitalOffice.TimeService.Business
+namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
     public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
     {
@@ -27,17 +26,7 @@ namespace LT.DigitalOffice.TimeService.Business
 
         public Guid Execute(CreateLeaveTimeRequest request)
         {
-            var validationResult = _validator.Validate(request);
-
-            if (validationResult != null && !validationResult.IsValid)
-            {
-                var messages = validationResult.Errors.Select(x => x.ErrorMessage);
-                string message = messages.Aggregate((x, y) => x + "\n" + y);
-
-                throw new ValidationException(message);
-            }
-
-            _validator.ValidateAndThrow(request);
+            _validator.ValidateAndThrowCustom(request);
 
             var dbLeaveTime = _mapper.Map(request);
 

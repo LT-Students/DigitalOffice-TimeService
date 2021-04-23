@@ -16,18 +16,18 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider = provider;
         }
 
-        public Guid CreateLeaveTime(DbLeaveTime leaveTime)
+        public Guid CreateLeaveTime(DbLeaveTime dbLeaveTime)
         {
-            _provider.LeaveTimes.Add(leaveTime);
+            _provider.LeaveTimes.Add(dbLeaveTime);
             _provider.Save();
 
-            return leaveTime.Id;
+            return dbLeaveTime.Id;
         }
 
         public ICollection<DbLeaveTime> GetUserLeaveTimes(Guid userId)
         {
             return _provider.LeaveTimes
-                .Where(lt => lt.WorkerUserId == userId)
+                .Where(lt => lt.UserId == userId)
                 .ToList();
         }
     }

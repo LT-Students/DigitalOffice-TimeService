@@ -1,7 +1,7 @@
 ﻿using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Models.Dto
+namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
     public class CreateLeaveTimeRequest
     {

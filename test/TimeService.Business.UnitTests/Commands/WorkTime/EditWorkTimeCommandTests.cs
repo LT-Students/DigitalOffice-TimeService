@@ -1,17 +1,16 @@
 ﻿using FluentValidation;
-using FluentValidation.Results;
-using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Business.Commands.WorkTime;
+using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 
-namespace LT.DigitalOffice.TimeService.Business.UnitTests
+namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
 {
     public class EditWorkTimeCommandTests
     {
@@ -45,7 +44,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
                 EndTime = _request.EndTime,
                 Title = "I was working on a very very important task",
                 Description = _request.Description,
-                WorkerUserId = _request.WorkerUserId
+                UserId = _request.WorkerUserId
             };
         }
 
@@ -63,12 +62,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             _validatorMock
-                .Setup(x => x.Validate(It.IsAny<EditWorkTimeRequest>()))
-                .Returns(new ValidationResult(
-                    new List<ValidationFailure>
-                    {
-                        new ValidationFailure("test", "something", null)
-                    }));
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(false);
 
             Assert.Throws<ValidationException>(() => _command.Execute(_request));
             _repositoryMock.Verify(repository => repository.EditWorkTime(It.IsAny<DbWorkTime>()), Times.Never);

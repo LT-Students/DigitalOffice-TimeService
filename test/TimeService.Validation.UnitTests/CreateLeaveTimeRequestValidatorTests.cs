@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
@@ -37,7 +37,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 
             _expectedDbLeaveTime = new DbLeaveTime
             {
-                WorkerUserId = _request.WorkerUserId,
+                UserId = _request.WorkerUserId,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
                 Comment = _request.Comment,

@@ -1,17 +1,16 @@
 using FluentValidation;
-using FluentValidation.Results;
-using LT.DigitalOffice.TimeService.Business.Interfaces;
+using LT.DigitalOffice.TimeService.Business.Commands.WorkTime;
+using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 
-namespace LT.DigitalOffice.TimeService.Business.UnitTests
+namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
 {
     public class CreateWorkTimeCommandTests
     {
@@ -44,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
                 EndTime = request.EndTime,
                 Title = request.Title,
                 Description = request.Description,
-                WorkerUserId = request.WorkerUserId
+                UserId = request.WorkerUserId
             };
         }
 
@@ -62,12 +61,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             _validatorMock
-                .Setup(x => x.Validate(It.IsAny<CreateWorkTimeRequest>()))
-                .Returns(new ValidationResult(
-                    new List<ValidationFailure>
-                    {
-                        new ValidationFailure("test", "something", null)
-                    }));
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(false);
 
             Assert.Throws<ValidationException>(() => _command.Execute(request));
             _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);

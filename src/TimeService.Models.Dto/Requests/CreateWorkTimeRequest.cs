@@ -1,10 +1,9 @@
 ﻿using System;
 
-namespace LT.DigitalOffice.TimeService.Models.Dto
+namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
-    public class EditWorkTimeRequest
+    public class CreateWorkTimeRequest
     {
-        public Guid Id { get; set; }
         public Guid WorkerUserId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

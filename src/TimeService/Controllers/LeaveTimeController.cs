@@ -1,5 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Business.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto;
+﻿using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -9,8 +9,8 @@ namespace LT.DigitalOffice.TimeService.Controllers
     [ApiController]
     public class LeaveTimeController : ControllerBase
     {
-        [HttpPost("addLeaveTime")]
-        public Guid AddLeaveTime(
+        [HttpPost("add")]
+        public Guid Add(
             [FromBody] CreateLeaveTimeRequest leaveTime,
             [FromServices] ICreateLeaveTimeCommand command)
         {
