@@ -17,7 +17,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
             return new DbWorkTime()
             {
                 Id = request.Id,
-                UserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Title = request.Title,
@@ -36,7 +36,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
             return new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                UserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Title = request.Title,

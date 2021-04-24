@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 
             _request = new CreateWorkTimeRequest
             {
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = DateTime.Now,
                 EndTime = DateTime.Now.AddHours(6),
                 Title = "Worked...",
@@ -38,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 
             _expectedDbWorkTime = new DbWorkTime
             {
-                UserId = _request.WorkerUserId,
+                UserId = _request.UserId,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
                 Title = _request.Title,
@@ -46,7 +46,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = _request.Description
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(_request.WorkerUserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.GetUserWorkTimes(_request.UserId, It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime> { _expectedDbWorkTime });
         }
 
@@ -63,11 +63,11 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         [Test]
         public void ShouldHaveValidationErrorWhenWorkerUserIdIsEmpty()
         {
-            _request.WorkerUserId = Guid.Empty;
+            _request.UserId = Guid.Empty;
             _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime>());
 
-            _validator.TestValidate(_request).ShouldHaveValidationErrorFor(r => r.WorkerUserId);
+            _validator.TestValidate(_request).ShouldHaveValidationErrorFor(r => r.UserId);
         }
         #endregion
 
@@ -142,7 +142,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 
             var successfulRequest = new CreateWorkTimeRequest
             {
-                WorkerUserId = _request.WorkerUserId,
+                UserId = _request.UserId,
                 StartTime = _request.StartTime.AddHours(-6),
                 EndTime = _request.StartTime.AddHours(-5.85),
                 Title = _request.Title,
@@ -158,7 +158,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var failRequest = new CreateWorkTimeRequest
             {
-                WorkerUserId = _request.WorkerUserId,
+                UserId = _request.UserId,
                 StartTime = _request.StartTime.AddHours(-1),
                 EndTime = _request.EndTime.AddHours(-1),
                 Title = _request.Title,
@@ -174,7 +174,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var failRequest = new CreateWorkTimeRequest
             {
-                WorkerUserId = _request.WorkerUserId,
+                UserId = _request.UserId,
                 StartTime = _request.StartTime.AddHours(1),
                 EndTime = _request.EndTime.AddHours(-1),
                 Title = _request.Title,
@@ -190,7 +190,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         {
             var failRequest = new CreateWorkTimeRequest
             {
-                WorkerUserId = _request.WorkerUserId,
+                UserId = _request.UserId,
                 StartTime = _request.StartTime.AddHours(1),
                 EndTime = _request.EndTime.AddHours(1),
                 Title = _request.Title,

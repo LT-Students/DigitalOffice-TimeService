@@ -21,9 +21,9 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .NotEmpty()
                 .WithMessage("WorkTimeId must not be empty");
 
-            RuleFor(wt => wt.WorkerUserId)
+            RuleFor(wt => wt.UserId)
                 .NotEmpty()
-                .WithMessage("WorkerUserId must not be empty");
+                .WithMessage("UserId must not be empty");
 
             RuleFor(wt => wt.StartTime)
                 .NotEqual(new DateTime())
@@ -55,7 +55,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .Must(wt =>
                 {
                     var oldWorkTimes = repository.GetUserWorkTimes(
-                        wt.WorkerUserId,
+                        wt.UserId,
                         new WorkTimeFilter
                         {
                             EndTime = wt.EndTime

@@ -31,7 +31,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 Comment = "I have a sore throat",
                 StartTime = new DateTime(2020, 7, 24),
                 EndTime = new DateTime(2020, 7, 27),
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             _expectedDbLeaveTimeWithoutId = new DbLeaveTime
@@ -40,7 +40,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
-                UserId = _request.WorkerUserId
+                UserId = _request.UserId
             };
         }
 

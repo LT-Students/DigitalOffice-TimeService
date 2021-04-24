@@ -32,7 +32,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 EndTime = new DateTime(2020, 7, 29, 17, 0, 0),
                 Title = "I was working on a very important task",
                 Description = "I was asleep. I love sleep. I hope I get paid for this.",
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             createdWorkTime = new DbWorkTime()
@@ -43,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 EndTime = request.EndTime,
                 Title = request.Title,
                 Description = request.Description,
-                UserId = request.WorkerUserId
+                UserId = request.UserId
             };
         }
 

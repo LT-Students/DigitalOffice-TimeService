@@ -5,7 +5,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
     public class CreateLeaveTimeRequest
     {
-        public Guid WorkerUserId { get; set; }
+        public Guid UserId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public LeaveType LeaveType { get; set; }
