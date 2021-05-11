@@ -1,9 +1,9 @@
-﻿using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Mappers.Requests
+namespace LT.DigitalOffice.TimeService.Mappers.Db
 {
     public class DbWorkTimeMapper : IDbWorkTimeMapper
     {
@@ -17,7 +17,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Requests
             return new DbWorkTime()
             {
                 Id = request.Id,
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Title = request.Title,
@@ -36,7 +36,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Requests
             return new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Title = request.Title,

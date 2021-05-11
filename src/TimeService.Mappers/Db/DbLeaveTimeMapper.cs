@@ -1,9 +1,9 @@
-﻿using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Mappers.Requests
+namespace LT.DigitalOffice.TimeService.Mappers.Db
 {
     public class DbLeaveTimeMapper : IDbLeaveTimeMapper
     {
@@ -17,7 +17,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Requests
             return new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 LeaveType = (int)request.LeaveType,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,

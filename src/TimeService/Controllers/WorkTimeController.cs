@@ -1,5 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Business.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto;
+﻿using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -9,16 +9,16 @@ namespace LT.DigitalOffice.TimeService.Controllers
     [ApiController]
     public class WorkTimeController : ControllerBase
     {
-        [HttpPost("editWorkTime")]
-        public bool EditWorkTime(
+        [HttpPost("edit")]
+        public bool Edit(
             [FromBody] EditWorkTimeRequest request,
             [FromServices] IEditWorkTimeCommand command)
         {
             return command.Execute(request);
         }
 
-        [HttpPost("addWorkTime")]
-        public Guid AddWorkTime(
+        [HttpPost("add")]
+        public Guid Add(
             [FromBody] CreateWorkTimeRequest workTime,
             [FromServices] ICreateWorkTimeCommand command)
         {

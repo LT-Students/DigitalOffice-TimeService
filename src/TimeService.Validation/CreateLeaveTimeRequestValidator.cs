@@ -1,8 +1,7 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Linq;
 
@@ -12,7 +11,7 @@ namespace LT.DigitalOffice.TimeService.Validation
     {
         public CreateLeaveTimeRequestValidator(ILeaveTimeRepository repository)
         {
-            RuleFor(lt => lt.WorkerUserId)
+            RuleFor(lt => lt.UserId)
                 .NotEmpty();
 
             RuleFor(lt => lt.LeaveType)
@@ -31,7 +30,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time")
                 .Must(lt =>
                 {
-                    var workTimes = repository.GetUserLeaveTimes(lt.WorkerUserId);
+                    var workTimes = repository.GetUserLeaveTimes(lt.UserId);
 
                     return workTimes.All(oldWorkTime =>
                         lt.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= lt.StartTime);

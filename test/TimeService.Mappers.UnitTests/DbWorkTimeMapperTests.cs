@@ -1,7 +1,7 @@
-using LT.DigitalOffice.TimeService.Mappers.Requests;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Db;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.UnitTestKernel;
 using NUnit.Framework;
 using System;
@@ -34,7 +34,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 EndTime = new DateTime(2020, 7, 29, 9, 0, 0),
                 Title = "I was working on a very important task",
                 Description = "I was asleep. I love sleep. I hope I get paid for this.",
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             _editRequest = new EditWorkTimeRequest
@@ -45,7 +45,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 EndTime = _createRequest.EndTime,
                 Title = _createRequest.Title,
                 Description = _createRequest.Description,
-                WorkerUserId = _createRequest.WorkerUserId
+                UserId = _createRequest.UserId
             };
 
             _expectedDbWorkTimeWithoutId = new DbWorkTime
@@ -55,7 +55,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 EndTime = _createRequest.EndTime,
                 Title = _createRequest.Title,
                 Description = _createRequest.Description,
-                WorkerUserId = _createRequest.WorkerUserId
+                UserId = _createRequest.UserId
             };
         }
 

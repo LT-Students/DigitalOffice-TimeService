@@ -1,9 +1,8 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
-using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Globalization;
 using System.Linq;
@@ -31,7 +30,7 @@ namespace LT.DigitalOffice.TimeService.Validation
 
         public CreateWorkTimeRequestValidator(IWorkTimeRepository repository)
         {
-            RuleFor(wt => wt.WorkerUserId)
+            RuleFor(wt => wt.UserId)
                     .NotEmpty();
 
             RuleFor(wt => wt.StartTime)
@@ -58,7 +57,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .Must(wt =>
                 {
                     var oldWorkTimes = repository.GetUserWorkTimes(
-                        wt.WorkerUserId,
+                        wt.UserId,
                         new WorkTimeFilter
                         {
                             StartTime = wt.StartTime.AddMinutes(-WorkingLimit.TotalMinutes),

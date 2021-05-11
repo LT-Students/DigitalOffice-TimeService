@@ -1,3 +1,4 @@
+using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
@@ -47,7 +48,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = _worker1,
+                    UserId = _worker1,
                     ProjectId = _project1,
                     StartTime = DateTime.Now.AddDays(-1),
                     EndTime = DateTime.Now.AddDays(-0.75)
@@ -57,7 +58,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = _worker1,
+                    UserId = _worker1,
                     ProjectId = _project2,
                     StartTime = DateTime.Now.AddDays(-0.7),
                     EndTime = DateTime.Now.AddDays(-0.45)
@@ -70,7 +71,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 {
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
-                    WorkerUserId = _worker2,
+                    UserId = _worker2,
                     ProjectId = _project1,
                     StartTime = DateTime.Now.AddDays(-0.9),
                     EndTime = DateTime.Now.AddDays(-0.65)
@@ -82,7 +83,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             _time = new DbWorkTime
             {
                 Id = _id,
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
                 Title = "Example",
@@ -171,7 +172,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             var newTime = new DbWorkTime
             {
                 Id = _id,
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
                 Title = "ExampleTitle",
@@ -192,7 +193,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void ShouldThrowExceptionWhenIdIsNotExist()
         {
-            Assert.Throws<Exception>(() => _repository.EditWorkTime(_time));
+            Assert.Throws<NotFoundException>(() => _repository.EditWorkTime(_time));
         }
         #endregion
     }

@@ -17,7 +17,6 @@ namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef
         {
         }
 
-        // Fluent API is written here.
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfigurationsFromAssembly(Assembly.Load("LT.DigitalOffice.TimeService.Models.Db"));

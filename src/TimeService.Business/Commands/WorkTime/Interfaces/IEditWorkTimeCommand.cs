@@ -1,7 +1,7 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 
-namespace LT.DigitalOffice.TimeService.Business.Interfaces
+namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
 {
     /// <summary>
     /// Represents interface for a command in command pattern.

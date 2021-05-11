@@ -1,18 +1,17 @@
 using FluentValidation;
-using FluentValidation.Results;
-using LT.DigitalOffice.TimeService.Business.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime;
 
-namespace LT.DigitalOffice.TimeService.Business.UnitTests
+namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
 {
     public class CreateLeaveTimeCommandTests
     {
@@ -33,7 +32,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
                 Comment = "I have a sore throat",
                 StartTime = new DateTime(2020, 7, 24),
                 EndTime = new DateTime(2020, 7, 27),
-                WorkerUserId = Guid.NewGuid()
+                UserId = Guid.NewGuid()
             };
 
             _createdLeaveTime = new DbLeaveTime()
@@ -43,7 +42,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
-                WorkerUserId = _request.WorkerUserId
+                UserId = _request.UserId
             };
         }
 
@@ -61,12 +60,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests
         public void ShouldThrowExceptionWhenValidatorThrowsException()
         {
             _validatorMock
-                .Setup(x => x.Validate(It.IsAny<CreateLeaveTimeRequest>()))
-                .Returns(new ValidationResult(
-                    new List<ValidationFailure>
-                    {
-                        new ValidationFailure("test", "something", null)
-                    }));
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(false);
 
             Assert.Throws<ValidationException>(() => _command.Execute(_request));
             _repositoryMock.Verify(repository => repository.CreateLeaveTime(It.IsAny<DbLeaveTime>()), Times.Never);

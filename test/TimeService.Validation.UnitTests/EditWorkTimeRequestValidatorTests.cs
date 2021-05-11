@@ -3,7 +3,7 @@ using FluentValidation.TestHelper;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
@@ -35,7 +35,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         [Test]
         public void ShouldThrowsValidationExceptionWhenWorkerUserIdIsEmpty()
         {
-            _validator.ShouldHaveValidationErrorFor(x => x.WorkerUserId, Guid.Empty);
+            _validator.ShouldHaveValidationErrorFor(x => x.UserId, Guid.Empty);
         }
 
         [Test]
@@ -90,7 +90,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             var request = new EditWorkTimeRequest
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 2, 2, 2, 2, 2),
                 EndTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 Title = "ExampleTitle",
@@ -107,7 +107,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             var request = new EditWorkTimeRequest
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = DateTime.Now,
                 EndTime = DateTime.Now.AddHours(25),
                 Title = "ExampleTitle",
@@ -124,7 +124,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             var request = new EditWorkTimeRequest
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = DateTime.Now,
                 EndTime = DateTime.Now.AddHours(25),
                 Title = "ExampleTitle",
@@ -134,7 +134,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 
             var time = new DbWorkTime
             {
-                WorkerUserId = request.WorkerUserId,
+                UserId = request.UserId,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 Title = request.Title,
@@ -142,7 +142,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = request.Description
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(request.WorkerUserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.GetUserWorkTimes(request.UserId, It.IsAny<WorkTimeFilter>()))
                 .Returns(new List<DbWorkTime> { time });
 
             Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
@@ -154,7 +154,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             var request = new EditWorkTimeRequest
             {
                 Id = Guid.NewGuid(),
-                WorkerUserId = Guid.NewGuid(),
+                UserId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 1, 1, 2, 2, 2),
                 Title = "ExampleTitle",
