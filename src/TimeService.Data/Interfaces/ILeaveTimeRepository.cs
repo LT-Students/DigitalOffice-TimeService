@@ -17,13 +17,13 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
         /// </summary>
         /// <param name="userId">Id of user.</param>
         /// <returns>Leave times suitable for the specified parameters.</returns>
-        public ICollection<DbLeaveTime> GetUserLeaveTimes(Guid userId);
+        ICollection<DbLeaveTime> GetUserLeaveTimes(Guid userId);
 
         /// <summary>
         /// Adds new leave time to the database. Returns the id of the added leave time.
         /// </summary>
         /// <param name="leaveTime">Leave time to add.</param>
         /// <returns>Id of the added leave time.</returns>
-        public Guid CreateLeaveTime(DbLeaveTime leaveTime);
+        Guid CreateLeaveTime(DbLeaveTime leaveTime);
     }
 }

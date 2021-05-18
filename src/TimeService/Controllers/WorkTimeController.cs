@@ -14,6 +14,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
             [FromBody] EditWorkTimeRequest request,
             [FromServices] IEditWorkTimeCommand command)
         {
+            // TODO: Update to Patch
             return command.Execute(request);
         }
 

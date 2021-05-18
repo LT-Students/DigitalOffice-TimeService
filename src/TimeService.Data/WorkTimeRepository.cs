@@ -19,6 +19,18 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider = provider;
         }
 
+        public DbWorkTime GetWorkTime(Guid id)
+        {
+            var dbWorkTime = _provider.WorkTimes.FirstOrDefault(x => x.Id == id);
+            
+            if (dbWorkTime == null)
+            {
+                throw new NotFoundException($"WorkTime with id {id} was not found.");
+            }
+
+            return dbWorkTime;
+        }
+
         public Guid CreateWorkTime(DbWorkTime dbWorkTime)
         {
             _provider.WorkTimes.Add(dbWorkTime);
@@ -61,10 +73,12 @@ namespace LT.DigitalOffice.TimeService.Data
             }
 
             dbWorkTimeToEdit.UserId = dbWorkTime.UserId;
+            dbWorkTimeToEdit.ProjectId = dbWorkTime.ProjectId;
+            dbWorkTimeToEdit.CreatedBy = dbWorkTime.CreatedBy;
             dbWorkTimeToEdit.StartTime = dbWorkTime.StartTime;
             dbWorkTimeToEdit.EndTime = dbWorkTime.EndTime;
+            dbWorkTimeToEdit.CreatedAt = dbWorkTime.CreatedAt;
             dbWorkTimeToEdit.Title = dbWorkTime.Title;
-            dbWorkTimeToEdit.ProjectId = dbWorkTime.ProjectId;
             dbWorkTimeToEdit.Description = dbWorkTime.Description;
 
             _provider.WorkTimes.Update(dbWorkTimeToEdit);

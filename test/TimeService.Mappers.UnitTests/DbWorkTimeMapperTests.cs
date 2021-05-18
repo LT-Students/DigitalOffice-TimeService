@@ -15,17 +15,12 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 
         private EditWorkTimeRequest _editRequest;
         private CreateWorkTimeRequest _createRequest;
-        private DbWorkTime _expectedDbWorkTimeWithoutId;
+        private DbWorkTime _editedDbWorkTime;
+        private DbWorkTime _expectedCreatedDbWorkTimeWithoutId;
+        private DbWorkTime _expectedEditedDbWorkTime;
+        private Guid _createdBy;
 
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
-        {
-            _createRequestMapper = new DbWorkTimeMapper();
-            _editRequestMapper = new DbWorkTimeMapper();
-        }
-
-        [SetUp]
-        public void SetUp()
+        private void CreateDbWorkTimeSetUp()
         {
             _createRequest = new CreateWorkTimeRequest
             {
@@ -37,9 +32,30 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 UserId = Guid.NewGuid()
             };
 
-            _editRequest = new EditWorkTimeRequest
+            _expectedCreatedDbWorkTimeWithoutId = new DbWorkTime
+            {
+                ProjectId = _createRequest.ProjectId,
+                CreatedBy = _createdBy,
+                StartTime = _createRequest.StartTime,
+                EndTime = _createRequest.EndTime,
+                Title = _createRequest.Title,
+                Description = _createRequest.Description,
+                UserId = _createRequest.UserId
+            };
+        }
+
+        private void EditDbWorkTimeSetUp()
+        {
+            _editedDbWorkTime = new DbWorkTime
             {
                 Id = Guid.NewGuid(),
+                CreatedBy = _createdBy,
+                CreatedAt = DateTime.Now
+            };
+
+            _editRequest = new EditWorkTimeRequest
+            {
+                Id = _editedDbWorkTime.Id,
                 ProjectId = _createRequest.ProjectId,
                 StartTime = _createRequest.StartTime,
                 EndTime = _createRequest.EndTime,
@@ -48,61 +64,81 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 UserId = _createRequest.UserId
             };
 
-            _expectedDbWorkTimeWithoutId = new DbWorkTime
+            _expectedEditedDbWorkTime = new DbWorkTime
             {
+                Id = _editedDbWorkTime.Id,
                 ProjectId = _createRequest.ProjectId,
+                CreatedBy = _createdBy,
                 StartTime = _createRequest.StartTime,
                 EndTime = _createRequest.EndTime,
+                CreatedAt = _editedDbWorkTime.CreatedAt,
                 Title = _createRequest.Title,
                 Description = _createRequest.Description,
                 UserId = _createRequest.UserId
             };
+        }
+
+        [OneTimeSetUp]
+        public void OneTimeSetUp()
+        {
+            _createRequestMapper = new DbWorkTimeMapper();
+            _editRequestMapper = new DbWorkTimeMapper();
+        }
+
+        [SetUp]
+        public void SetUp()
+        {
+            _createdBy = Guid.NewGuid();
+
+            CreateDbWorkTimeSetUp();
+            EditDbWorkTimeSetUp();
         }
 
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenCreateWorkTimeRequestIsNull()
         {
             CreateWorkTimeRequest createWorkTimeRequest = null;
-            Assert.Throws<ArgumentNullException>(() => _createRequestMapper.Map(createWorkTimeRequest));
+            Assert.Throws<ArgumentNullException>(() => _createRequestMapper.Map(createWorkTimeRequest, _createdBy));
         }
 
         [Test]
         public void ShouldReturnDbWorkTimeWhenMappingValidCreateWorkTimeRequest()
         {
-            var newWorkTime = _createRequestMapper.Map(_createRequest);
-            _expectedDbWorkTimeWithoutId.Id = newWorkTime.Id;
+            var newDbWorkTime = _createRequestMapper.Map(_createRequest, _createdBy);
+            _expectedCreatedDbWorkTimeWithoutId.Id = newDbWorkTime.Id;
+            _expectedCreatedDbWorkTimeWithoutId.CreatedAt = newDbWorkTime.CreatedAt;
 
-            SerializerAssert.AreEqual(_expectedDbWorkTimeWithoutId, newWorkTime);
+            SerializerAssert.AreEqual(_expectedCreatedDbWorkTimeWithoutId, newDbWorkTime);
         }
 
         [Test]
         public void ShouldReturnDbWorkTimeWhenMappingValidCreateWorkTimeRequestWithNullDescription()
         {
             _createRequest.Description = null;
-            _expectedDbWorkTimeWithoutId.Description = null;
+            _expectedCreatedDbWorkTimeWithoutId.Description = null;
 
-            var newWortTime = _createRequestMapper.Map(_createRequest);
-            _expectedDbWorkTimeWithoutId.Id = newWortTime.Id;
+            var newWortTime = _createRequestMapper.Map(_createRequest, _createdBy);
+            _expectedCreatedDbWorkTimeWithoutId.Id = newWortTime.Id;
+            _expectedCreatedDbWorkTimeWithoutId.CreatedAt = newWortTime.CreatedAt;
 
             Assert.IsInstanceOf<Guid>(newWortTime.Id);
             Assert.IsTrue(string.IsNullOrEmpty(newWortTime.Description));
-            SerializerAssert.AreEqual(_expectedDbWorkTimeWithoutId, newWortTime);
+            SerializerAssert.AreEqual(_expectedCreatedDbWorkTimeWithoutId, newWortTime);
         }
 
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenEditWorkTimeRequestIsNull()
         {
             EditWorkTimeRequest editWorkTimeRequest = null;
-            Assert.Throws<ArgumentNullException>(() => _editRequestMapper.Map(editWorkTimeRequest));
+            Assert.Throws<ArgumentNullException>(() => _editRequestMapper.Map(editWorkTimeRequest, _editedDbWorkTime));
         }
 
         [Test]
         public void ShouldReturnDbWorkTimeWhenMappingValidEditWorkTimeRequest()
         {
-            var workTime = _editRequestMapper.Map(_editRequest);
-            _expectedDbWorkTimeWithoutId.Id = _editRequest.Id;
+            var dbWorkTime = _editRequestMapper.Map(_editRequest, _editedDbWorkTime);
 
-            SerializerAssert.AreEqual(_expectedDbWorkTimeWithoutId, workTime);
+            SerializerAssert.AreEqual(_expectedEditedDbWorkTime, dbWorkTime);
         }
     }
 }

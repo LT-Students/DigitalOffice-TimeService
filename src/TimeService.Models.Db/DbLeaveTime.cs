@@ -10,8 +10,10 @@ namespace LT.DigitalOffice.TimeService.Models.Db
 
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
+        public Guid CreatedBy { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public DateTime CreatedAt { get; set; }
         public int LeaveType { get; set; }
         public string Comment { get; set; }
     }

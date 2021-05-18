@@ -6,9 +6,11 @@ using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Moq;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
 {
@@ -17,15 +19,29 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
         private Mock<ICreateWorkTimeRequestValidator> _validatorMock;
         private Mock<IDbWorkTimeMapper> _mapperMock;
         private Mock<IWorkTimeRepository> _repositoryMock;
+        private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private ICreateWorkTimeCommand _command;
 
-        private CreateWorkTimeRequest request;
-        private DbWorkTime createdWorkTime;
+        private CreateWorkTimeRequest _request;
+        private DbWorkTime _createdWorkTime;
+        private Guid _createdBy;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            request = new CreateWorkTimeRequest()
+            _createdBy = Guid.NewGuid();
+
+            var items = new Dictionary<object, object>
+            {
+                { "UserId", _createdBy }
+            };
+
+            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _httpContextAccessorMock
+                .Setup(x => x.HttpContext.Items)
+                .Returns(items);
+
+            _request = new CreateWorkTimeRequest()
             {
                 ProjectId = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 7, 29, 9, 0, 0),
@@ -35,15 +51,15 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 UserId = Guid.NewGuid()
             };
 
-            createdWorkTime = new DbWorkTime()
+            _createdWorkTime = new DbWorkTime()
             {
                 Id = Guid.NewGuid(),
-                ProjectId = request.ProjectId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                Title = request.Title,
-                Description = request.Description,
-                UserId = request.UserId
+                ProjectId = _request.ProjectId,
+                StartTime = _request.StartTime,
+                EndTime = _request.EndTime,
+                Title = _request.Title,
+                Description = _request.Description,
+                UserId = _request.UserId
             };
         }
 
@@ -54,7 +70,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
             _mapperMock = new Mock<IDbWorkTimeMapper>();
             _repositoryMock = new Mock<IWorkTimeRepository>();
 
-            _command = new CreateWorkTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object);
+            _command = new CreateWorkTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object, _httpContextAccessorMock.Object);
         }
 
         [Test]
@@ -64,7 +80,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
                 .Returns(false);
 
-            Assert.Throws<ValidationException>(() => _command.Execute(request));
+            Assert.Throws<ValidationException>(() => _command.Execute(_request));
             _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
         }
 
@@ -76,14 +92,14 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                  .Returns(true);
 
             _mapperMock
-                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
-                .Returns(createdWorkTime);
+                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>(), _createdBy))
+                .Returns(_createdWorkTime);
 
             _repositoryMock
                 .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
                 .Throws(new Exception());
 
-            Assert.Throws<Exception>(() => _command.Execute(request));
+            Assert.Throws<Exception>(() => _command.Execute(_request));
         }
 
         [Test]
@@ -94,14 +110,14 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                  .Returns(true);
 
             _mapperMock
-                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>()))
-                .Returns(createdWorkTime);
+                .Setup(x => x.Map(It.IsAny<CreateWorkTimeRequest>(), _createdBy))
+                .Returns(_createdWorkTime);
 
             _repositoryMock
                 .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
-                .Returns(createdWorkTime.Id);
+                .Returns(_createdWorkTime.Id);
 
-            Assert.AreEqual(createdWorkTime.Id, _command.Execute(request));
+            Assert.AreEqual(_createdWorkTime.Id, _command.Execute(_request));
             _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }

@@ -10,6 +10,8 @@ using NUnit.Framework;
 using System;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime;
+using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
 {
@@ -18,14 +20,28 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         private Mock<ICreateLeaveTimeRequestValidator> _validatorMock;
         private Mock<IDbLeaveTimeMapper> _mapperMock;
         private Mock<ILeaveTimeRepository> _repositoryMock;
+        private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private ICreateLeaveTimeCommand _command;
 
         private CreateLeaveTimeRequest _request;
         private DbLeaveTime _createdLeaveTime;
+        private Guid _createdBy;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
+            _createdBy = Guid.NewGuid();
+
+            var items = new Dictionary<object, object>
+            {
+                { "UserId", _createdBy }
+            };
+
+            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _httpContextAccessorMock
+                .Setup(x => x.HttpContext.Items)
+                .Returns(items);
+
             _request = new CreateLeaveTimeRequest()
             {
                 LeaveType = LeaveType.SickLeave,
@@ -38,6 +54,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
             _createdLeaveTime = new DbLeaveTime()
             {
                 Id = Guid.NewGuid(),
+                CreatedBy = _createdBy,
                 LeaveType = (int)_request.LeaveType,
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
@@ -53,7 +70,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
             _mapperMock = new Mock<IDbLeaveTimeMapper>();
             _repositoryMock = new Mock<ILeaveTimeRepository>();
 
-            _command = new CreateLeaveTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object);
+            _command = new CreateLeaveTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object, _httpContextAccessorMock.Object);
         }
 
         [Test]
@@ -75,7 +92,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
                  .Returns(true);
 
             _mapperMock
-                .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>()))
+                .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>(), _createdBy))
                 .Returns(_createdLeaveTime);
 
             _repositoryMock
@@ -93,7 +110,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
                  .Returns(true);
 
             _mapperMock
-                .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>()))
+                .Setup(x => x.Map(It.IsAny<CreateLeaveTimeRequest>(), _createdBy))
                 .Returns(_createdLeaveTime);
 
             _repositoryMock

@@ -50,8 +50,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                     Title = $"WorkTime",
                     UserId = _worker1,
                     ProjectId = _project1,
+                    CreatedBy = _worker1,
                     StartTime = DateTime.Now.AddDays(-1),
-                    EndTime = DateTime.Now.AddDays(-0.75)
+                    EndTime = DateTime.Now.AddDays(-0.75),
+                    CreatedAt = DateTime.Now
                 },
 
                 new DbWorkTime
@@ -60,8 +62,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                     Title = $"WorkTime",
                     UserId = _worker1,
                     ProjectId = _project2,
+                    CreatedBy = _worker1,
                     StartTime = DateTime.Now.AddDays(-0.7),
-                    EndTime = DateTime.Now.AddDays(-0.45)
+                    EndTime = DateTime.Now.AddDays(-0.45),
+                    CreatedAt = DateTime.Now
                 }
             };
 
@@ -72,9 +76,11 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                     Id = Guid.NewGuid(),
                     Title = $"WorkTime",
                     UserId = _worker2,
+                    CreatedBy = _worker2,
                     ProjectId = _project1,
                     StartTime = DateTime.Now.AddDays(-0.9),
-                    EndTime = DateTime.Now.AddDays(-0.65)
+                    EndTime = DateTime.Now.AddDays(-0.65),
+                    CreatedAt = DateTime.Now
                 }
             };
 
@@ -84,8 +90,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             {
                 Id = _id,
                 UserId = Guid.NewGuid(),
+                CreatedBy = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
+                CreatedAt = DateTime.Now,
                 Title = "Example",
                 ProjectId = Guid.NewGuid(),
                 Description = "ExampleDescription"
@@ -173,6 +181,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             {
                 Id = _id,
                 UserId = Guid.NewGuid(),
+                CreatedBy = Guid.NewGuid(),
                 StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
                 EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
                 Title = "ExampleTitle",
