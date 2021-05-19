@@ -11,6 +11,14 @@ namespace LT.DigitalOffice.TimeService.Controllers
     [ApiController]
     public class WorkTimeController : ControllerBase
     {
+        [HttpPost("add")]
+        public Guid Add(
+            [FromBody] CreateWorkTimeRequest workTime,
+            [FromServices] ICreateWorkTimeCommand command)
+        {
+            return command.Execute(workTime);
+        }
+
         [HttpPatch("edit")]
         public bool Edit(
             [FromQuery] Guid workTimeId,
@@ -18,14 +26,6 @@ namespace LT.DigitalOffice.TimeService.Controllers
             [FromServices] IEditWorkTimeCommand command)
         {
             return command.Execute(workTimeId, request);
-        }
-
-        [HttpPost("add")]
-        public Guid Add(
-            [FromBody] CreateWorkTimeRequest workTime,
-            [FromServices] ICreateWorkTimeCommand command)
-        {
-            return command.Execute(workTime);
         }
     }
 }
