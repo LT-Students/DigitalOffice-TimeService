@@ -37,8 +37,8 @@ namespace LT.DigitalOffice.TimeService.Validation
 
         Func<EditWorkTimeModel, string, Operation> GetOperationByPath =>
             (x, path) =>
-                x.JsonPatchDocument.Operations.FirstOrDefault(x =>
-                    string.Equals(x.path, path, StringComparison.OrdinalIgnoreCase));
+                x.JsonPatchDocument.Operations.FirstOrDefault(op =>
+                    string.Equals(op.path, path, StringComparison.OrdinalIgnoreCase));
 
         public EditWorkTimeRequestValidator(IWorkTimeRepository repository)
         {
