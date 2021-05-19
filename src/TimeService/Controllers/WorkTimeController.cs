@@ -25,10 +25,10 @@ namespace LT.DigitalOffice.TimeService.Controllers
         public WorkTimesResponse Find(
             [FromServices] IFindWorkTimesCommand command,
             [FromQuery] FindWorkTimesFilter filter,
-            [FromQuery] int skipCount,
+            [FromQuery] int skipPagesCount,
             [FromQuery] int takeCount)
         {
-            return command.Execute(filter, skipCount, takeCount);
+            return command.Execute(filter, skipPagesCount, takeCount);
         }
 
         [HttpPatch("edit")]

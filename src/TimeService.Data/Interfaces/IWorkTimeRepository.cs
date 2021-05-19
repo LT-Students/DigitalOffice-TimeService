@@ -18,7 +18,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
         DbWorkTime Get(Guid id);
 
-        List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipCount, int takeCount, out int totalCount);
+        List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount);
 
         bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
     }

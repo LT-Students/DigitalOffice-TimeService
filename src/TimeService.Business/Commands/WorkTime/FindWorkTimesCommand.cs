@@ -31,7 +31,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public WorkTimesResponse Execute(FindWorkTimesFilter filter, int skipCount, int takeCount)
+        public WorkTimesResponse Execute(FindWorkTimesFilter filter, int skipPagesCount, int takeCount)
         {
             if (filter == null)
             {
@@ -47,7 +47,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
             int totalCount;
 
-            var dbWorkTimes = _repository.Find(filter, skipCount, takeCount, out totalCount);
+            var dbWorkTimes = _repository.Find(filter, skipPagesCount, takeCount, out totalCount);
 
             return new WorkTimesResponse
             {

@@ -7,6 +7,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
     [AutoInject]
     public interface IFindWorkTimesCommand
     {
-        WorkTimesResponse Execute(FindWorkTimesFilter filter, int skipCount, int takeCount);
+        WorkTimesResponse Execute(FindWorkTimesFilter filter, int skipPagesCount, int takeCount);
     }
 }

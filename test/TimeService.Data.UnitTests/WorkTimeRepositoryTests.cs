@@ -225,32 +225,6 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         }
 
         [Test]
-        public void SkipAndCountShouldWorkCorrectly()
-        {
-            foreach (var wt in _workTimesOfWorker1)
-            {
-                _dbContext.Add(wt);
-            }
-
-            foreach (var wt in _workTimesOfWorker2)
-            {
-                _dbContext.Add(wt);
-            }
-            _dbContext.SaveChanges();
-
-            for(var i = 0; i <= _dbContext.WorkTimes.Count(); i++)
-            {
-                var workTimes = _repository.Find(
-                    new FindWorkTimesFilter { },
-                    i,
-                    int.MaxValue,
-                    out _);
-
-                Assert.AreEqual(workTimes.Count, _dbContext.WorkTimes.Count() - i);
-            }
-        }
-
-        [Test]
         public void ShouldReturnCorrectlyCount()
         {
             foreach (var wt in _workTimesOfWorker1)

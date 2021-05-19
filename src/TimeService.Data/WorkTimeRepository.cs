@@ -39,7 +39,7 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbWorkTime;
         }
 
-        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipCount, int takeCount, out int totalCount)
+        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount)
         {
             if (filter == null)
             {
@@ -65,7 +65,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
             totalCount = dbWorkTimes.Count();
 
-            return dbWorkTimes.Skip(skipCount).Take(takeCount).ToList();
+            return dbWorkTimes.Skip(skipPagesCount * takeCount).Take(takeCount).ToList();
         }
 
         public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
