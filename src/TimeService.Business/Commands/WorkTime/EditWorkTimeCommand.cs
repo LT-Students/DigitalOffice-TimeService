@@ -40,16 +40,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
         public OperationResultResponse<bool> Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
         {
+            var oldDbWorkTime = _repository.Get(workTimeId);
+
             var editModel = new EditWorkTimeModel
             {
                 JsonPatchDocument = request,
                 Id = workTimeId,
-                UserId = _httpContextAccessor.HttpContext.GetUserId()
+                UserId = oldDbWorkTime.UserId
             };
 
             _validator.ValidateAndThrowCustom(editModel);
 
-            var oldDbWorkTime = _repository.Get(workTimeId);
             var isAuthor = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.CreatedBy;
             if (!_accessValidator.IsAdmin() && !isAuthor)
             {
