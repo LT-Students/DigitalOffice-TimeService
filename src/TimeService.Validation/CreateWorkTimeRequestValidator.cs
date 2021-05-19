@@ -47,7 +47,9 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .NotEmpty();
 
             RuleFor(wt => wt.Title)
-                .NotEmpty();
+                .NotEmpty()
+                .MaximumLength(200)
+                .WithMessage("Title is too long.");
 
             RuleFor(wt => wt)
                 .Must(wt => wt.StartTime < wt.EndTime)

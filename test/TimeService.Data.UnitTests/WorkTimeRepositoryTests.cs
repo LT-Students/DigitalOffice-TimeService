@@ -4,7 +4,10 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.UnitTestKernel;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -28,7 +31,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         private Guid _id;
 
         [SetUp]
-        public void OneTimeSetUp()
+        public void SetUp()
         {
             var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
                                     .UseInMemoryDatabase(databaseName: "InMemoryDatabase")
@@ -177,32 +180,26 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void ShouldChangeWorkTimeWhenDataIsCorrect()
         {
-            var newTime = new DbWorkTime
-            {
-                Id = _id,
-                UserId = Guid.NewGuid(),
-                CreatedBy = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndTime = new DateTime(2020, 2, 2, 2, 2, 2),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "Example"
-            };
-
             _dbContext.WorkTimes.Add(_time);
             _dbContext.SaveChanges();
 
-            Assert.True(_repository.EditWorkTime(newTime));
+            var jsonPatchDocument = new JsonPatchDocument<DbWorkTime>(new List<Operation<DbWorkTime>>
+                {
+                    new Operation<DbWorkTime>(
+                        "replace",
+                        $"/{nameof(DbWorkTime.Title)}",
+                        "",
+                        "new title")
+                }, new CamelCasePropertyNamesContractResolver());
+
+
+            Assert.True(_repository.Edit(_time, jsonPatchDocument));
 
             var result = _dbContext.WorkTimes.Find(_id);
 
-            SerializerAssert.AreEqual(newTime, result);
-        }
+            _time.Title = "new title";
 
-        [Test]
-        public void ShouldThrowExceptionWhenIdIsNotExist()
-        {
-            Assert.Throws<NotFoundException>(() => _repository.EditWorkTime(_time));
+            SerializerAssert.AreEqual(_time, result);
         }
         #endregion
     }

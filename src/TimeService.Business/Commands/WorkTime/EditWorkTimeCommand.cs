@@ -2,12 +2,18 @@
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
+using System;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 {
@@ -15,14 +21,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     {
         private readonly IEditWorkTimeRequestValidator _validator;
         private readonly IWorkTimeRepository _repository;
-        private readonly IDbWorkTimeMapper _mapper;
+        private readonly IPatchDbWorkTimeMapper _mapper;
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public EditWorkTimeCommand(
             IEditWorkTimeRequestValidator validator,
             IWorkTimeRepository repository,
-            IDbWorkTimeMapper mapper,
+            IPatchDbWorkTimeMapper mapper,
             IAccessValidator accessValidator,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -33,18 +39,27 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public bool Execute(EditWorkTimeRequest request)
+        public bool Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
         {
-            _validator.ValidateAndThrowCustom(request);
+            var editModel = new EditWorkTimeModel
+            {
+                JsonPatchDocument = request,
+                Id = workTimeId,
+                UserId = _httpContextAccessor.HttpContext.GetUserId()
+            };
 
-            var oldDbWorkTime = _repository.GetWorkTime(request.Id);
+            _validator.ValidateAndThrowCustom(editModel);
+
+            var oldDbWorkTime = _repository.GetWorkTime(workTimeId);
             var isAuthor = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.CreatedBy;
             if (!_accessValidator.IsAdmin() && !isAuthor)
             {
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            return _repository.EditWorkTime(_mapper.Map(request, oldDbWorkTime));
+            var response = new OperationResultResponse<bool>();
+
+            return _repository.Edit(oldDbWorkTime, _mapper.Map(request));
         }
     }
 }

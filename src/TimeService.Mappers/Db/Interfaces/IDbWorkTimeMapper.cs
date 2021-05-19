@@ -9,6 +9,5 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
     public interface IDbWorkTimeMapper
     {
         DbWorkTime Map(CreateWorkTimeRequest leaveTime, Guid createdBy);
-        DbWorkTime Map(EditWorkTimeRequest leaveTime, DbWorkTime oldDbWorkTime);
     }
 }

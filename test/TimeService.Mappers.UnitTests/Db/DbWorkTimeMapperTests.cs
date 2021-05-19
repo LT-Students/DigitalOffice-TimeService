@@ -11,13 +11,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
     public class DbWorkTimeMapperTests
     {
         private IDbWorkTimeMapper _createRequestMapper;
-        private IDbWorkTimeMapper _editRequestMapper;
 
-        private EditWorkTimeRequest _editRequest;
         private CreateWorkTimeRequest _createRequest;
-        private DbWorkTime _editedDbWorkTime;
         private DbWorkTime _expectedCreatedDbWorkTimeWithoutId;
-        private DbWorkTime _expectedEditedDbWorkTime;
         private Guid _createdBy;
 
         private void CreateDbWorkTimeSetUp()
@@ -44,45 +40,10 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             };
         }
 
-        private void EditDbWorkTimeSetUp()
-        {
-            _editedDbWorkTime = new DbWorkTime
-            {
-                Id = Guid.NewGuid(),
-                CreatedBy = _createdBy,
-                CreatedAt = DateTime.Now
-            };
-
-            _editRequest = new EditWorkTimeRequest
-            {
-                Id = _editedDbWorkTime.Id,
-                ProjectId = _createRequest.ProjectId,
-                StartTime = _createRequest.StartTime,
-                EndTime = _createRequest.EndTime,
-                Title = _createRequest.Title,
-                Description = _createRequest.Description,
-                UserId = _createRequest.UserId
-            };
-
-            _expectedEditedDbWorkTime = new DbWorkTime
-            {
-                Id = _editedDbWorkTime.Id,
-                ProjectId = _createRequest.ProjectId,
-                CreatedBy = _createdBy,
-                StartTime = _createRequest.StartTime,
-                EndTime = _createRequest.EndTime,
-                CreatedAt = _editedDbWorkTime.CreatedAt,
-                Title = _createRequest.Title,
-                Description = _createRequest.Description,
-                UserId = _createRequest.UserId
-            };
-        }
-
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _createRequestMapper = new DbWorkTimeMapper();
-            _editRequestMapper = new DbWorkTimeMapper();
         }
 
         [SetUp]
@@ -91,7 +52,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             _createdBy = Guid.NewGuid();
 
             CreateDbWorkTimeSetUp();
-            EditDbWorkTimeSetUp();
         }
 
         [Test]
@@ -124,21 +84,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             Assert.IsInstanceOf<Guid>(newWortTime.Id);
             Assert.IsTrue(string.IsNullOrEmpty(newWortTime.Description));
             SerializerAssert.AreEqual(_expectedCreatedDbWorkTimeWithoutId, newWortTime);
-        }
-
-        [Test]
-        public void ShouldThrowArgumentNullExceptionWhenEditWorkTimeRequestIsNull()
-        {
-            EditWorkTimeRequest editWorkTimeRequest = null;
-            Assert.Throws<ArgumentNullException>(() => _editRequestMapper.Map(editWorkTimeRequest, _editedDbWorkTime));
-        }
-
-        [Test]
-        public void ShouldReturnDbWorkTimeWhenMappingValidEditWorkTimeRequest()
-        {
-            var dbWorkTime = _editRequestMapper.Map(_editRequest, _editedDbWorkTime);
-
-            SerializerAssert.AreEqual(_expectedEditedDbWorkTime, dbWorkTime);
         }
     }
 }

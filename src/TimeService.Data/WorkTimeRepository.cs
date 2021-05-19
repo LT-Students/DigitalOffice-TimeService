@@ -4,6 +4,7 @@ using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -63,25 +64,9 @@ namespace LT.DigitalOffice.TimeService.Data
             return _provider.WorkTimes.Where(predicate).ToList();
         }
 
-        public bool EditWorkTime(DbWorkTime dbWorkTime)
+        public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
         {
-            var dbWorkTimeToEdit = _provider.WorkTimes.Find(dbWorkTime.Id);
-
-            if (dbWorkTimeToEdit == null)
-            {
-                throw new NotFoundException($"Work time with Id {dbWorkTime.Id} is not exist.");
-            }
-
-            dbWorkTimeToEdit.UserId = dbWorkTime.UserId;
-            dbWorkTimeToEdit.ProjectId = dbWorkTime.ProjectId;
-            dbWorkTimeToEdit.CreatedBy = dbWorkTime.CreatedBy;
-            dbWorkTimeToEdit.StartTime = dbWorkTime.StartTime;
-            dbWorkTimeToEdit.EndTime = dbWorkTime.EndTime;
-            dbWorkTimeToEdit.CreatedAt = dbWorkTime.CreatedAt;
-            dbWorkTimeToEdit.Title = dbWorkTime.Title;
-            dbWorkTimeToEdit.Description = dbWorkTime.Description;
-
-            _provider.WorkTimes.Update(dbWorkTimeToEdit);
+            jsonPatchDocument.ApplyTo(dbWorkTime);
             _provider.Save();
 
             return true;

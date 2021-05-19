@@ -1,6 +1,7 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Models.Db;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 
@@ -30,11 +31,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
         /// <returns>Id of the added work time.</returns>
         Guid CreateWorkTime(DbWorkTime workTime);
 
-        /// <summary>
-        /// Change work time in the database. Returns true if the operation is successful.
-        /// </summary>
-        /// <param name="workTime">Work time change.</param>
-        /// <returns>True if the operation is successful.</returns>
-        bool EditWorkTime(DbWorkTime workTime);
+        bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
     }
 }
