@@ -1,15 +1,17 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
@@ -170,7 +172,16 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Setup(x => x.Edit(It.IsAny<DbWorkTime>(), It.IsAny<JsonPatchDocument<DbWorkTime>>()))
                 .Returns(true);
 
-            Assert.AreEqual(true, _command.Execute(_editedDbWorkTime.Id, _request));
+            var result = _command.Execute(_editedDbWorkTime.Id, _request);
+
+            var expected = new OperationResultResponse<bool>
+            {
+                Body = true,
+                Status = OperationResultStatusType.FullSuccess,
+                Errors = new()
+            };
+
+            SerializerAssert.AreEqual(expected, result);
             _repositoryMock.Verify(repository => repository.Edit(It.IsAny<DbWorkTime>(), It.IsAny<JsonPatchDocument<DbWorkTime>>()), Times.Once);
         }
     }

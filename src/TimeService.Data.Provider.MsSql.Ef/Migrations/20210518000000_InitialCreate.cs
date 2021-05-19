@@ -2,7 +2,6 @@
 using LT.DigitalOffice.TimeService.Models.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef.Database.Migrations

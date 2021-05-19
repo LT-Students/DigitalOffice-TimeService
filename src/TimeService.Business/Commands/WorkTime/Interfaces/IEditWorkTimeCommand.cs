@@ -19,6 +19,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
         /// <param name="workTimeId">Work time id to update the work time.</param>
         /// <param name="request">Data to update the work time.</param>
         /// <returns>True if the operation is successful.</returns>
-        bool Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request);
+        OperationResultResponse<bool> Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request);
     }
 }

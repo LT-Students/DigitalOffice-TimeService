@@ -32,7 +32,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
         }
 
         [HttpPatch("edit")]
-        public bool Edit(
+        public OperationResultResponse<bool> Edit(
             [FromQuery] Guid workTimeId,
             [FromBody] JsonPatchDocument<EditWorkTimeRequest> request,
             [FromServices] IEditWorkTimeCommand command)

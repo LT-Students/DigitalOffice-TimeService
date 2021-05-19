@@ -1,18 +1,17 @@
 ﻿using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
@@ -39,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public bool Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
+        public OperationResultResponse<bool> Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
         {
             var editModel = new EditWorkTimeModel
             {
@@ -57,9 +56,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            var response = new OperationResultResponse<bool>();
-
-            return _repository.Edit(oldDbWorkTime, _mapper.Map(request));
+            return new OperationResultResponse<bool>
+            {
+                Body = _repository.Edit(oldDbWorkTime, _mapper.Map(request)),
+                Status = OperationResultStatusType.FullSuccess,
+                Errors = new()
+            };
         }
     }
 }
