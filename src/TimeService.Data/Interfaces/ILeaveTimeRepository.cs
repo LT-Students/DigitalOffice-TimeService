@@ -1,4 +1,5 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Models.Db;
 using System;
 using System.Collections.Generic;
@@ -19,11 +20,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
         /// <returns>Id of the added leave time.</returns>
         Guid Add(DbLeaveTime leaveTime);
 
-        /// <summary>
-        /// Returns the leave times of specified id of user from database.
-        /// </summary>
-        /// <param name="userId">Id of user.</param>
-        /// <returns>Leave times suitable for the specified parameters.</returns>
-        ICollection<DbLeaveTime> Find(Guid userId);
+        List<DbLeaveTime> Find(FindLeaveTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount);
     }
 }

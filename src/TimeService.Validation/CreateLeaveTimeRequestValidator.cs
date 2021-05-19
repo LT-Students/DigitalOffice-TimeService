@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
@@ -30,7 +31,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time.")
                 .Must(lt =>
                 {
-                    var workTimes = repository.Find(lt.UserId);
+                    var workTimes = repository.Find(new FindLeaveTimesFilter { UserId = lt.UserId }, 0, int.MaxValue, out _);
 
                     return workTimes.All(oldWorkTime =>
                         lt.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= lt.StartTime);

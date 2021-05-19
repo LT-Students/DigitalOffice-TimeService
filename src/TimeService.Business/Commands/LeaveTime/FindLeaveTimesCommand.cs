@@ -1,7 +1,7 @@
 ﻿using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
@@ -10,18 +10,18 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
+namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
-    public class FindWorkTimesCommand : IFindWorkTimesCommand
+    public class FindLeaveTimesCommand : IFindLeaveTimesCommand
     {
-        private readonly IWorkTimeInfoMapper _mapper;
-        private readonly IWorkTimeRepository _repository;
+        private readonly ILeaveTimeInfoMapper _mapper;
+        private readonly ILeaveTimeRepository _repository;
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public FindWorkTimesCommand(
-            IWorkTimeInfoMapper mapper,
-            IWorkTimeRepository repository,
+        public FindLeaveTimesCommand(
+            ILeaveTimeInfoMapper mapper,
+            ILeaveTimeRepository repository,
             IAccessValidator accessValidator,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -31,7 +31,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public WorkTimesResponse Execute(FindWorkTimesFilter filter, int skipPagesCount, int takeCount)
+        public LeaveTimesResponse Execute(FindLeaveTimesFilter filter, int skipPagesCount, int takeCount)
         {
             if (filter == null)
             {
@@ -45,12 +45,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            var dbWorkTimes = _repository.Find(filter, skipPagesCount, takeCount, out int totalCount);
+            var dbLeaveTimes = _repository.Find(filter, skipPagesCount, takeCount, out int totalCount);
 
-            return new WorkTimesResponse
+            return new LeaveTimesResponse
             {
                 TotalCount = totalCount,
-                Body = dbWorkTimes.Select(_mapper.Map).ToList(),
+                Body = dbLeaveTimes.Select(_mapper.Map).ToList(),
             };
         }
     }

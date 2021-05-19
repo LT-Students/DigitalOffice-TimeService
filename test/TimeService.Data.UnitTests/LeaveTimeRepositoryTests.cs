@@ -1,3 +1,4 @@
+using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -17,6 +18,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         private Guid _secondWorkerId;
         private DbLeaveTime _firstLeaveTime;
         private DbLeaveTime _secondLeaveTime;
+        private DbLeaveTime _thirdLeaveTime;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -48,6 +50,15 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 EndTime = new DateTime(2020, 7, 20),
                 UserId = _secondWorkerId
             };
+            _thirdLeaveTime = new DbLeaveTime
+            {
+                Id = Guid.NewGuid(),
+                LeaveType = (int)LeaveType.SickLeave,
+                Comment = "SickLeave",
+                StartTime = new DateTime(2020, 7, 5),
+                EndTime = new DateTime(2020, 7, 25),
+                UserId = _firstWorkerId
+            };
         }
 
         [TearDown]
@@ -75,18 +86,93 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         #region Find
 
         [Test]
-        public void ShouldReturnsLeaveTimes()
+        public void ShouldSuccessfulFindAll()
         {
             _dbContext.Add(_firstLeaveTime);
             _dbContext.Add(_secondLeaveTime);
+            _dbContext.Add(_thirdLeaveTime);
             _dbContext.SaveChanges();
 
-            var leaveTimesOfFirstWorker = _repository.Find(_firstWorkerId);
-            var leaveTimesOfSecondWorker = _repository.Find(_secondWorkerId);
+            int count;
 
-            Assert.That(leaveTimesOfFirstWorker, Is.EquivalentTo(new[] {_firstLeaveTime}));
-            Assert.That(leaveTimesOfSecondWorker, Is.EquivalentTo(new[] {_secondLeaveTime}));
-            Assert.That(_dbContext.LeaveTimes, Is.EquivalentTo(new[] {_firstLeaveTime, _secondLeaveTime}));
+            _repository.Find(
+                new FindLeaveTimesFilter { },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(3, count);
+        }
+
+        [Test]
+        public void ShouldSuccessfulFindNothing()
+        {
+            _dbContext.Add(_firstLeaveTime);
+            _dbContext.Add(_secondLeaveTime);
+            _dbContext.Add(_thirdLeaveTime);
+            _dbContext.SaveChanges();
+
+            int count;
+
+            _repository.Find(
+                new FindLeaveTimesFilter
+                {
+                    UserId = Guid.NewGuid()
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(0, count);
+
+            _repository.Find(
+                new FindLeaveTimesFilter
+                {
+                    StartTime = DateTime.Now.AddDays(10000),
+                    EndTime = DateTime.Now.AddDays(-10000)
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(0, count);
+        }
+
+        [Test]
+        public void ShouldReturnCorrectlyCount()
+        {
+            _dbContext.Add(_firstLeaveTime);
+            _dbContext.Add(_secondLeaveTime);
+            _dbContext.Add(_thirdLeaveTime);
+            _dbContext.SaveChanges();
+
+            int count;
+
+            _repository.Find(
+                new FindLeaveTimesFilter
+                {
+                    UserId = _firstWorkerId,
+                    StartTime = DateTime.Now.AddDays(-100000),
+                    EndTime = DateTime.Now.AddDays(100000)
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(2, count);
+
+            _repository.Find(
+                new FindLeaveTimesFilter
+                {
+                    UserId = _secondWorkerId,
+                    StartTime = DateTime.Now.AddDays(-100000),
+                    EndTime = DateTime.Now.AddDays(100000)
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(1, count);
         }
 
         #endregion

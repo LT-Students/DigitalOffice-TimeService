@@ -182,7 +182,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 int.MaxValue,
                 out count);
 
-            Assert.AreEqual(count, _workTimesOfWorker1.Count + _workTimesOfWorker2.Count);
+            Assert.AreEqual(_workTimesOfWorker1.Count + _workTimesOfWorker2.Count, count);
         }
 
         [Test]
@@ -209,7 +209,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 int.MaxValue,
                 out count);
 
-            Assert.AreEqual(count, 0);
+            Assert.AreEqual(0, count);
 
             _repository.Find(
                 new FindWorkTimesFilter
@@ -221,7 +221,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 int.MaxValue,
                 out count);
 
-            Assert.AreEqual(count, 0);
+            Assert.AreEqual(0, count);
         }
 
         [Test]
@@ -251,7 +251,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 int.MaxValue,
                 out count);
 
-            Assert.AreEqual(count, _workTimesOfWorker1.Count);
+            Assert.AreEqual(_workTimesOfWorker1.Count, count);
 
             _repository.Find(
                 new FindWorkTimesFilter
@@ -264,7 +264,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 int.MaxValue,
                 out count);
 
-            Assert.AreEqual(count, _workTimesOfWorker2.Count);
+            Assert.AreEqual(_workTimesOfWorker2.Count, count);
         }
 
         #endregion

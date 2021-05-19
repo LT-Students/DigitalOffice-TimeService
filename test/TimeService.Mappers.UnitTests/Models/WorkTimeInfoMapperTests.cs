@@ -52,13 +52,13 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests.Models
         }
 
         [Test]
-        public void ShouldThrowArgumentNullExceptionWhenCreateLeaveTimeRequestIsNull()
+        public void ShouldThrowArgumentNullExceptionWhenDbWorkTimeIsNull()
         {
             Assert.Throws<ArgumentNullException>(() => _mapper.Map(null));
         }
 
         [Test]
-        public void ShouldReturnDbLeaveTimeWhenMappingValidCreateLeaveTimeRequest()
+        public void ShouldReturnWorkTimeInfoWhenMappingValidDbWorkTime()
         {
             var result = _mapper.Map(_dbWorkTime);
 

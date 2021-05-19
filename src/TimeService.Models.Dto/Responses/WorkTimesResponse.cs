@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using LT.DigitalOffice.TimeService.Models.Dto.Models;
+using System.Collections.Generic;
 
-namespace LT.DigitalOffice.TimeService.Models.Dto.Models
+namespace LT.DigitalOffice.TimeService.Models.Dto.Responses
 {
     public class WorkTimesResponse
     {
