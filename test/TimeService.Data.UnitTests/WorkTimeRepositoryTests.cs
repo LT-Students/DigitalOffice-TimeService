@@ -130,16 +130,29 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         [Test]
         public void ShouldGetExistingWorkTime()
         {
+            foreach (var wt in _workTimesOfWorker1)
+            {
+                _dbContext.Add(wt);
+            }
+
+            _dbContext.SaveChanges();
+
             var id = _workTimesOfWorker1.First().Id;
             var dbWorkTime = _repository.Get(id);
 
-            Assert.AreEqual(id, dbWorkTime);
-            Assert.NotNull(dbWorkTime);
+            Assert.AreEqual(dbWorkTime, _workTimesOfWorker1.First());
         }
 
         [Test]
         public void ShouldThrowNotFoundExceptionWhenWorkTimeIsNotExist()
         {
+            foreach (var wt in _workTimesOfWorker1)
+            {
+                _dbContext.Add(wt);
+            }
+
+            _dbContext.SaveChanges();
+
             Assert.Throws<NotFoundException>(() => _repository.Get(Guid.NewGuid()));
         }
 
