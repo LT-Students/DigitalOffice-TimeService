@@ -58,13 +58,16 @@ namespace LT.DigitalOffice.TimeService.Validation
                     $"You cannot indicate that you worked more than {WorkingLimit.Hours} hours and {WorkingLimit.Minutes} minutes.")
                 .Must(wt =>
                 {
-                    var oldWorkTimes = repository.GetUserWorkTimes(
-                        wt.UserId,
-                        new WorkTimeFilter
+                    var oldWorkTimes = repository.Find(
+                        new FindWorkTimesFilter
                         {
+                            UserId = wt.UserId,
                             StartTime = wt.StartTime.AddMinutes(-WorkingLimit.TotalMinutes),
                             EndTime = wt.EndTime
-                        });
+                        },
+                        0,
+                        int.MaxValue,
+                        out _);
 
                     return oldWorkTimes.All(oldWorkTime =>
                         wt.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= wt.StartTime);

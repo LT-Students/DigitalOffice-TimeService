@@ -20,10 +20,18 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider = provider;
         }
 
-        public DbWorkTime GetWorkTime(Guid id)
+        public Guid Create(DbWorkTime dbWorkTime)
+        {
+            _provider.WorkTimes.Add(dbWorkTime);
+            _provider.Save();
+
+            return dbWorkTime.Id;
+        }
+
+        public DbWorkTime Get(Guid id)
         {
             var dbWorkTime = _provider.WorkTimes.FirstOrDefault(x => x.Id == id);
-            
+
             if (dbWorkTime == null)
             {
                 throw new NotFoundException($"WorkTime with id {id} was not found.");
@@ -32,36 +40,33 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbWorkTime;
         }
 
-        public Guid CreateWorkTime(DbWorkTime dbWorkTime)
+        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipCount, int takeCount, out int totalCount)
         {
-            _provider.WorkTimes.Add(dbWorkTime);
-            _provider.Save();
-
-            return dbWorkTime.Id;
-        }
-
-        public ICollection<DbWorkTime> GetUserWorkTimes(Guid userId, WorkTimeFilter filter)
-        {
-            var predicate = PredicateBuilder.New<DbWorkTime>();
-
-            predicate.Start(wt => wt.UserId == userId);
-
             if (filter == null)
             {
-                return _provider.WorkTimes.Where(predicate).ToList();
+                throw new ArgumentNullException(nameof(filter));
             }
 
-            if (filter.StartTime != null)
+            var dbWorkTimes = _provider.WorkTimes.AsQueryable();
+
+            if (filter.UserId.HasValue)
             {
-                predicate.And(wt => wt.StartTime >= filter.StartTime);
+                dbWorkTimes = dbWorkTimes.Where(x => x.UserId == filter.UserId);
             }
 
-            if (filter.EndTime != null)
+            if (filter.StartTime.HasValue)
             {
-                predicate.And(wt => wt.EndTime <= filter.EndTime);
+                dbWorkTimes = dbWorkTimes.Where(x => x.StartTime >= filter.StartTime);
             }
 
-            return _provider.WorkTimes.Where(predicate).ToList();
+            if (filter.EndTime.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.EndTime <= filter.EndTime);
+            }
+
+            totalCount = dbWorkTimes.Count();
+
+            return dbWorkTimes.Skip(skipCount).Take(takeCount).ToList();
         }
 
         public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)

@@ -24,21 +24,18 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         private Mock<IWorkTimeRepository> _repositoryMock;
 
         private EditWorkTimeModel _request;
+        private int _totalCount;
 
         Func<string, Operation> GetOperationByPath =>
             (path) => _request.JsonPatchDocument.Operations.Find(x => x.path == path);
 
-        [OneTimeSetUp]
-        public void OneTimeSetUp()
+        [SetUp]
+        public void SetUp()
         {
             _repositoryMock = new Mock<IWorkTimeRepository>();
 
             _validator = new EditWorkTimeRequestValidator(_repositoryMock.Object);
-        }
 
-        [SetUp]
-        public void SetUp()
-        {
             _request = new EditWorkTimeModel
             {
                 JsonPatchDocument = new JsonPatchDocument<EditWorkTimeRequest>(new List<Operation<EditWorkTimeRequest>>
@@ -181,7 +178,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(1)
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(_request.UserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime> { time });
 
             _validator.TestValidate(_request).ShouldHaveAnyValidationError();
@@ -197,7 +194,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(1)
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(_request.UserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime> { time });
 
             _validator.TestValidate(_request).ShouldHaveAnyValidationError();
@@ -213,7 +210,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddMinutes(-1)
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(_request.UserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime> { time });
 
             _validator.TestValidate(_request).ShouldHaveAnyValidationError();

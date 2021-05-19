@@ -86,7 +86,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Returns(_items);
 
             _repositoryMock
-                .Setup(x => x.GetWorkTime(_editedDbWorkTime.Id))
+                .Setup(x => x.Get(_editedDbWorkTime.Id))
                 .Returns(_editedDbWorkTime);
 
             _command = new EditWorkTimeCommand(_validatorMock.Object, _repositoryMock.Object, _mapperMock.Object, _accessValidatorMock.Object, _httpContextAccessorMock.Object);

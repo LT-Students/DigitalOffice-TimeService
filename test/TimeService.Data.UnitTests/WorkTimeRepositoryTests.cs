@@ -112,20 +112,43 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             }
         }
 
-        #region CreateWorkTimeTests
+        #region Create
+
         [Test]
         public void SuccessfulAddNewWorkTimeInDb()
         {
-            var guidOfNewWorkTime = _repository.CreateWorkTime(_workTimesOfWorker1.First());
+            var guidOfNewWorkTime = _repository.Create(_workTimesOfWorker1.First());
 
             Assert.AreEqual(_workTimesOfWorker1.First().Id, guidOfNewWorkTime);
             Assert.NotNull(_dbContext.WorkTimes.Find(_workTimesOfWorker1.First().Id));
         }
+
         #endregion
 
-        #region GetUserWorkTimesTests
+        #region Get
+
         [Test]
-        public void CorrectlyReturnsWorkTime()
+        public void ShouldGetExistingWorkTime()
+        {
+            var id = _workTimesOfWorker1.First().Id;
+            var dbWorkTime = _repository.Get(id);
+
+            Assert.AreEqual(id, dbWorkTime);
+            Assert.NotNull(dbWorkTime);
+        }
+
+        [Test]
+        public void ShouldThrowNotFoundExceptionWhenWorkTimeIsNotExist()
+        {
+            Assert.Throws<NotFoundException>(() => _repository.Get(Guid.NewGuid()));
+        }
+
+        #endregion
+
+        #region Find
+
+        [Test]
+        public void ShouldSuccessfulFindAll()
         {
             foreach (var wt in _workTimesOfWorker1)
             {
@@ -138,45 +161,129 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             }
             _dbContext.SaveChanges();
 
-            var filterForGetNothing = new WorkTimeFilter
-            {
-                StartTime = DateTime.Now.AddDays(-10),
-                EndTime = DateTime.Now.AddDays(-5)
-            };
+            int count;
 
-            var filterForGetEverything = new WorkTimeFilter
-            {
-                StartTime = DateTime.Now.AddDays(-10),
-                EndTime = DateTime.Now.AddDays(10)
-            };
+            _repository.Find(
+                new FindWorkTimesFilter{},
+                0,
+                int.MaxValue,
+                out count);
 
-            var filerForGetOnlyWorkTime2 = new WorkTimeFilter
-            {
-                StartTime = DateTime.Now.AddDays(-0.95),
-                EndTime = DateTime.Now.AddDays(-0.6)
-            };
-
-            Assert.AreEqual(
-                _repository.GetUserWorkTimes(_worker1, filterForGetEverything).Count,
-                _workTimesOfWorker1.Count);
-
-            Assert.AreEqual(
-                _repository.GetUserWorkTimes(_worker2, filterForGetEverything).Count,
-                _workTimesOfWorker2.Count);
-
-            Assert.AreEqual(_repository.GetUserWorkTimes(_worker1, filterForGetNothing).Count, 0);
-
-            Assert.AreEqual(_repository.GetUserWorkTimes(_worker2, filterForGetNothing).Count, 0);
-
-            Assert.AreEqual(_repository.GetUserWorkTimes(_worker1, filerForGetOnlyWorkTime2).Count, 0);
-
-            Assert.AreEqual(
-                _repository.GetUserWorkTimes(_worker2, filerForGetOnlyWorkTime2).Count,
-                _workTimesOfWorker2.Count);
+            Assert.AreEqual(count, _workTimesOfWorker1.Count + _workTimesOfWorker2.Count);
         }
+
+        [Test]
+        public void ShouldSuccessfulFindNothing()
+        {
+            foreach (var wt in _workTimesOfWorker1)
+            {
+                _dbContext.Add(wt);
+            }
+
+            foreach (var wt in _workTimesOfWorker2)
+            {
+                _dbContext.Add(wt);
+            }
+            _dbContext.SaveChanges();
+
+            int count;
+
+            _repository.Find(
+                new FindWorkTimesFilter {
+                    UserId = Guid.NewGuid()
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(count, 0);
+
+            _repository.Find(
+                new FindWorkTimesFilter
+                {
+                    StartTime = DateTime.Now.AddDays(10000),
+                    EndTime = DateTime.Now.AddDays(-10000)
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(count, 0);
+        }
+
+        [Test]
+        public void SkipAndCountShouldWorkCorrectly()
+        {
+            foreach (var wt in _workTimesOfWorker1)
+            {
+                _dbContext.Add(wt);
+            }
+
+            foreach (var wt in _workTimesOfWorker2)
+            {
+                _dbContext.Add(wt);
+            }
+            _dbContext.SaveChanges();
+
+            for(var i = 0; i <= _dbContext.WorkTimes.Count(); i++)
+            {
+                var workTimes = _repository.Find(
+                    new FindWorkTimesFilter { },
+                    i,
+                    int.MaxValue,
+                    out _);
+
+                Assert.AreEqual(workTimes.Count, _dbContext.WorkTimes.Count() - i);
+            }
+        }
+
+        [Test]
+        public void ShouldReturnCorrectlyCount()
+        {
+            foreach (var wt in _workTimesOfWorker1)
+            {
+                _dbContext.Add(wt);
+            }
+
+            foreach (var wt in _workTimesOfWorker2)
+            {
+                _dbContext.Add(wt);
+            }
+            _dbContext.SaveChanges();
+
+            int count;
+
+            _repository.Find(
+                new FindWorkTimesFilter
+                {
+                    UserId = _worker1,
+                    StartTime = DateTime.Now.AddDays(-100000),
+                    EndTime = DateTime.Now.AddDays(100000)
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(count, _workTimesOfWorker1.Count);
+
+            _repository.Find(
+                new FindWorkTimesFilter
+                {
+                    UserId = _worker2,
+                    StartTime = DateTime.Now.AddDays(-100000),
+                    EndTime = DateTime.Now.AddDays(100000)
+                },
+                0,
+                int.MaxValue,
+                out count);
+
+            Assert.AreEqual(count, _workTimesOfWorker2.Count);
+        }
+
         #endregion
 
-        #region EditWorkTimeTests
+        #region Edit
+
         [Test]
         public void ShouldChangeWorkTimeWhenDataIsCorrect()
         {
@@ -201,6 +308,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
 
             SerializerAssert.AreEqual(_time, result);
         }
+
         #endregion
     }
 }

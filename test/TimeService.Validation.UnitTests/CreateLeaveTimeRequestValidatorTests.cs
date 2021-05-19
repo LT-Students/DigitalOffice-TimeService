@@ -44,14 +44,14 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 LeaveType = (int)_request.LeaveType
             };
 
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(_request.UserId))
+            _repositoryMock.Setup(x => x.Find(_request.UserId))
                 .Returns(new List<DbLeaveTime> { _expectedDbLeaveTime });
         }
 
         [Test]
         public void ShouldNotHaveAnyValidationErrorsWhenRequestIsValid()
         {
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
             _validator.TestValidate(_request).ShouldNotHaveAnyValidationErrors();
@@ -62,7 +62,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenWorkerUserIdIsEmpty()
         {
             var userId = Guid.Empty;
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.UserId, userId);
@@ -74,7 +74,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenStartTimeIsEqualToDefaultDateTime()
         {
             var startTime = default(DateTime);
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
@@ -86,7 +86,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenEndTimeIsEqualToDefaultDateTime()
         {
             var endTime = default(DateTime);
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.EndTime, endTime);
@@ -98,7 +98,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenCommentIsEmpty()
         {
             var comment = string.Empty;
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.Comment, comment);
@@ -110,7 +110,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenLeaveTypeIsNotInEnum()
         {
             const LeaveType leaveType = (LeaveType) 4;
-            _repositoryMock.Setup(x => x.GetUserLeaveTimes(It.IsAny<Guid>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<Guid>()))
                 .Returns(new List<DbLeaveTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.LeaveType, leaveType);

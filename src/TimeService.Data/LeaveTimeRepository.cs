@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider = provider;
         }
 
-        public Guid CreateLeaveTime(DbLeaveTime dbLeaveTime)
+        public Guid Add(DbLeaveTime dbLeaveTime)
         {
             _provider.LeaveTimes.Add(dbLeaveTime);
             _provider.Save();
@@ -24,7 +24,7 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbLeaveTime.Id;
         }
 
-        public ICollection<DbLeaveTime> GetUserLeaveTimes(Guid userId)
+        public ICollection<DbLeaveTime> Find(Guid userId)
         {
             return _provider.LeaveTimes
                 .Where(lt => lt.UserId == userId)

@@ -36,7 +36,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             var createdBy = _httpContextAccessor.HttpContext.GetUserId();
             var dbWorkTime = _mapper.Map(request, createdBy);
 
-            return _repository.CreateWorkTime(dbWorkTime);
+            return _repository.Create(dbWorkTime);
         }
     }
 }

@@ -81,7 +81,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Returns(false);
 
             Assert.Throws<ValidationException>(() => _command.Execute(_request));
-            _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Never);
+            _repositoryMock.Verify(repository => repository.Create(It.IsAny<DbWorkTime>()), Times.Never);
         }
 
         [Test]
@@ -96,7 +96,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Returns(_createdWorkTime);
 
             _repositoryMock
-                .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
+                .Setup(x => x.Create(It.IsAny<DbWorkTime>()))
                 .Throws(new Exception());
 
             Assert.Throws<Exception>(() => _command.Execute(_request));
@@ -114,11 +114,11 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Returns(_createdWorkTime);
 
             _repositoryMock
-                .Setup(x => x.CreateWorkTime(It.IsAny<DbWorkTime>()))
+                .Setup(x => x.Create(It.IsAny<DbWorkTime>()))
                 .Returns(_createdWorkTime.Id);
 
             Assert.AreEqual(_createdWorkTime.Id, _command.Execute(_request));
-            _repositoryMock.Verify(repository => repository.CreateWorkTime(It.IsAny<DbWorkTime>()), Times.Once);
+            _repositoryMock.Verify(repository => repository.Create(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }
 }

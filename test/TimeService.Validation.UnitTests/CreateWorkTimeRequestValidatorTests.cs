@@ -17,6 +17,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         private ICreateWorkTimeRequestValidator _validator;
 
         private CreateWorkTimeRequest _request;
+        private int _totalCount;
         private DbWorkTime _expectedDbWorkTime;
 
         [SetUp]
@@ -46,14 +47,14 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 Description = _request.Description
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(_request.UserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime> { _expectedDbWorkTime });
         }
 
         [Test]
         public void ShouldNotHaveAnyValidationErrorsWhenRequestIsValid()
         {
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime>());
 
             _validator.TestValidate(_request).ShouldNotHaveAnyValidationErrors();
@@ -64,7 +65,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenWorkerUserIdIsEmpty()
         {
             _request.UserId = Guid.Empty;
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime>());
 
             _validator.TestValidate(_request).ShouldHaveValidationErrorFor(r => r.UserId);
@@ -76,7 +77,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenStartTimeTooEarly()
         {
             var startTime = DateTime.Now.AddDays(CreateWorkTimeRequestValidator.ToDay).AddHours(1);
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
@@ -86,7 +87,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenStartTimeTooLate()
         {
             var startTime = DateTime.Now.AddDays(CreateWorkTimeRequestValidator.FromDay).AddHours(-1);
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.StartTime, startTime);
@@ -98,7 +99,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenTitleIsEmpty()
         {
             _request.Title = string.Empty;
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime>());
 
             _validator.TestValidate(_request).ShouldHaveValidationErrorFor(r => r.Title);
@@ -110,7 +111,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         public void ShouldHaveValidationErrorWhenProjectIdIsEmpty()
         {
             _request.ProjectId = Guid.Empty;
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(It.IsAny<Guid>(), It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime>());
 
             _validator.TestValidate(_request).ShouldHaveValidationErrorFor(r => r.ProjectId);

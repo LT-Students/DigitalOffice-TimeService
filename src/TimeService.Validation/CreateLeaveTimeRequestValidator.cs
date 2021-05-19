@@ -30,7 +30,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time.")
                 .Must(lt =>
                 {
-                    var workTimes = repository.GetUserLeaveTimes(lt.UserId);
+                    var workTimes = repository.Find(lt.UserId);
 
                     return workTimes.All(oldWorkTime =>
                         lt.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= lt.StartTime);

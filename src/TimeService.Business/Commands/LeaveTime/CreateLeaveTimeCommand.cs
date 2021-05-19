@@ -36,7 +36,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             var createdBy = _httpContextAccessor.HttpContext.GetUserId();
             var dbLeaveTime = _mapper.Map(request, createdBy);
 
-            return _repository.CreateLeaveTime(dbLeaveTime);
+            return _repository.Add(dbLeaveTime);
         }
     }
 }

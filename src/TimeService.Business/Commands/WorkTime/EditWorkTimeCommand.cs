@@ -50,7 +50,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
             _validator.ValidateAndThrowCustom(editModel);
 
-            var oldDbWorkTime = _repository.GetWorkTime(workTimeId);
+            var oldDbWorkTime = _repository.Get(workTimeId);
             var isAuthor = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.CreatedBy;
             if (!_accessValidator.IsAdmin() && !isAuthor)
             {

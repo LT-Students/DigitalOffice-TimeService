@@ -59,32 +59,36 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
             }
         }
 
-        #region CreateLeaveTimeTests
+        #region Create
+
         [Test]
         public void ShouldAddNewLeaveTimeInDb()
         {
-            var guidOfNewLeaveTime = _repository.CreateLeaveTime(_firstLeaveTime);
+            var guidOfNewLeaveTime = _repository.Add(_firstLeaveTime);
 
             Assert.AreEqual(_firstLeaveTime.Id, guidOfNewLeaveTime);
             Assert.That(_dbContext.LeaveTimes.Find(_firstLeaveTime.Id), Is.EqualTo(_firstLeaveTime));
         }
+
         #endregion
 
-        #region GetUserLeaveTimesTests
+        #region Find
+
         [Test]
-        public void ShouldReturnsLeaveTime()
+        public void ShouldReturnsLeaveTimes()
         {
             _dbContext.Add(_firstLeaveTime);
             _dbContext.Add(_secondLeaveTime);
             _dbContext.SaveChanges();
 
-            var leaveTimesOfFirstWorker = _repository.GetUserLeaveTimes(_firstWorkerId);
-            var leaveTimesOfSecondWorker = _repository.GetUserLeaveTimes(_secondWorkerId);
+            var leaveTimesOfFirstWorker = _repository.Find(_firstWorkerId);
+            var leaveTimesOfSecondWorker = _repository.Find(_secondWorkerId);
 
             Assert.That(leaveTimesOfFirstWorker, Is.EquivalentTo(new[] {_firstLeaveTime}));
             Assert.That(leaveTimesOfSecondWorker, Is.EquivalentTo(new[] {_secondLeaveTime}));
             Assert.That(_dbContext.LeaveTimes, Is.EquivalentTo(new[] {_firstLeaveTime, _secondLeaveTime}));
         }
+
         #endregion
     }
 }
