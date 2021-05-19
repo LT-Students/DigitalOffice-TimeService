@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public void Configure(EntityTypeBuilder<DbLeaveTime> builder)
         {
             builder.
-                ToTable(DbWorkTime.TableName);
+                ToTable(DbLeaveTime.TableName);
 
             builder.
                 HasKey(p => p.Id);
