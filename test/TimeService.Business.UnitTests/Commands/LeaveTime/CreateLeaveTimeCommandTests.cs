@@ -12,6 +12,9 @@ using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime;
 using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.Kernel.Enums;
+using LT.DigitalOffice.UnitTestKernel;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
 {
@@ -117,7 +120,13 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
                 .Setup(x => x.Add(It.IsAny<DbLeaveTime>()))
                 .Returns(_createdLeaveTime.Id);
 
-            Assert.AreEqual(_createdLeaveTime.Id, _command.Execute(_request));
+            var expected = new OperationResultResponse<Guid>
+            {
+                Body = _createdLeaveTime.Id,
+                Status = OperationResultStatusType.FullSuccess
+            };
+
+            SerializerAssert.AreEqual(expected, _command.Execute(_request));
             _repositoryMock.Verify(repository => repository.Add(It.IsAny<DbLeaveTime>()), Times.Once);
         }
     }

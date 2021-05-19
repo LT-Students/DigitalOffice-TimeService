@@ -1,5 +1,7 @@
-﻿using LT.DigitalOffice.Kernel.Extensions;
+﻿using LT.DigitalOffice.Kernel.Enums;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
@@ -29,14 +31,18 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public Guid Execute(CreateLeaveTimeRequest request)
+        public OperationResultResponse<Guid> Execute(CreateLeaveTimeRequest request)
         {
             _validator.ValidateAndThrowCustom(request);
 
             var createdBy = _httpContextAccessor.HttpContext.GetUserId();
             var dbLeaveTime = _mapper.Map(request, createdBy);
 
-            return _repository.Add(dbLeaveTime);
+            return new OperationResultResponse<Guid>
+            {
+                Body = _repository.Add(dbLeaveTime),
+                Status = OperationResultStatusType.FullSuccess
+            };
         }
     }
 }

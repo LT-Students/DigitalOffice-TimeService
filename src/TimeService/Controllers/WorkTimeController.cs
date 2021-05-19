@@ -14,7 +14,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
     public class WorkTimeController : ControllerBase
     {
         [HttpPost("add")]
-        public Guid Add(
+        public OperationResultResponse<Guid> Add(
             [FromBody] CreateWorkTimeRequest workTime,
             [FromServices] ICreateWorkTimeCommand command)
         {

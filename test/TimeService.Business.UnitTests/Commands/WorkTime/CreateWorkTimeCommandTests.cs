@@ -1,4 +1,6 @@
 using FluentValidation;
+using LT.DigitalOffice.Kernel.Enums;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -6,6 +8,7 @@ using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using NUnit.Framework;
@@ -117,7 +120,13 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
                 .Setup(x => x.Create(It.IsAny<DbWorkTime>()))
                 .Returns(_createdWorkTime.Id);
 
-            Assert.AreEqual(_createdWorkTime.Id, _command.Execute(_request));
+            var expected = new OperationResultResponse<Guid>
+            {
+                Body = _createdWorkTime.Id,
+                Status = OperationResultStatusType.FullSuccess
+            };
+
+            SerializerAssert.AreEqual(expected, _command.Execute(_request));
             _repositoryMock.Verify(repository => repository.Create(It.IsAny<DbWorkTime>()), Times.Once);
         }
     }

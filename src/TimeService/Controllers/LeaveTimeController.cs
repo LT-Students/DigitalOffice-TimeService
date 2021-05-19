@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
+﻿using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
@@ -12,7 +13,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
     public class LeaveTimeController : ControllerBase
     {
         [HttpPost("add")]
-        public Guid Add(
+        public OperationResultResponse<Guid> Add(
             [FromBody] CreateLeaveTimeRequest leaveTime,
             [FromServices] ICreateLeaveTimeCommand command)
         {
