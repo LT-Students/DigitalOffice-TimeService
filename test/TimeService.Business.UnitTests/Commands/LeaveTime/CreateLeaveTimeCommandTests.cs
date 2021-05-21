@@ -15,6 +15,8 @@ using System.Collections.Generic;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.UnitTestKernel;
+using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Exceptions.Models;
 
 namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
 {
@@ -23,6 +25,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         private Mock<ICreateLeaveTimeRequestValidator> _validatorMock;
         private Mock<IDbLeaveTimeMapper> _mapperMock;
         private Mock<ILeaveTimeRepository> _repositoryMock;
+        private Mock<IAccessValidator> _accessValidatorMock;
         private Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private ICreateLeaveTimeCommand _command;
 
@@ -35,23 +38,13 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         {
             _createdBy = Guid.NewGuid();
 
-            var items = new Dictionary<object, object>
-            {
-                { "UserId", _createdBy }
-            };
-
-            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-            _httpContextAccessorMock
-                .Setup(x => x.HttpContext.Items)
-                .Returns(items);
-
             _request = new CreateLeaveTimeRequest()
             {
                 LeaveType = LeaveType.SickLeave,
                 Comment = "I have a sore throat",
                 StartTime = new DateTime(2020, 7, 24),
                 EndTime = new DateTime(2020, 7, 27),
-                UserId = Guid.NewGuid()
+                UserId = _createdBy
             };
 
             _createdLeaveTime = new DbLeaveTime()
@@ -62,7 +55,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
-                UserId = _request.UserId
+                UserId = _createdBy
             };
         }
 
@@ -72,8 +65,44 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
             _validatorMock = new Mock<ICreateLeaveTimeRequestValidator>();
             _mapperMock = new Mock<IDbLeaveTimeMapper>();
             _repositoryMock = new Mock<ILeaveTimeRepository>();
+            _accessValidatorMock = new Mock<IAccessValidator>();
+            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
 
-            _command = new CreateLeaveTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object, _httpContextAccessorMock.Object);
+            var items = new Dictionary<object, object>
+            {
+                { "UserId", _createdBy }
+            };
+
+            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
+            _httpContextAccessorMock
+                .Setup(x => x.HttpContext.Items)
+                .Returns(items);
+
+            _accessValidatorMock
+                .Setup(x => x.IsAdmin(null))
+                .Returns(false);
+
+            _command = new CreateLeaveTimeCommand(_validatorMock.Object, _mapperMock.Object, _repositoryMock.Object, _accessValidatorMock.Object, _httpContextAccessorMock.Object);
+        }
+
+        [Test]
+        public void ShouldThrowExceptionWhenUserCreateLeaveTimeToOtherUserAndHisIsNotAdmin()
+        {
+            _accessValidatorMock
+                .Setup(x => x.IsAdmin(null))
+                .Returns(false);
+
+            var items = new Dictionary<object, object>
+            {
+                { "UserId", Guid.NewGuid() }
+            };
+
+            _httpContextAccessorMock
+                .Setup(x => x.HttpContext.Items)
+                .Returns(items);
+
+            Assert.Throws<ForbiddenException>(() => _command.Execute(_request));
+            _repositoryMock.Verify(repository => repository.Add(It.IsAny<DbLeaveTime>()), Times.Never);
         }
 
         [Test]

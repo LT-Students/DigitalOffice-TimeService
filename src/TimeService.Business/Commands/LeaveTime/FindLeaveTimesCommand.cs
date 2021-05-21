@@ -38,9 +38,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
                 throw new ArgumentNullException(nameof(filter));
             }
 
-            var userId = _httpContextAccessor.HttpContext.GetUserId();
+            var isActhor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-            if (filter.UserId.HasValue && filter.UserId != userId && !_accessValidator.IsAdmin())
+            if (!isActhor && !_accessValidator.IsAdmin())
             {
                 throw new ForbiddenException("Not enough rights.");
             }

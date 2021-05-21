@@ -25,13 +25,14 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         private IFindLeaveTimesCommand _command;
 
         private Dictionary<object, object> _items;
+        private Guid _authorId = Guid.NewGuid();
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _items = new Dictionary<object, object>
             {
-                { "UserId", Guid.NewGuid() }
+                { "UserId", _authorId }
             };
 
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
@@ -51,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         }
 
         [Test]
-        public void ShouldThrowExceptionWhenUserNotHasRights()
+        public void ShouldThrowExceptionWhenUserFindOtherUsersAndHisIsNotAdmin()
         {
             var filter = new FindLeaveTimesFilter { UserId = Guid.NewGuid() };
 
@@ -65,10 +66,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         [Test]
         public void ShouldThrowExceptionWhenRepositoryThrowsException()
         {
-            object userId;
-            _items.TryGetValue("UserId", out userId);
-
-            var filter = new FindLeaveTimesFilter { UserId = (Guid)userId };
+            var filter = new FindLeaveTimesFilter { UserId = _authorId };
 
             int totalCount;
 
@@ -82,10 +80,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         [Test]
         public void ShouldThrowExceptionWhenMapperThrowsException()
         {
-            object userId;
-            _items.TryGetValue("UserId", out userId);
-
-            var filter = new FindLeaveTimesFilter { UserId = (Guid)userId };
+            var filter = new FindLeaveTimesFilter { UserId = _authorId };
 
             var dbLeaveTime = new DbLeaveTime
             {
@@ -108,10 +103,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         [Test]
         public void ShouldFindLeaveTimesWhenRequestIsValid()
         {
-            object userId;
-            _items.TryGetValue("UserId", out userId);
-
-            var filter = new FindLeaveTimesFilter { UserId = (Guid)userId };
+            var filter = new FindLeaveTimesFilter { UserId = _authorId };
 
             var dbLeaveTime = new DbLeaveTime
             {

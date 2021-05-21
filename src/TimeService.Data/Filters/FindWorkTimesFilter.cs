@@ -5,7 +5,7 @@ namespace LT.DigitalOffice.TimeService.Data.Filters
 {
     public class FindWorkTimesFilter
     {
-        [FromQuery(Name = "userId")]
+        [FromQuery(Name = "userid")]
         public Guid? UserId { get; set; }
 
         [FromQuery(Name = "starttime")]

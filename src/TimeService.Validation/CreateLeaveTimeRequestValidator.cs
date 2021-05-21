@@ -31,10 +31,10 @@ namespace LT.DigitalOffice.TimeService.Validation
                 .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time.")
                 .Must(lt =>
                 {
-                    var workTimes = repository.Find(new FindLeaveTimesFilter { UserId = lt.UserId }, 0, int.MaxValue, out _);
+                    var leaveTimes = repository.Find(new FindLeaveTimesFilter { UserId = lt.UserId }, 0, int.MaxValue, out _);
 
-                    return workTimes.All(oldWorkTime =>
-                        lt.EndTime <= oldWorkTime.StartTime || oldWorkTime.EndTime <= lt.StartTime);
+                    return leaveTimes.All(oldLeaveTime =>
+                        lt.EndTime <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= lt.StartTime);
                 }).WithMessage("New LeaveTime should not overlap with old ones.");
         }
     }

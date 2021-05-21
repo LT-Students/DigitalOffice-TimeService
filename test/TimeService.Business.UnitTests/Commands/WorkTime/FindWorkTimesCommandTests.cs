@@ -51,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
         }
 
         [Test]
-        public void ShouldThrowExceptionWhenUserNotHasRights()
+        public void ShouldThrowExceptionWhenUserFindOtherUsersAndHisIsNotAdmin()
         {
             var filter = new FindWorkTimesFilter { UserId = Guid.NewGuid() };
 
