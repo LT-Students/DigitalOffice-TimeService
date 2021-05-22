@@ -1,5 +1,8 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
+using Microsoft.AspNetCore.JsonPatch;
+using System;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
 {
@@ -11,10 +14,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
     public interface IEditWorkTimeCommand
     {
         /// <summary>
-        /// Changes a work time. Returns true if the operation is successful.
+        /// Calls methods to edit the existing work time. Returns true if work time edited.
         /// </summary>
-        /// <param name="request">Work time data.</param>
+        /// <param name="workTimeId">Work time id to update the work time.</param>
+        /// <param name="request">Data to update the work time.</param>
         /// <returns>True if the operation is successful.</returns>
-        bool Execute(EditWorkTimeRequest request);
+        OperationResultResponse<bool> Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request);
     }
 }

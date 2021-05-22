@@ -1,9 +1,9 @@
-﻿using LinqKit;
-using LT.DigitalOffice.Kernel.Exceptions.Models;
+﻿using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider = provider;
         }
 
-        public Guid CreateWorkTime(DbWorkTime dbWorkTime)
+        public Guid Create(DbWorkTime dbWorkTime)
         {
             _provider.WorkTimes.Add(dbWorkTime);
             _provider.Save();
@@ -27,47 +27,50 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbWorkTime.Id;
         }
 
-        public ICollection<DbWorkTime> GetUserWorkTimes(Guid userId, WorkTimeFilter filter)
+        public DbWorkTime Get(Guid id)
         {
-            var predicate = PredicateBuilder.New<DbWorkTime>();
+            var dbWorkTime = _provider.WorkTimes.FirstOrDefault(x => x.Id == id);
 
-            predicate.Start(wt => wt.UserId == userId);
-
-            if (filter == null)
+            if (dbWorkTime == null)
             {
-                return _provider.WorkTimes.Where(predicate).ToList();
+                throw new NotFoundException($"WorkTime with id {id} was not found.");
             }
 
-            if (filter.StartTime != null)
-            {
-                predicate.And(wt => wt.StartTime >= filter.StartTime);
-            }
-
-            if (filter.EndTime != null)
-            {
-                predicate.And(wt => wt.EndTime <= filter.EndTime);
-            }
-
-            return _provider.WorkTimes.Where(predicate).ToList();
+            return dbWorkTime;
         }
 
-        public bool EditWorkTime(DbWorkTime dbWorkTime)
+        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount)
         {
-            var dbWorkTimeToEdit = _provider.WorkTimes.Find(dbWorkTime.Id);
-
-            if (dbWorkTimeToEdit == null)
+            if (filter == null)
             {
-                throw new NotFoundException($"Work time with Id {dbWorkTime.Id} is not exist.");
+                throw new ArgumentNullException(nameof(filter));
             }
 
-            dbWorkTimeToEdit.UserId = dbWorkTime.UserId;
-            dbWorkTimeToEdit.StartTime = dbWorkTime.StartTime;
-            dbWorkTimeToEdit.EndTime = dbWorkTime.EndTime;
-            dbWorkTimeToEdit.Title = dbWorkTime.Title;
-            dbWorkTimeToEdit.ProjectId = dbWorkTime.ProjectId;
-            dbWorkTimeToEdit.Description = dbWorkTime.Description;
+            var dbWorkTimes = _provider.WorkTimes.AsQueryable();
 
-            _provider.WorkTimes.Update(dbWorkTimeToEdit);
+            if (filter.UserId.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.UserId == filter.UserId);
+            }
+
+            if (filter.StartTime.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.StartTime >= filter.StartTime);
+            }
+
+            if (filter.EndTime.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.EndTime <= filter.EndTime);
+            }
+
+            totalCount = dbWorkTimes.Count();
+
+            return dbWorkTimes.Skip(skipPagesCount * takeCount).Take(takeCount).ToList();
+        }
+
+        public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
+        {
+            jsonPatchDocument.ApplyTo(dbWorkTime);
             _provider.Save();
 
             return true;

@@ -4,19 +4,29 @@ using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
+using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.AspNetCore.JsonPatch.Operations;
 using Moq;
+using Newtonsoft.Json.Serialization;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     class EditWorkTimeRequestValidatorTests
     {
-        private IEditWorkTimeRequestValidator _validator;
+        private IValidator<EditWorkTimeModel> _validator;
 
         private Mock<IWorkTimeRepository> _repositoryMock;
+
+        private EditWorkTimeModel _request;
+        private int _totalCount;
+
+        Func<string, Operation> GetOperationByPath =>
+            (path) => _request.JsonPatchDocument.Operations.Find(x => x.path == path);
 
         [SetUp]
         public void SetUp()
@@ -24,145 +34,187 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             _repositoryMock = new Mock<IWorkTimeRepository>();
 
             _validator = new EditWorkTimeRequestValidator(_repositoryMock.Object);
+
+            _request = new EditWorkTimeModel
+            {
+                JsonPatchDocument = new JsonPatchDocument<EditWorkTimeRequest>(new List<Operation<EditWorkTimeRequest>>
+                {
+                    new Operation<EditWorkTimeRequest>(
+                        "replace",
+                        $"/{nameof(EditWorkTimeRequest.Title)}",
+                        "",
+                        "new title"),
+
+                    new Operation<EditWorkTimeRequest>(
+                        "replace",
+                        $"/{nameof(EditWorkTimeRequest.Description)}",
+                        "",
+                        "new description"),
+
+                    new Operation<EditWorkTimeRequest>(
+                        "replace",
+                        $"/{nameof(EditWorkTimeRequest.ProjectId)}",
+                        "",
+                        Guid.NewGuid()),
+
+                    new Operation<EditWorkTimeRequest>(
+                        "replace",
+                        $"/{nameof(EditWorkTimeRequest.StartTime)}",
+                        "",
+                        DateTime.Now.AddHours(-3)),
+
+                    new Operation<EditWorkTimeRequest>(
+                        "replace",
+                        $"/{nameof(EditWorkTimeRequest.EndTime)}",
+                        "",
+                        DateTime.Now.AddHours(-1))
+                }, new CamelCasePropertyNamesContractResolver()),
+                Id = Guid.NewGuid(),
+                UserId = Guid.NewGuid()
+            };
         }
 
         [Test]
-        public void ShouldThrowsValidationExceptionWhenIdIsEmpty()
+        public void SuccessValidation()
         {
-            _validator.ShouldHaveValidationErrorFor(x => x.Id, Guid.Empty);
+            _validator.TestValidate(_request).ShouldNotHaveAnyValidationErrors();
+        }
+
+        #region Base validate errors
+
+        [Test]
+        public void ExceptionWhenRequestNotContainsOperations()
+        {
+            _request.JsonPatchDocument.Operations.Clear();
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
 
         [Test]
-        public void ShouldThrowsValidationExceptionWhenWorkerUserIdIsEmpty()
+        public void ExceptionWhenRequestContainsNotUniqueOperations()
         {
-            _validator.ShouldHaveValidationErrorFor(x => x.UserId, Guid.Empty);
+            _request.JsonPatchDocument.Operations.Add(_request.JsonPatchDocument.Operations.First());
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
+
+        [Test]
+        public void ExceptionWhenRequestContainsNotSupportedReplace()
+        {
+            _request.JsonPatchDocument.Operations.Add(new Operation<EditWorkTimeRequest>("replace", $"/{nameof(DbWorkTime.Id)}", "", Guid.NewGuid()));
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        }
+        #endregion
+
+        #region WorkTime fields checks
+
+        [Test]
+        public void ExceptionWhenTitkeIsTooLong()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.Title).value = "".PadLeft(201);
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        }
+
+        [Test]
+        public void ExceptionWhenTitkeIsEmpty()
+        {
+            GetOperationByPath(EditWorkTimeRequestValidator.Title).value = "";
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        }
+
+        //[Test]
+        //public void ExceptionWhenProjectIdIsEmpty()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.ProjectId).value = Guid.Empty;
+
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenStartTimeIsEmpty()
         {
-            _validator.ShouldHaveValidationErrorFor(x => x.StartTime, new DateTime());
+            GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value = new DateTime();
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenEndTimeIsEmpty()
         {
-            _validator.ShouldHaveValidationErrorFor(x => x.EndTime, new DateTime());
-        }
+            GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value = new DateTime();
 
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenTitleIsEmpty()
-        {
-            _validator.ShouldHaveValidationErrorFor(x => x.Title, "");
-        }
-
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenTitleIsTooLong()
-        {
-            var title = "123" + new string('a', 30);
-
-            _validator.ShouldHaveValidationErrorFor(x => x.Title, title);
-        }
-
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenTitleIsTooShort()
-        {
-            _validator.ShouldHaveValidationErrorFor(x => x.Title, "A");
-        }
-
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenProjectIdIsEmpty()
-        {
-            _validator.ShouldHaveValidationErrorFor(x => x.ProjectId, Guid.Empty);
-        }
-
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenDescriptionIsTooLong()
-        {
-            var comment = "1" + new string('a', 500);
-
-            _validator.ShouldHaveValidationErrorFor(x => x.Description, comment);
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenEndTimeIsLessThanStartTime()
         {
-            var request = new EditWorkTimeRequest
-            {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 2, 2, 2, 2, 2),
-                EndTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
-            };
+            GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value =
+                ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(-1);
 
-            Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
 
         [Test]
         public void ShouldThrowsValidationExceptionWhenWorkTimeGreaterThanWorkingLimit()
         {
-            var request = new EditWorkTimeRequest
-            {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now.AddHours(25),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
-            };
+            GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value = 
+                ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).Add(EditWorkTimeRequestValidator.WorkingLimit);
 
-            Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
 
         [Test]
         public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheStartTime()
         {
-            var request = new EditWorkTimeRequest
-            {
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                StartTime = DateTime.Now,
-                EndTime = DateTime.Now.AddHours(25),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
-            };
-
             var time = new DbWorkTime
             {
-                UserId = request.UserId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                Title = request.Title,
-                ProjectId = request.ProjectId,
-                Description = request.Description
+                Id = Guid.NewGuid(),
+                StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(-1),
+                EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(1)
             };
 
-            _repositoryMock.Setup(x => x.GetUserWorkTimes(request.UserId, It.IsAny<WorkTimeFilter>()))
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
                 .Returns(new List<DbWorkTime> { time });
 
-            Assert.Throws<ValidationException>(() => _validator.ValidateAndThrow(request));
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
 
         [Test]
-        public void ShouldNotThrowValidationExceptionWhenDataIsValid()
+        public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheEndTime()
         {
-            var request = new EditWorkTimeRequest
+            var time = new DbWorkTime
             {
                 Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid(),
-                StartTime = new DateTime(2020, 1, 1, 1, 1, 1),
-                EndTime = new DateTime(2020, 1, 1, 2, 2, 2),
-                Title = "ExampleTitle",
-                ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
+                StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(-1),
+                EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(1)
             };
 
-            Assert.DoesNotThrow(() => _validator.ValidateAndThrow(request));
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
+                .Returns(new List<DbWorkTime> { time });
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         }
+
+        [Test]
+        public void ShouldHaveAnyValidationErrorWhenRequestTimeBetweenOtherStartTimeAndEndTime()
+        {
+            var time = new DbWorkTime
+            {
+                Id = Guid.NewGuid(),
+                StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddMinutes(1),
+                EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddMinutes(-1)
+            };
+
+            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
+                .Returns(new List<DbWorkTime> { time });
+
+            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        }
+
+        #endregion
     }
 }

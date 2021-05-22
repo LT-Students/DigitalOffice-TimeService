@@ -1,4 +1,5 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using System;
 
@@ -16,6 +17,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
         /// </summary>
         /// <param name="request">Work time data.</param>
         /// <returns>Id of the added work time.</returns>
-        Guid Execute(CreateWorkTimeRequest request);
+        OperationResultResponse<Guid> Execute(CreateWorkTimeRequest request);
     }
 }

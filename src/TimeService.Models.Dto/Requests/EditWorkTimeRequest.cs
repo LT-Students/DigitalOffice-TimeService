@@ -4,8 +4,6 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
     public class EditWorkTimeRequest
     {
-        public Guid Id { get; set; }
-        public Guid UserId { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public string Title { get; set; }

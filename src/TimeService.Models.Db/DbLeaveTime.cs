@@ -10,8 +10,10 @@ namespace LT.DigitalOffice.TimeService.Models.Db
 
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
+        public Guid CreatedBy { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
+        public DateTime CreatedAt { get; set; }
         public int LeaveType { get; set; }
         public string Comment { get; set; }
     }
@@ -21,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public void Configure(EntityTypeBuilder<DbLeaveTime> builder)
         {
             builder.
-                ToTable(DbWorkTime.TableName);
+                ToTable(DbLeaveTime.TableName);
 
             builder.
                 HasKey(p => p.Id);

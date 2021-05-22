@@ -7,26 +7,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
 {
     public class DbWorkTimeMapper : IDbWorkTimeMapper
     {
-        public DbWorkTime Map(EditWorkTimeRequest request)
-        {
-            if (request == null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
-            return new DbWorkTime()
-            {
-                Id = request.Id,
-                UserId = request.UserId,
-                StartTime = request.StartTime,
-                EndTime = request.EndTime,
-                Title = request.Title,
-                ProjectId = request.ProjectId,
-                Description = request.Description
-            };
-        }
-
-        public DbWorkTime Map(CreateWorkTimeRequest request)
+        public DbWorkTime Map(CreateWorkTimeRequest request, Guid createdBy)
         {
             if (request == null)
             {
@@ -37,10 +18,12 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
             {
                 Id = Guid.NewGuid(),
                 UserId = request.UserId,
+                ProjectId = request.ProjectId,
+                CreatedBy = createdBy,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
+                CreatedAt = DateTime.Now,
                 Title = request.Title,
-                ProjectId = request.ProjectId,
                 Description = request.Description
             };
         }

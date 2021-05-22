@@ -15,6 +15,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 
         private CreateLeaveTimeRequest _request;
         private DbLeaveTime _expectedDbLeaveTimeWithoutId;
+        private Guid _createdBy;
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -25,6 +26,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
         [SetUp]
         public void SetUp()
         {
+            _createdBy = Guid.NewGuid();
+
             _request = new CreateLeaveTimeRequest
             {
                 LeaveType = LeaveType.SickLeave,
@@ -36,6 +39,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
 
             _expectedDbLeaveTimeWithoutId = new DbLeaveTime
             {
+                CreatedBy = _createdBy,
                 LeaveType = (int)_request.LeaveType,
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
@@ -47,16 +51,17 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenCreateLeaveTimeRequestIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => _mapper.Map(null));
+            Assert.Throws<ArgumentNullException>(() => _mapper.Map(null, Guid.NewGuid()));
         }
 
         [Test]
         public void ShouldReturnDbLeaveTimeWhenMappingValidCreateLeaveTimeRequest()
         {
-            var newLeaveTime = _mapper.Map(_request);
-            _expectedDbLeaveTimeWithoutId.Id = newLeaveTime.Id;
+            var newDbLeaveTime = _mapper.Map(_request, _createdBy);
+            _expectedDbLeaveTimeWithoutId.Id = newDbLeaveTime.Id;
+            _expectedDbLeaveTimeWithoutId.CreatedAt = newDbLeaveTime.CreatedAt;
 
-            SerializerAssert.AreEqual(_expectedDbLeaveTimeWithoutId, newLeaveTime);
+            SerializerAssert.AreEqual(_expectedDbLeaveTimeWithoutId, newDbLeaveTime);
         }
     }
 }
