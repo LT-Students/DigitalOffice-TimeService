@@ -3,7 +3,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
-    public class CreateLeaveTimeRequest
+    public record CreateLeaveTimeRequest
     {
         public Guid UserId { get; set; }
         public DateTime StartTime { get; set; }

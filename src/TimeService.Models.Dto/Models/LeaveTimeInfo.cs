@@ -3,7 +3,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 {
-    public class LeaveTimeInfo
+    public record LeaveTimeInfo
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }

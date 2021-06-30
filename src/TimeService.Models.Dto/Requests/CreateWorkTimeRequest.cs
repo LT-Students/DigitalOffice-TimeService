@@ -2,7 +2,7 @@
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
-    public class CreateWorkTimeRequest
+    public record CreateWorkTimeRequest
     {
         public Guid UserId { get; set; }
         public DateTime StartTime { get; set; }

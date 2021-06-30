@@ -2,7 +2,7 @@
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 {
-    public class WorkTimeInfo
+    public record WorkTimeInfo
     {
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
