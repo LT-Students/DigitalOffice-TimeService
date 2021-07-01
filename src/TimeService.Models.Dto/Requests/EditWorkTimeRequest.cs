@@ -2,7 +2,7 @@
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
-    public class EditWorkTimeRequest
+    public record EditWorkTimeRequest
     {
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

@@ -3,7 +3,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels
 {
-    public class EditWorkTimeModel
+    public record EditWorkTimeModel
     {
         public JsonPatchDocument<EditWorkTimeRequest> JsonPatchDocument { get; set; }
         public Guid Id { get; set; }
