@@ -46,6 +46,16 @@ namespace LT.DigitalOffice.TimeService.Data
                 throw new ArgumentNullException(nameof(filter));
             }
 
+            if (skipCount < 0)
+            {
+                throw new BadRequestException("Skip count can't be less than 0.");
+            }
+
+            if (takeCount <= 0)
+            {
+                throw new BadRequestException("Take count can't be equal or less than 0.");
+            }
+
             var dbWorkTimes = _provider.WorkTimes.AsQueryable();
 
             if (filter.UserId.HasValue)

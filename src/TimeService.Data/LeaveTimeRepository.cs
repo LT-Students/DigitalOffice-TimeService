@@ -28,6 +28,11 @@ namespace LT.DigitalOffice.TimeService.Data
 
         public List<DbLeaveTime> Find(FindLeaveTimesFilter filter, int skipCount, int takeCount, out int totalCount)
         {
+            if (skipCount < 0)
+            {
+                throw new BadRequestException("Skip count can't be less than 0.");
+            }
+
             if (takeCount <= 0)
             {
                 throw new BadRequestException("Take count can't be equal or less than 0.");
