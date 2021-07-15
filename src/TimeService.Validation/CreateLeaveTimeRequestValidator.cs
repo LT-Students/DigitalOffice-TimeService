@@ -18,9 +18,6 @@ namespace LT.DigitalOffice.TimeService.Validation
             RuleFor(lt => lt.LeaveType)
                 .IsInEnum();
 
-            RuleFor(lt => lt.Comment)
-                .NotEmpty();
-
             RuleFor(lt => lt.StartTime)
                 .NotEqual(new DateTime());
 

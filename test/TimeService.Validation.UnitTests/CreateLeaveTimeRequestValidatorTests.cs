@@ -95,18 +95,6 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         }
         #endregion
 
-        #region Comment
-        [Test]
-        public void ShouldHaveValidationErrorWhenCommentIsEmpty()
-        {
-            var comment = string.Empty;
-            _repositoryMock.Setup(x => x.Find(It.IsAny<FindLeaveTimesFilter>(), 0, It.IsAny<int>(), out _totalCount))
-                .Returns(new List<DbLeaveTime>());
-
-            _validator.ShouldHaveValidationErrorFor(x => x.Comment, comment);
-        }
-        #endregion
-
         #region LeaveType
         [Test]
         public void ShouldHaveValidationErrorWhenLeaveTypeIsNotInEnum()

@@ -106,7 +106,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                             .WithMessage("EndTime must not be empty.");
 
                         RuleFor(x => x)
-                            .Must(x => 
+                            .Must(x =>
                                 (DateTime)GetOperationByPath(x, StartTime).value < (DateTime)GetOperationByPath(x, EndTime).value)
                             .WithMessage("You cannot indicate that you worked zero hours or a negative amount.")
                             .Must(x =>

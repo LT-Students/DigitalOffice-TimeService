@@ -2,6 +2,7 @@
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using System;
+using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Db
 {
@@ -23,7 +24,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 CreatedAt = DateTime.Now,
-                Comment = request.Comment
+                Comment = !string.IsNullOrEmpty(request.Comment?.Trim()) ? request.Comment.Trim() : null
             };
         }
     }
