@@ -39,11 +39,21 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbWorkTime;
         }
 
-        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount)
+        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipCount, int takeCount, out int totalCount)
         {
             if (filter == null)
             {
                 throw new ArgumentNullException(nameof(filter));
+            }
+
+            if (skipCount < 0)
+            {
+                throw new BadRequestException("Skip count can't be less than 0.");
+            }
+
+            if (takeCount <= 0)
+            {
+                throw new BadRequestException("Take count can't be equal or less than 0.");
             }
 
             var dbWorkTimes = _provider.WorkTimes.AsQueryable();
@@ -65,7 +75,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
             totalCount = dbWorkTimes.Count();
 
-            return dbWorkTimes.Skip(skipPagesCount * takeCount).Take(takeCount).ToList();
+            return dbWorkTimes.Skip(skipCount).Take(takeCount).ToList();
         }
 
         public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
