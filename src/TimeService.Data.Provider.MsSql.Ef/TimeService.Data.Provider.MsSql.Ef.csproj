@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="$(ProjectDir)..\..\Common.Configurations.targets" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\TimeService.Data.Provider\TimeService.Data.Provider.csproj" />
+    <ProjectReference Include="..\TimeService.Models.Db\TimeService.Models.Db.csproj" />
+  </ItemGroup>
+
+</Project>
