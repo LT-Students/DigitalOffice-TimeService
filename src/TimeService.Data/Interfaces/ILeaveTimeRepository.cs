@@ -20,6 +20,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
         /// <returns>Id of the added leave time.</returns>
         Guid Add(DbLeaveTime leaveTime);
 
-        List<DbLeaveTime> Find(FindLeaveTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount);
+        List<DbLeaveTime> Find(FindLeaveTimesFilter filter, int skipCount, int takeCount, out int totalCount);
     }
 }
