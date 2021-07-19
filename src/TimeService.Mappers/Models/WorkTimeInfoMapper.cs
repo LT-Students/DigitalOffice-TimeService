@@ -2,7 +2,6 @@
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using System;
-using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
