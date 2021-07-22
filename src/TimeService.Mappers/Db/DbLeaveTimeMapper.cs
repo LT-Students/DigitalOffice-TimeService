@@ -20,6 +20,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
                 UserId = request.UserId,
                 CreatedBy = createdBy,
                 LeaveType = (int)request.LeaveType,
+                Minutes = request.Minutes,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 CreatedAt = DateTime.Now,

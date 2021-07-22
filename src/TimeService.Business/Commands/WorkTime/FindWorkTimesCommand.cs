@@ -1,11 +1,13 @@
 ﻿using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto.Responses;
+using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Linq;
@@ -31,7 +33,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public WorkTimesResponse Execute(FindWorkTimesFilter filter, int skipPagesCount, int takeCount)
+        public FindResultResponse<WorkTimeInfo> Execute(FindWorkTimesFilter filter, int skipCount, int takeCount)
         {
             if (filter == null)
             {
@@ -45,12 +47,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            var dbWorkTimes = _repository.Find(filter, skipPagesCount, takeCount, out int totalCount);
+            var dbWorkTimes = _repository.Find(filter, skipCount, takeCount, out int totalCount);
 
-            return new WorkTimesResponse
+            return new()
             {
+                Status = OperationResultStatusType.FullSuccess,
                 TotalCount = totalCount,
                 Body = dbWorkTimes.Select(_mapper.Map).ToList(),
+                Errors = new()
             };
         }
     }

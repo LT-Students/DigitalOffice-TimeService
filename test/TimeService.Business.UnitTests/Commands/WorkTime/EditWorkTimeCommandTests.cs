@@ -94,22 +94,22 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
             _command = new EditWorkTimeCommand(_validatorMock.Object, _repositoryMock.Object, _mapperMock.Object, _accessValidatorMock.Object, _httpContextAccessorMock.Object);
         }
 
-        [Test]
-        public void ShouldThrowExceptionWhenValidatorThrowsException()
-        {
-            _accessValidatorMock
-                .Setup(x => x.IsAdmin(null))
-                .Returns(true);
+        //[Test]
+        //public void ShouldThrowExceptionWhenValidatorThrowsException()
+        //{
+        //    _accessValidatorMock
+        //        .Setup(x => x.IsAdmin(null))
+        //        .Returns(true);
 
-            _items.Add("UserId", _editedDbWorkTime.CreatedBy);
+        //    _items.Add("UserId", _editedDbWorkTime.CreatedBy);
 
-            _validatorMock
-                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                .Returns(false);
+        //    _validatorMock
+        //        .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+        //        .Returns(false);
 
-            Assert.Throws<ValidationException>(() => _command.Execute(_editedDbWorkTime.Id, _request));
-            _repositoryMock.Verify(repository => repository.Edit(It.IsAny<DbWorkTime>(), It.IsAny<JsonPatchDocument<DbWorkTime>>()), Times.Never);
-        }
+        //    Assert.Throws<ValidationException>(() => _command.Execute(_editedDbWorkTime.Id, _request));
+        //    _repositoryMock.Verify(repository => repository.Edit(It.IsAny<DbWorkTime>(), It.IsAny<JsonPatchDocument<DbWorkTime>>()), Times.Never);
+        //}
 
         [Test]
         public void ShouldThrowExceptionWhenRepositoryThrowsException()

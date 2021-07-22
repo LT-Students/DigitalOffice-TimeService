@@ -105,16 +105,16 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
             _repositoryMock.Verify(repository => repository.Create(It.IsAny<DbWorkTime>()), Times.Never);
         }
 
-        [Test]
-        public void ShouldThrowExceptionWhenValidatorThrowsException()
-        {
-            _validatorMock
-                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
-                .Returns(false);
+        //[Test]
+        //public void ShouldThrowExceptionWhenValidatorThrowsException()
+        //{
+        //    _validatorMock
+        //        .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+        //        .Returns(false);
 
-            Assert.Throws<ValidationException>(() => _command.Execute(_request));
-            _repositoryMock.Verify(repository => repository.Create(It.IsAny<DbWorkTime>()), Times.Never);
-        }
+        //    Assert.Throws<ValidationException>(() => _command.Execute(_request));
+        //    _repositoryMock.Verify(repository => repository.Create(It.IsAny<DbWorkTime>()), Times.Never);
+        //}
 
         [Test]
         public void ShouldThrowExceptionWhenRepositoryThrowsException()

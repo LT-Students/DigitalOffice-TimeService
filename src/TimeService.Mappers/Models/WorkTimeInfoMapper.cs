@@ -20,6 +20,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
                 UserId = dbWorkTime.UserId,
                 ProjectId = dbWorkTime.ProjectId,
                 CreatedBy = dbWorkTime.CreatedBy,
+                Minutes = dbWorkTime.Minutes,
                 StartTime = dbWorkTime.StartTime,
                 EndTime = dbWorkTime.EndTime,
                 CreatedAt = dbWorkTime.CreatedAt,

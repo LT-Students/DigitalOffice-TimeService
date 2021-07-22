@@ -42,20 +42,20 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         {
             var oldDbWorkTime = _repository.Get(workTimeId);
 
-            var editModel = new EditWorkTimeModel
-            {
-                JsonPatchDocument = request,
-                Id = workTimeId,
-                UserId = oldDbWorkTime.UserId
-            };
-
-            _validator.ValidateAndThrowCustom(editModel);
-
             var isAuthor = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.CreatedBy;
-            if (!_accessValidator.IsAdmin() && !isAuthor)
+            if (!isAuthor && !_accessValidator.IsAdmin())
             {
                 throw new ForbiddenException("Not enough rights.");
             }
+
+            //var editModel = new EditWorkTimeModel
+            //{
+            //    JsonPatchDocument = request,
+            //    Id = workTimeId,
+            //    UserId = oldDbWorkTime.UserId
+            //};
+
+            //_validator.ValidateAndThrowCustom(editModel);
 
             return new OperationResultResponse<bool>
             {

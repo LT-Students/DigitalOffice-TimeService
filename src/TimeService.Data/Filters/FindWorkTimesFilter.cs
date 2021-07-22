@@ -8,6 +8,9 @@ namespace LT.DigitalOffice.TimeService.Data.Filters
         [FromQuery(Name = "userid")]
         public Guid? UserId { get; set; }
 
+        [FromQuery(Name = "projectId")]
+        public Guid? ProjectId { get; set; }
+
         [FromQuery(Name = "starttime")]
         public DateTime? StartTime { get; set; }
 

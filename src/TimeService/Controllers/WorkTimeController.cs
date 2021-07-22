@@ -1,6 +1,7 @@
 ﻿using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 using Microsoft.AspNetCore.JsonPatch;
@@ -22,20 +23,20 @@ namespace LT.DigitalOffice.TimeService.Controllers
         }
 
         [HttpGet("find")]
-        public WorkTimesResponse Find(
+        public FindResultResponse<WorkTimeInfo> Find(
             [FromServices] IFindWorkTimesCommand command,
             [FromQuery] FindWorkTimesFilter filter,
-            [FromQuery] int skipPagesCount,
+            [FromQuery] int skipCount,
             [FromQuery] int takeCount)
         {
-            return command.Execute(filter, skipPagesCount, takeCount);
+            return command.Execute(filter, skipCount, takeCount);
         }
 
         [HttpPatch("edit")]
         public OperationResultResponse<bool> Edit(
+            [FromServices] IEditWorkTimeCommand command,
             [FromQuery] Guid workTimeId,
-            [FromBody] JsonPatchDocument<EditWorkTimeRequest> request,
-            [FromServices] IEditWorkTimeCommand command)
+            [FromBody] JsonPatchDocument<EditWorkTimeRequest> request)
         {
             return command.Execute(workTimeId, request);
         }
