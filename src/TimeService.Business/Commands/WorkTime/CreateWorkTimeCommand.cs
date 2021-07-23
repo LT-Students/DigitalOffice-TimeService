@@ -45,7 +45,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            //_validator.ValidateAndThrowCustom(request);
+            _validator.ValidateAndThrowCustom(request);
 
             var createdBy = _httpContextAccessor.HttpContext.GetUserId();
             var dbWorkTime = _mapper.Map(request, createdBy);
