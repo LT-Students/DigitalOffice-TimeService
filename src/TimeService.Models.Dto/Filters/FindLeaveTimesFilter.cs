@@ -1,9 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Data.Filters
+namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 {
-    public class FindWorkTimesFilter
+    public class FindLeaveTimesFilter
     {
         [FromQuery(Name = "userid")]
         public Guid? UserId { get; set; }

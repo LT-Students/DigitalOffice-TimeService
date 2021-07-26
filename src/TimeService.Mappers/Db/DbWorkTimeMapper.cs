@@ -21,6 +21,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
                 UserId = request.UserId,
                 ProjectId = request.ProjectId,
                 CreatedBy = createdBy,
+                Minutes = request.Minutes,
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 CreatedAt = DateTime.Now,

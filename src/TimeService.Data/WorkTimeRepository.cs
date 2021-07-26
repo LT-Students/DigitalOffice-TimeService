@@ -1,8 +1,8 @@
 ﻿using LT.DigitalOffice.Kernel.Exceptions.Models;
-using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
@@ -60,7 +60,12 @@ namespace LT.DigitalOffice.TimeService.Data
 
             if (filter.UserId.HasValue)
             {
-                dbWorkTimes = dbWorkTimes.Where(x => x.UserId == filter.UserId);
+                dbWorkTimes = dbWorkTimes.Where(x => x.UserId == filter.UserId.Value);
+            }
+
+            if (filter.ProjectId.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
             }
 
             if (filter.StartTime.HasValue)
