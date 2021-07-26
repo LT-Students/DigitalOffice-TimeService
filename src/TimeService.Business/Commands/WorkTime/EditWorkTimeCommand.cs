@@ -48,6 +48,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
                 throw new ForbiddenException("Not enough rights.");
             }
 
+            //TODO update validation
             //var editModel = new EditWorkTimeModel
             //{
             //    JsonPatchDocument = request,
