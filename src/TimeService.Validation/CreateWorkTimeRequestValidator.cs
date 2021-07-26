@@ -87,19 +87,19 @@ namespace LT.DigitalOffice.TimeService.Validation
             //    .MaximumLength(200)
             //    .WithMessage("Title is too long.");
 
-            //RuleFor(wt => wt.StartTime)
-            //    .NotEqual(new DateTime())
+            RuleFor(wt => wt.StartTime)
+                .NotEqual(new DateTime());
             //    .Must(st => st > fromDateTime).WithMessage(date =>
             //        $"WorkTime had to be filled no later than {fromDateTime.ToString(culture)}.")
             //    .Must(st => st < toDateTime)
             //    .WithMessage(date => $"WorkTime cannot be filled until {toDateTime.ToString(culture)}.");
 
-            //RuleFor(wt => wt.EndTime)
-            //    .NotEqual(new DateTime());
+            RuleFor(wt => wt.EndTime)
+                .NotEqual(new DateTime());
 
-            //RuleFor(wt => wt)
-            //    .Must(wt => wt.StartTime < wt.EndTime)
-            //    .WithMessage("You cannot indicate that you worked zero hours or a negative amount.")
+            RuleFor(wt => wt)
+                .Must(wt => wt.StartTime < wt.EndTime)
+                .WithMessage("Start time must be before end time.");
             //    .Must(wt => wt.EndTime - wt.StartTime <= WorkingLimit).WithMessage(time =>
             //        $"You cannot indicate that you worked more than {WorkingLimit.Hours} hours and {WorkingLimit.Minutes} minutes.")
             //    .Must(wt =>

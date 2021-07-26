@@ -45,8 +45,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            //TODO update validation
-            //_validator.ValidateAndThrowCustom(request);
+            _validator.ValidateAndThrowCustom(request);
 
             var createdBy = _httpContextAccessor.HttpContext.GetUserId();
             var dbLeaveTime = _mapper.Map(request, createdBy);
