@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TimeService.Data.Provider\TimeService.Data.Provider.csproj" />
+    <ProjectReference Include="..\TimeService.Models.Dto\TimeService.Models.Dto.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
-using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
@@ -106,7 +106,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                             .WithMessage("EndTime must not be empty.");
 
                         RuleFor(x => x)
-                            .Must(x => 
+                            .Must(x =>
                                 (DateTime)GetOperationByPath(x, StartTime).value < (DateTime)GetOperationByPath(x, EndTime).value)
                             .WithMessage("You cannot indicate that you worked zero hours or a negative amount.")
                             .Must(x =>

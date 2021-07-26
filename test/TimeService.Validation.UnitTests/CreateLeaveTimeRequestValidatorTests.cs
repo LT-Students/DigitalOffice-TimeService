@@ -8,7 +8,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
@@ -92,18 +92,6 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
                 .Returns(new List<DbLeaveTime>());
 
             _validator.ShouldHaveValidationErrorFor(x => x.EndTime, endTime);
-        }
-        #endregion
-
-        #region Comment
-        [Test]
-        public void ShouldHaveValidationErrorWhenCommentIsEmpty()
-        {
-            var comment = string.Empty;
-            _repositoryMock.Setup(x => x.Find(It.IsAny<FindLeaveTimesFilter>(), 0, It.IsAny<int>(), out _totalCount))
-                .Returns(new List<DbLeaveTime>());
-
-            _validator.ShouldHaveValidationErrorFor(x => x.Comment, comment);
         }
         #endregion
 

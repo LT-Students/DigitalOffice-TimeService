@@ -40,7 +40,15 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests.Models
             _expectedWorkTimeInfo = new WorkTimeInfo
             {
                 Id = _dbWorkTime.Id,
-                ProjectId = _dbWorkTime.ProjectId,
+                Project = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Name",
+                    Description = "description",
+                    ShortDescription = "shortDescription",
+                    ShortName = "shortName",
+                    Status = "status"
+                },
                 UserId = _dbWorkTime.UserId,
                 CreatedBy = _dbWorkTime.CreatedBy,
                 Title = _dbWorkTime.Title,
@@ -54,13 +62,13 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests.Models
         [Test]
         public void ShouldThrowArgumentNullExceptionWhenDbWorkTimeIsNull()
         {
-            Assert.Throws<ArgumentNullException>(() => _mapper.Map(null));
+            Assert.Throws<ArgumentNullException>(() => _mapper.Map(null, null));
         }
 
         [Test]
         public void ShouldReturnWorkTimeInfoWhenMappingValidDbWorkTime()
         {
-            var result = _mapper.Map(_dbWorkTime);
+            var result = _mapper.Map(_dbWorkTime, _expectedWorkTimeInfo.Project);
 
             SerializerAssert.AreEqual(_expectedWorkTimeInfo, result);
         }
