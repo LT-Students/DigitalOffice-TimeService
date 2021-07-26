@@ -10,5 +10,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
 
         [AutoInjectRequest(typeof(IGetUserProjectsRequest))]
         public string GetProjectIdsEndpoint { get; set; }
+
+        [AutoInjectRequest(typeof(IFindProjectsRequest))]
+        public string FindProjectsEndpoint { get; set; }
     }
 }

@@ -7,7 +7,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
     public class WorkTimeInfoMapper : IWorkTimeInfoMapper
     {
-        public WorkTimeInfo Map(DbWorkTime dbWorkTime)
+        public WorkTimeInfo Map(DbWorkTime dbWorkTime, ProjectInfo project)
         {
             if (dbWorkTime == null)
             {
@@ -18,8 +18,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
             {
                 Id = dbWorkTime.Id,
                 UserId = dbWorkTime.UserId,
-                ProjectId = dbWorkTime.ProjectId,
                 CreatedBy = dbWorkTime.CreatedBy,
+                Project = project ?? new ProjectInfo { Id = dbWorkTime.Id },
                 Minutes = dbWorkTime.Minutes,
                 StartTime = dbWorkTime.StartTime,
                 EndTime = dbWorkTime.EndTime,
