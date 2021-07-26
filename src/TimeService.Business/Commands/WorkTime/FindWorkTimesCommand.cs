@@ -36,6 +36,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             string messageError = "Cannot get projects info. Please, try again later.";
             const string logError = "Cannot get projects info with ids: {projectIds}.";
 
+            if (projectIds == null || projectIds.Count == 0)
+            {
+                return null;
+            }
+
             try
             {
                 IOperationResult<IFindProjectsResponse> result = _rcFindProjects.GetResponse<IOperationResult<IFindProjectsResponse>>(

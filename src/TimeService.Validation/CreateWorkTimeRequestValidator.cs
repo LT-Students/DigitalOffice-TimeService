@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeService.Validation
 
         private bool IsUserInProject(Guid userId, Guid projectId)
         {
-            const string logMessage = "Cannot check including user '{userId}' to project '{projectId}'.";
+            const string logMessage = "Cannot check including user '{UserId}' to project '{ProjectId}'.";
 
             try
             {
