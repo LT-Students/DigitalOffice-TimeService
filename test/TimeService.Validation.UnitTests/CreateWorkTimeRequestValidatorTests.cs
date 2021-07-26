@@ -1,13 +1,8 @@
-using FluentValidation.TestHelper;
-using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {

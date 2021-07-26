@@ -8,7 +8,7 @@ using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {

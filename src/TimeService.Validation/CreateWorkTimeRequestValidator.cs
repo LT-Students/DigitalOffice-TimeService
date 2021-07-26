@@ -2,7 +2,6 @@
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
-using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.Interfaces;
@@ -10,7 +9,6 @@ using MassTransit;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Globalization;
-using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Validation
 {

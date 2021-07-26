@@ -1,8 +1,8 @@
-using LT.DigitalOffice.TimeService.Data.Filters;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;

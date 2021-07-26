@@ -1,12 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Data.Filters
+namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 {
-    public class FindLeaveTimesFilter
+    public class FindWorkTimesFilter
     {
         [FromQuery(Name = "userid")]
         public Guid? UserId { get; set; }
+
+        [FromQuery(Name = "projectid")]
+        public Guid? ProjectId { get; set; }
 
         [FromQuery(Name = "starttime")]
         public DateTime? StartTime { get; set; }
