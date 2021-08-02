@@ -25,7 +25,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
                 EndTime = dbLeaveTime.EndTime,
                 CreatedAt = dbLeaveTime.CreatedAt,
                 Comment = dbLeaveTime.Comment,
-                LeaveType = (LeaveType)dbLeaveTime.LeaveType
+                LeaveType = (LeaveType)dbLeaveTime.LeaveType,
+                IsActive = dbLeaveTime.IsActive
             };
         }
     }

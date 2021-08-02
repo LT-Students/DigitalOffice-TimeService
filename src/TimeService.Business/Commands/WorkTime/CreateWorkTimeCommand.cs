@@ -8,7 +8,7 @@ using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
 

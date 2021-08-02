@@ -1,6 +1,7 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 
@@ -21,5 +22,9 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
         Guid Add(DbLeaveTime leaveTime);
 
         List<DbLeaveTime> Find(FindLeaveTimesFilter filter, int skipCount, int takeCount, out int totalCount);
+
+        DbLeaveTime Get(Guid leaveTimeId);
+
+        bool Edit(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request);
     }
 }

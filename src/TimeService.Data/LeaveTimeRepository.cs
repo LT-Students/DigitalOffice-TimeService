@@ -3,6 +3,7 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,19 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider.Save();
 
             return dbLeaveTime.Id;
+        }
+
+        public bool Edit(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request)
+        {
+            if (leaveTime == null)
+            {
+                throw new ArgumentNullException(nameof(leaveTime));
+            }
+
+            request.ApplyTo(leaveTime);
+            _provider.Save();
+
+            return true;
         }
 
         public List<DbLeaveTime> Find(FindLeaveTimesFilter filter, int skipCount, int takeCount, out int totalCount)
@@ -60,9 +74,20 @@ namespace LT.DigitalOffice.TimeService.Data
                 dbLeaveTimes = dbLeaveTimes.Where(x => x.EndTime <= filter.EndTime);
             }
 
+            if (!(filter.IncludeDeactivated.HasValue && filter.IncludeDeactivated.Value))
+            {
+                dbLeaveTimes = dbLeaveTimes.Where(x => x.IsActive);
+            }
+
             totalCount = dbLeaveTimes.Count();
 
             return dbLeaveTimes.Skip(skipCount).Take(takeCount).ToList();
+        }
+
+        public DbLeaveTime Get(Guid leaveTimeId)
+        {
+            return _provider.LeaveTimes.FirstOrDefault(lt => lt.Id == leaveTimeId)
+                ?? throw new NotFoundException($"No leave time with id {leaveTimeId}.");
         }
     }
 }

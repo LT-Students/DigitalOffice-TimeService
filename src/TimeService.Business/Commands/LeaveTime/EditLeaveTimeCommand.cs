@@ -4,29 +4,29 @@ using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
-using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
+namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
-    public class EditWorkTimeCommand: IEditWorkTimeCommand
+    public class EditLeaveTimeCommand : IEditLeaveTimeCommand
     {
-        private readonly IEditWorkTimeRequestValidator _validator;
-        private readonly IWorkTimeRepository _repository;
-        private readonly IPatchDbWorkTimeMapper _mapper;
+        private readonly IEditLeaveTimeRequestValidator _validator;
+        private readonly ILeaveTimeRepository _repository;
+        private readonly IPatchDbLeaveTimeMapper _mapper;
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EditWorkTimeCommand(
-            IEditWorkTimeRequestValidator validator,
-            IWorkTimeRepository repository,
-            IPatchDbWorkTimeMapper mapper,
+        public EditLeaveTimeCommand(
+            IEditLeaveTimeRequestValidator validator,
+            ILeaveTimeRepository repository,
+            IPatchDbLeaveTimeMapper mapper,
             IAccessValidator accessValidator,
             IHttpContextAccessor httpContextAccessor)
         {
@@ -37,9 +37,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public OperationResultResponse<bool> Execute(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
+        public OperationResultResponse<bool> Execute(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
         {
-            var oldDbWorkTime = _repository.Get(workTimeId);
+            var oldDbWorkTime = _repository.Get(leaveTimeId);
 
             var isAuthor = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.CreatedBy;
             if (!isAuthor && !_accessValidator.IsAdmin())

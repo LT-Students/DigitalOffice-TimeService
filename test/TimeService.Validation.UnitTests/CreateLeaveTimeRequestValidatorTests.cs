@@ -3,12 +3,12 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {

@@ -16,5 +16,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 
         [FromQuery(Name = "endtime")]
         public DateTime? EndTime { get; set; }
+
+        [FromQuery(Name = "includedeactivated")]
+        public bool? IncludeDeactivated { get; set; }
     }
 }

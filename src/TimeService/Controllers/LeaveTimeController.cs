@@ -4,6 +4,7 @@ using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
 
@@ -29,6 +30,15 @@ namespace LT.DigitalOffice.TimeService.Controllers
             [FromQuery] int takeCount)
         {
             return command.Execute(filter, skipPagesCount, takeCount);
+        }
+
+        [HttpPatch("edit")]
+        public OperationResultResponse<bool> Edit(
+            [FromServices] IEditLeaveTimeCommand command,
+            [FromQuery] Guid leaveTimeId,
+            [FromBody] JsonPatchDocument<EditLeaveTimeRequest> request)
+        {
+            return command.Execute(leaveTimeId, request);
         }
     }
 }

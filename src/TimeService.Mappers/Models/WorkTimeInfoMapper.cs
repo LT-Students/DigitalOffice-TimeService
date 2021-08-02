@@ -25,7 +25,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
                 EndTime = dbWorkTime.EndTime,
                 CreatedAt = dbWorkTime.CreatedAt,
                 Title = dbWorkTime.Title,
-                Description = dbWorkTime.Description
+                Description = dbWorkTime.Description,
+                IsActive = dbWorkTime.IsActive
             };
         }
     }
