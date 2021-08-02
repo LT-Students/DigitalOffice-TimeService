@@ -9,6 +9,7 @@ using System;
 using System.Collections.Generic;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {

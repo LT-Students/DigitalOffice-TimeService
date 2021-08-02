@@ -4,7 +4,6 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
 using LT.DigitalOffice.TimeService.Validation.WorkTime;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
@@ -19,203 +18,203 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     class EditWorkTimeRequestValidatorTests
     {
-        private IValidator<EditWorkTimeModel> _validator;
+        //private IValidator<EditWorkTimeModel> _validator;
 
-        private Mock<IWorkTimeRepository> _repositoryMock;
+        //private Mock<IWorkTimeRepository> _repositoryMock;
 
-        private EditWorkTimeModel _request;
-        private int _totalCount;
+        //private EditWorkTimeModel _request;
+        //private int _totalCount;
 
-        Func<string, Operation> GetOperationByPath =>
-            (path) => _request.JsonPatchDocument.Operations.Find(x => x.path == path);
+        //Func<string, Operation> GetOperationByPath =>
+        //    (path) => _request.JsonPatchDocument.Operations.Find(x => x.path == path);
 
-        [SetUp]
-        public void SetUp()
-        {
-            _repositoryMock = new Mock<IWorkTimeRepository>();
+        //[SetUp]
+        //public void SetUp()
+        //{
+        //    _repositoryMock = new Mock<IWorkTimeRepository>();
 
-            _validator = new EditWorkTimeRequestValidator(_repositoryMock.Object);
+        //    _validator = new EditWorkTimeRequestValidator(_repositoryMock.Object);
 
-            _request = new EditWorkTimeModel
-            {
-                JsonPatchDocument = new JsonPatchDocument<EditWorkTimeRequest>(new List<Operation<EditWorkTimeRequest>>
-                {
-                    new Operation<EditWorkTimeRequest>(
-                        "replace",
-                        $"/{nameof(EditWorkTimeRequest.Title)}",
-                        "",
-                        "new title"),
+        //    _request = new EditWorkTimeModel
+        //    {
+        //        JsonPatchDocument = new JsonPatchDocument<EditWorkTimeRequest>(new List<Operation<EditWorkTimeRequest>>
+        //        {
+        //            new Operation<EditWorkTimeRequest>(
+        //                "replace",
+        //                $"/{nameof(EditWorkTimeRequest.Title)}",
+        //                "",
+        //                "new title"),
 
-                    new Operation<EditWorkTimeRequest>(
-                        "replace",
-                        $"/{nameof(EditWorkTimeRequest.Description)}",
-                        "",
-                        "new description"),
+        //            new Operation<EditWorkTimeRequest>(
+        //                "replace",
+        //                $"/{nameof(EditWorkTimeRequest.Description)}",
+        //                "",
+        //                "new description"),
 
-                    new Operation<EditWorkTimeRequest>(
-                        "replace",
-                        $"/{nameof(EditWorkTimeRequest.ProjectId)}",
-                        "",
-                        Guid.NewGuid()),
+        //            new Operation<EditWorkTimeRequest>(
+        //                "replace",
+        //                $"/{nameof(EditWorkTimeRequest.ProjectId)}",
+        //                "",
+        //                Guid.NewGuid()),
 
-                    new Operation<EditWorkTimeRequest>(
-                        "replace",
-                        $"/{nameof(EditWorkTimeRequest.StartTime)}",
-                        "",
-                        DateTime.Now.AddHours(-3)),
+        //            new Operation<EditWorkTimeRequest>(
+        //                "replace",
+        //                $"/{nameof(EditWorkTimeRequest.StartTime)}",
+        //                "",
+        //                DateTime.Now.AddHours(-3)),
 
-                    new Operation<EditWorkTimeRequest>(
-                        "replace",
-                        $"/{nameof(EditWorkTimeRequest.EndTime)}",
-                        "",
-                        DateTime.Now.AddHours(-1))
-                }, new CamelCasePropertyNamesContractResolver()),
-                Id = Guid.NewGuid(),
-                UserId = Guid.NewGuid()
-            };
-        }
-
-        [Test]
-        public void SuccessValidation()
-        {
-            _validator.TestValidate(_request).ShouldNotHaveAnyValidationErrors();
-        }
-
-        #region Base validate errors
-
-        [Test]
-        public void ExceptionWhenRequestNotContainsOperations()
-        {
-            _request.JsonPatchDocument.Operations.Clear();
-
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
-
-        [Test]
-        public void ExceptionWhenRequestContainsNotUniqueOperations()
-        {
-            _request.JsonPatchDocument.Operations.Add(_request.JsonPatchDocument.Operations.First());
-
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
-
-        [Test]
-        public void ExceptionWhenRequestContainsNotSupportedReplace()
-        {
-            _request.JsonPatchDocument.Operations.Add(new Operation<EditWorkTimeRequest>("replace", $"/{nameof(DbWorkTime.Id)}", "", Guid.NewGuid()));
-
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
-        #endregion
-
-        #region WorkTime fields checks
-
-        [Test]
-        public void ExceptionWhenTitkeIsTooLong()
-        {
-            GetOperationByPath(EditWorkTimeRequestValidator.Title).value = "".PadLeft(201);
-
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
-
-        [Test]
-        public void ExceptionWhenTitkeIsEmpty()
-        {
-            GetOperationByPath(EditWorkTimeRequestValidator.Title).value = "";
-
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //            new Operation<EditWorkTimeRequest>(
+        //                "replace",
+        //                $"/{nameof(EditWorkTimeRequest.EndTime)}",
+        //                "",
+        //                DateTime.Now.AddHours(-1))
+        //        }, new CamelCasePropertyNamesContractResolver()),
+        //        Id = Guid.NewGuid(),
+        //        UserId = Guid.NewGuid()
+        //    };
+        //}
 
         //[Test]
-        //public void ExceptionWhenProjectIdIsEmpty()
+        //public void SuccessValidation()
         //{
-        //    GetOperationByPath(EditWorkTimeRequestValidator.ProjectId).value = Guid.Empty;
+        //    _validator.TestValidate(_request).ShouldNotHaveAnyValidationErrors();
+        //}
+
+        //#region Base validate errors
+
+        //[Test]
+        //public void ExceptionWhenRequestNotContainsOperations()
+        //{
+        //    _request.JsonPatchDocument.Operations.Clear();
 
         //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
         //}
 
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenStartTimeIsEmpty()
-        {
-            GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value = new DateTime();
+        //[Test]
+        //public void ExceptionWhenRequestContainsNotUniqueOperations()
+        //{
+        //    _request.JsonPatchDocument.Operations.Add(_request.JsonPatchDocument.Operations.First());
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenEndTimeIsEmpty()
-        {
-            GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value = new DateTime();
+        //[Test]
+        //public void ExceptionWhenRequestContainsNotSupportedReplace()
+        //{
+        //    _request.JsonPatchDocument.Operations.Add(new Operation<EditWorkTimeRequest>("replace", $"/{nameof(DbWorkTime.Id)}", "", Guid.NewGuid()));
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
+        //#endregion
 
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenEndTimeIsLessThanStartTime()
-        {
-            GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value =
-                ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(-1);
+        //#region WorkTime fields checks
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //[Test]
+        //public void ExceptionWhenTitkeIsTooLong()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.Title).value = "".PadLeft(201);
 
-        [Test]
-        public void ShouldThrowsValidationExceptionWhenWorkTimeGreaterThanWorkingLimit()
-        {
-            GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value = 
-                ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).Add(EditWorkTimeRequestValidator.WorkingLimit);
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //[Test]
+        //public void ExceptionWhenTitkeIsEmpty()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.Title).value = "";
 
-        [Test]
-        public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheStartTime()
-        {
-            var time = new DbWorkTime
-            {
-                Id = Guid.NewGuid(),
-                StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(-1),
-                EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(1)
-            };
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
-            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
-                .Returns(new List<DbWorkTime> { time });
+        ////[Test]
+        ////public void ExceptionWhenProjectIdIsEmpty()
+        ////{
+        ////    GetOperationByPath(EditWorkTimeRequestValidator.ProjectId).value = Guid.Empty;
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        ////    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        ////}
 
-        [Test]
-        public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheEndTime()
-        {
-            var time = new DbWorkTime
-            {
-                Id = Guid.NewGuid(),
-                StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(-1),
-                EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(1)
-            };
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenStartTimeIsEmpty()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value = new DateTime();
 
-            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
-                .Returns(new List<DbWorkTime> { time });
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenEndTimeIsEmpty()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value = new DateTime();
 
-        [Test]
-        public void ShouldHaveAnyValidationErrorWhenRequestTimeBetweenOtherStartTimeAndEndTime()
-        {
-            var time = new DbWorkTime
-            {
-                Id = Guid.NewGuid(),
-                StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddMinutes(1),
-                EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddMinutes(-1)
-            };
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
-            _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
-                .Returns(new List<DbWorkTime> { time });
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenEndTimeIsLessThanStartTime()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value =
+        //        ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(-1);
 
-            _validator.TestValidate(_request).ShouldHaveAnyValidationError();
-        }
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
 
-        #endregion
+        //[Test]
+        //public void ShouldThrowsValidationExceptionWhenWorkTimeGreaterThanWorkingLimit()
+        //{
+        //    GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value =
+        //        ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).Add(EditWorkTimeRequestValidator.WorkingLimit);
+
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
+
+        //[Test]
+        //public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheStartTime()
+        //{
+        //    var time = new DbWorkTime
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(-1),
+        //        EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddHours(1)
+        //    };
+
+        //    _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
+        //        .Returns(new List<DbWorkTime> { time });
+
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
+
+        //[Test]
+        //public void ShouldHaveAnyValidationErrorWhenRequestHaveIntersectionWithTheEndTime()
+        //{
+        //    var time = new DbWorkTime
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(-1),
+        //        EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddHours(1)
+        //    };
+
+        //    _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
+        //        .Returns(new List<DbWorkTime> { time });
+
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
+
+        //[Test]
+        //public void ShouldHaveAnyValidationErrorWhenRequestTimeBetweenOtherStartTimeAndEndTime()
+        //{
+        //    var time = new DbWorkTime
+        //    {
+        //        Id = Guid.NewGuid(),
+        //        StartTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.StartTime).value).AddMinutes(1),
+        //        EndTime = ((DateTime)GetOperationByPath(EditWorkTimeRequestValidator.EndTime).value).AddMinutes(-1)
+        //    };
+
+        //    _repositoryMock.Setup(x => x.Find(It.IsAny<FindWorkTimesFilter>(), It.IsAny<int>(), It.IsAny<int>(), out _totalCount))
+        //        .Returns(new List<DbWorkTime> { time });
+
+        //    _validator.TestValidate(_request).ShouldHaveAnyValidationError();
+        //}
+
+        //#endregion
     }
 }

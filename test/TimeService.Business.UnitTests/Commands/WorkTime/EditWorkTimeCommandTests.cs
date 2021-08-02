@@ -6,10 +6,9 @@ using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.AspNetCore.Http;
@@ -161,8 +160,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTime
             _items.Add("UserId", _editedDbWorkTime.CreatedBy);
 
             _validatorMock
-                 .Setup(x => x.Validate(It.IsAny<EditWorkTimeModel>()).IsValid)
-                 .Returns(true);
+                .Setup(x => x.Validate(It.IsAny<IValidationContext>()).IsValid)
+                .Returns(true);
 
             _mapperMock
                 .Setup(x => x.Map(It.IsAny<JsonPatchDocument<EditWorkTimeRequest>>()))
