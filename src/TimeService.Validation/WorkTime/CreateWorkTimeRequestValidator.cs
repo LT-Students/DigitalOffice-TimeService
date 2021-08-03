@@ -78,7 +78,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 
             RuleFor(wt => wt)
                 .Must(wt => IsUserInProject(wt.UserId, wt.ProjectId))
-                .WithMessage("the user must participate in the project.");
+                .WithMessage("The user must participate in the project.");
 
             //RuleFor(wt => wt.Title)
             //    .NotEmpty()

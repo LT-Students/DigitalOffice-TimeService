@@ -38,9 +38,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
         public OperationResultResponse<Guid> Execute(CreateWorkTimeRequest request)
         {
-            var isAuthor = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
+            var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-            if (!isAuthor && !_accessValidator.IsAdmin())
+            if (!isOwner && !_accessValidator.IsAdmin())
             {
                 throw new ForbiddenException("Not enough rights.");
             }

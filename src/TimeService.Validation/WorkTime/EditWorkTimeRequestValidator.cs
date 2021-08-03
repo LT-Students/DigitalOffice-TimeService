@@ -6,6 +6,7 @@ using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
@@ -104,6 +105,28 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         {
             RuleForEach(x => x.Operations)
                .Custom(HandleInternalPropertyValidation);
+
+            When(x => x.Operations.Any(o => o.path.EndsWith(nameof(EditWorkTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
+                && x.Operations.Any(o => o.path.EndsWith(nameof(EditWorkTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase)),
+                () =>
+                {
+                    RuleFor(x => x)
+                        .Must(x =>
+                        {
+                            DateTime start = DateTime.Parse(x.Operations
+                                .FirstOrDefault(o => o.path.EndsWith(nameof(EditWorkTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
+                                .value
+                                .ToString());
+
+                            DateTime end = DateTime.Parse(x.Operations
+                                .FirstOrDefault(o => o.path.EndsWith(nameof(EditWorkTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase))
+                                .value
+                                .ToString());
+
+                            return start < end;
+                        })
+                        .WithMessage("Start time should be less then end.");
+                });
         }
     }
 }
