@@ -4,13 +4,13 @@ using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using MassTransit;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Globalization;
 
-namespace LT.DigitalOffice.TimeService.Validation
+namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
     public class CreateWorkTimeRequestValidator : AbstractValidator<CreateWorkTimeRequest>, ICreateWorkTimeRequestValidator
     {
@@ -37,7 +37,7 @@ namespace LT.DigitalOffice.TimeService.Validation
                     projectId,
                     string.Join(',', response.Errors));
             }
-            catch(Exception exc)
+            catch (Exception exc)
             {
                 _logger.LogError(exc, logMessage, userId, projectId);
             }
@@ -78,7 +78,7 @@ namespace LT.DigitalOffice.TimeService.Validation
 
             RuleFor(wt => wt)
                 .Must(wt => IsUserInProject(wt.UserId, wt.ProjectId))
-                .WithMessage("the user must participate in the project.");
+                .WithMessage("The user must participate in the project.");
 
             //RuleFor(wt => wt.Title)
             //    .NotEmpty()

@@ -36,7 +36,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 EndTime = _createRequest.EndTime,
                 Title = _createRequest.Title,
                 Description = _createRequest.Description,
-                UserId = _createRequest.UserId
+                UserId = _createRequest.UserId,
+                IsActive = true
             };
         }
 

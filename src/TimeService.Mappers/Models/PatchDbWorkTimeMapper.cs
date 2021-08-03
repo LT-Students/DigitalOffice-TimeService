@@ -1,11 +1,11 @@
-﻿using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
 
-namespace LT.DigitalOffice.TimeService.Mappers.Requests
+namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
     public class PatchDbWorkTimeMapper : IPatchDbWorkTimeMapper
     {

@@ -1,5 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Mappers.Requests;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Models;
+using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.UnitTestKernel;

@@ -56,7 +56,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                     CreatedBy = _worker1,
                     StartTime = DateTime.Now.AddDays(-1),
                     EndTime = DateTime.Now.AddDays(-0.75),
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 },
 
                 new DbWorkTime
@@ -68,7 +69,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                     CreatedBy = _worker1,
                     StartTime = DateTime.Now.AddDays(-0.7),
                     EndTime = DateTime.Now.AddDays(-0.45),
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 }
             };
 
@@ -83,7 +85,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                     ProjectId = _project1,
                     StartTime = DateTime.Now.AddDays(-0.9),
                     EndTime = DateTime.Now.AddDays(-0.65),
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    IsActive = true
                 }
             };
 
@@ -99,7 +102,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 CreatedAt = DateTime.Now,
                 Title = "Example",
                 ProjectId = Guid.NewGuid(),
-                Description = "ExampleDescription"
+                Description = "ExampleDescription",
+                IsActive = true
             };
         }
 

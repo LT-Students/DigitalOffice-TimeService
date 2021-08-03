@@ -14,5 +14,6 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
         public DateTime CreatedAt { get; set; }
         public LeaveType LeaveType { get; set; }
         public string Comment { get; set; }
+        public bool IsActive { get; set; }
     }
 }

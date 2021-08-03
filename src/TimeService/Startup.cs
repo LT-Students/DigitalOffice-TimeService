@@ -40,7 +40,7 @@ namespace LT.DigitalOffice.TimeService
                 .GetSection(BaseServiceInfoConfig.SectionName)
                 .Get<BaseServiceInfoConfig>();
 
-            Version = "1.1.6";
+            Version = "1.1.7";
             Description = "TimeService is an API intended to work with the users time managment";
             StartTime = DateTime.UtcNow;
             ApiName = $"LT Digital Office - {_serviceInfoConfig.Name}";
