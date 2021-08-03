@@ -28,32 +28,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EditLeaveTimeCommand(
-            IEditLeaveTimeRequestValidator validator,
-            ILeaveTimeRepository repository,
-            IPatchDbLeaveTimeMapper mapper,
-            IAccessValidator accessValidator,
-            IHttpContextAccessor httpContextAccessor)
+        private void ValidateOverlapping(DbLeaveTime oldLeaveTime, Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
         {
-            _validator = validator;
-            _repository = repository;
-            _mapper = mapper;
-            _accessValidator = accessValidator;
-            _httpContextAccessor = httpContextAccessor;
-        }
-
-        public OperationResultResponse<bool> Execute(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
-        {
-            var oldDbWorkTime = _repository.Get(leaveTimeId);
-
-            var isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.UserId;
-            if (!isOwner && !_accessValidator.IsAdmin())
-            {
-                throw new ForbiddenException("Not enough rights.");
-            }
-
-            _validator.ValidateAndThrowCustom(request);
-
             List<DbLeaveTime> leaveTimes = null;
 
             Operation<EditLeaveTimeRequest> startTimeOperation = request.Operations.FirstOrDefault(
@@ -62,12 +38,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             {
                 DateTime startTime = DateTime.Parse(startTimeOperation.value.ToString());
 
-                if (oldDbWorkTime.EndTime <= startTime)
+                if (oldLeaveTime.EndTime <= startTime)
                 {
                     throw new BadRequestException("Start time should be less than end.");
                 }
 
-                leaveTimes = _repository.Find(new FindLeaveTimesFilter { UserId = oldDbWorkTime.UserId }, 0, int.MaxValue, out _);
+                leaveTimes = _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId }, 0, int.MaxValue, out _);
 
                 if (!leaveTimes.All(t => t.EndTime <= startTime || t.StartTime >= startTime))
                 {
@@ -81,12 +57,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             {
                 DateTime endTime = DateTime.Parse(endTimeOperation.value.ToString());
 
-                if (oldDbWorkTime.StartTime >= endTime)
+                if (oldLeaveTime.StartTime >= endTime)
                 {
                     throw new BadRequestException("End time should be greater than start.");
                 }
 
-                leaveTimes ??= _repository.Find(new FindLeaveTimesFilter { UserId = oldDbWorkTime.UserId }, 0, int.MaxValue, out _);
+                leaveTimes ??= _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId }, 0, int.MaxValue, out _);
 
                 if (!leaveTimes.All(t => t.StartTime >= endTime || t.EndTime <= endTime && t.StartTime <= endTime))
                 {
@@ -105,10 +81,39 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
                     throw new BadRequestException("New LeaveTime should not overlap with old ones.");
                 }
             }
+        }
+
+        public EditLeaveTimeCommand(
+            IEditLeaveTimeRequestValidator validator,
+            ILeaveTimeRepository repository,
+            IPatchDbLeaveTimeMapper mapper,
+            IAccessValidator accessValidator,
+            IHttpContextAccessor httpContextAccessor)
+        {
+            _validator = validator;
+            _repository = repository;
+            _mapper = mapper;
+            _accessValidator = accessValidator;
+            _httpContextAccessor = httpContextAccessor;
+        }
+
+        public OperationResultResponse<bool> Execute(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
+        {
+            var oldLeaveTime = _repository.Get(leaveTimeId);
+
+            var isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldLeaveTime.UserId;
+            if (!isOwner && !_accessValidator.IsAdmin())
+            {
+                throw new ForbiddenException("Not enough rights.");
+            }
+
+            _validator.ValidateAndThrowCustom(request);
+
+            ValidateOverlapping(oldLeaveTime, leaveTimeId, request);
 
             return new OperationResultResponse<bool>
             {
-                Body = _repository.Edit(oldDbWorkTime, _mapper.Map(request)),
+                Body = _repository.Edit(oldLeaveTime, _mapper.Map(request)),
                 Status = OperationResultStatusType.FullSuccess,
                 Errors = new()
             };
