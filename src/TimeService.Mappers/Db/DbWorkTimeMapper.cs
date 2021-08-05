@@ -26,7 +26,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
                 EndTime = request.EndTime,
                 CreatedAt = DateTime.Now,
                 Title = request.Title,
-                Description = !string.IsNullOrEmpty(request.Description?.Trim()) ? request.Description.Trim() : null
+                Description = !string.IsNullOrEmpty(request.Description?.Trim()) ? request.Description.Trim() : null,
+                IsActive = true
             };
         }
     }

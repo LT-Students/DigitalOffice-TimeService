@@ -3,11 +3,11 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using Microsoft.AspNetCore.JsonPatch;
 
-namespace LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces
+namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
 {
     [AutoInject]
-    public interface IPatchDbWorkTimeMapper
+    public interface IPatchDbLeaveTimeMapper
     {
-        JsonPatchDocument<DbWorkTime> Map(JsonPatchDocument<EditWorkTimeRequest> request);
+        JsonPatchDocument<DbLeaveTime> Map(JsonPatchDocument<EditLeaveTimeRequest> request);
     }
 }

@@ -82,8 +82,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             OperationResultResponse<Guid> response = new();
 
             var isAuthor = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
+            var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-            if (!isAuthor && !_accessValidator.IsAdmin())
+            if (!isOwner && !_accessValidator.IsAdmin())
             {
                 throw new ForbiddenException("Not enough rights.");
             }

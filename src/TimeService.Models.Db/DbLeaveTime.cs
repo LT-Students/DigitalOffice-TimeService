@@ -17,6 +17,7 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public DateTime CreatedAt { get; set; }
         public int LeaveType { get; set; }
         public string Comment { get; set; }
+        public bool IsActive { get; set; }
     }
 
     public class DbLeaveTimeConfiguration : IEntityTypeConfiguration<DbLeaveTime>

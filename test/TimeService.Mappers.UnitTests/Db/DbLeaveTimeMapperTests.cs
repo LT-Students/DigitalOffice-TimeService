@@ -44,7 +44,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 Comment = _request.Comment,
                 StartTime = _request.StartTime,
                 EndTime = _request.EndTime,
-                UserId = _request.UserId
+                UserId = _request.UserId,
+                IsActive = true
             };
         }
 
