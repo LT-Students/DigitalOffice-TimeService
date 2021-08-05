@@ -1,5 +1,6 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.Kernel.Configurations;
+using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
@@ -13,5 +14,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
 
         [AutoInjectRequest(typeof(IFindProjectsRequest))]
         public string FindProjectsEndpoint { get; set; }
+
+        [AutoInjectRequest(typeof(ICheckUserExistence))]
+        public string CheckUserExistenceEndpoint { get; set; }
     }
 }
