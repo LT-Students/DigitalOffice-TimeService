@@ -18,15 +18,13 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
             {
                 Id = dbWorkTime.Id,
                 UserId = dbWorkTime.UserId,
-                CreatedBy = dbWorkTime.CreatedBy,
-                Project = project ?? new ProjectInfo { Id = dbWorkTime.Id },
-                Minutes = dbWorkTime.Minutes,
-                StartTime = dbWorkTime.StartTime,
-                EndTime = dbWorkTime.EndTime,
-                CreatedAt = dbWorkTime.CreatedAt,
-                Title = dbWorkTime.Title,
-                Description = dbWorkTime.Description,
-                IsActive = dbWorkTime.IsActive
+                Project = project,
+                WorkTimeMonthLimitId = dbWorkTime.WorkTimeMonthLimitId,
+                Year = dbWorkTime.Year,
+                Month = dbWorkTime.Month,
+                UserHours = dbWorkTime.UserHours,
+                ManagerHours = dbWorkTime.ManagerHours,
+                Description = dbWorkTime.Description
             };
         }
     }
