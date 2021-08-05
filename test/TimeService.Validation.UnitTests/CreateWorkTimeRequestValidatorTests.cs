@@ -8,12 +8,12 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     public class CreateWorkTimeRequestValidatorTests
     {
-        private Mock<IWorkTimeRepository> _repositoryMock;
+        /*private Mock<IWorkTimeRepository> _repositoryMock;
         private ICreateWorkTimeRequestValidator _validator;
 
         private CreateWorkTimeRequest _request;
         private int _totalCount;
-        private DbWorkTime _expectedDbWorkTime;
+        private DbWorkTime _expectedDbWorkTime;*/
 
         //[SetUp]
         //public void Setup()

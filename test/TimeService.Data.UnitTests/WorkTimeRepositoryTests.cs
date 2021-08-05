@@ -1,4 +1,4 @@
-using LT.DigitalOffice.Kernel.Exceptions.Models;
+/*using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -302,4 +302,4 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
 
         #endregion
     }
-}
+}*/
