@@ -1,13 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
-using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Models.Db
 {
     public class DbWorkTimeMonthLimit
     {
-        public const string TableName = "WorkTimeMonthLimit";
+        public const string TableName = "WorkTimeMonthLimits";
 
         public Guid Id { get; set; }
         public int Month { get; set; }
@@ -16,13 +15,6 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public string Holidays { get; set; }
         public Guid? ModifiedBy { get; set; }
         public DateTime? ModifiedAtUtc { get; set; }
-
-        public ICollection<DbWorkTime> WorkTimes {get; set;}
-
-        public DbWorkTimeMonthLimit()
-        {
-            WorkTimes = new HashSet<DbWorkTime>();
-        }
     }
 
     public class DbDbWorkTimeMonthLimitConfiguration : IEntityTypeConfiguration<DbWorkTimeMonthLimit>
@@ -34,10 +26,6 @@ namespace LT.DigitalOffice.TimeService.Models.Db
 
             builder
                 .HasKey(k => k.Id);
-
-            builder
-                .HasMany(w => w.WorkTimes)
-                .WithOne(l => l.WorkTimeMonthLimit);
         }
     }
 }

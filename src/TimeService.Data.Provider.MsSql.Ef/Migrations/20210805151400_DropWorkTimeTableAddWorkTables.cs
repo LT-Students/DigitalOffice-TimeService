@@ -21,7 +21,6 @@ namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef.Migrations
                     Id = table.Column<Guid>(nullable: false),
                     UserId = table.Column<Guid>(nullable: false),
                     ProjectId = table.Column<Guid>(nullable: false),
-                    WorkTimeMonthLimitId = table.Column<Guid>(nullable: false),
                     Year = table.Column<int>(nullable: false),
                     Month = table.Column<int>(nullable: false),
                     UserHours = table.Column<float>(nullable: false),

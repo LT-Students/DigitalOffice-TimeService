@@ -19,7 +19,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
                 Id = dbWorkTime.Id,
                 UserId = dbWorkTime.UserId,
                 Project = project,
-                WorkTimeMonthLimitId = dbWorkTime.WorkTimeMonthLimitId,
                 Year = dbWorkTime.Year,
                 Month = dbWorkTime.Month,
                 UserHours = dbWorkTime.UserHours,

@@ -12,7 +12,6 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public Guid ProjectId { get; set; }
-        public Guid WorkTimeMonthLimitId { get; set; }
         public int Year { get; set; }
         public int Month { get; set; }
         public float UserHours { get; set; }
@@ -21,7 +20,6 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public DateTime? ModifiedAtUtc { get; set; }
         public Guid? ModifiedBy { get; set; }
 
-        public DbWorkTimeMonthLimit WorkTimeMonthLimit { get; set; }
         public ICollection<DbWorkTimeDayJob> WorkTimeDayJobs { get; set; }
 
         public DbWorkTime()
