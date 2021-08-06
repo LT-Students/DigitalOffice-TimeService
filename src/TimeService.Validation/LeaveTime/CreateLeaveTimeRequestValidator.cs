@@ -51,9 +51,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
             _logger = logger;
 
             RuleFor(lt => lt.UserId)
+                .NotEmpty()
                 .Must(UserId => CheckUserExistence(new List<Guid>() { UserId }))
-                .WithMessage("Project users don't exist.")
-                .NotEmpty().WithMessage("User Id can't be empty");
+                .WithMessage("This user doesn't exist.");
 
             RuleFor(lt => lt.LeaveType)
                 .IsInEnum();
