@@ -32,20 +32,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             IDbLeaveTimeMapper mapper,
             ILeaveTimeRepository repository,
             IAccessValidator accessValidator,
-            IHttpContextAccessor httpContextAccessor,
-            IRequestClient<ICheckUserExistence> rcCheckUsersExistence,
-            ILogger<CreateLeaveTimeCommand> logger)
+            IHttpContextAccessor httpContextAccessor)
         {
             _validator = validator;
             _mapper = mapper;
             _repository = repository;
             _accessValidator = accessValidator;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public OperationResultResponse<Guid> Execute(CreateLeaveTimeRequest request)
         {
-            List<string> errors = new();
-
             var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
             if (!isOwner && !_accessValidator.IsAdmin())

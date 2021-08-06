@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
     public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
     {
-        private readonly IRequestClient<ICheckUserExistence> _rcCheckUsersExistence;
+        private readonly IRequestClient<ICheckUsersExistence> _rcCheckUsersExistence;
         private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
 
         private bool CheckUserExistence(List<Guid> userIds)
@@ -24,8 +24,8 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
             try
             {
-                var s = ICheckUserExistence.CreateObj(userIds);
-                IOperationResult<ICheckUserExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUserExistence>>(
+                var s = ICheckUsersExistence.CreateObj(userIds);
+                IOperationResult<ICheckUsersExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
                     s).Result.Message;
                 if (response.IsSuccess && response.Body.UserIds.Count == 1)
                 {
@@ -44,33 +44,16 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
         public CreateLeaveTimeRequestValidator(
             ILeaveTimeRepository repository,
-            IRequestClient<ICheckUserExistence> rcCheckUsersExistence,
+            IRequestClient<ICheckUsersExistence> rcCheckUsersExistence,
             ILogger<CreateLeaveTimeRequestValidator> logger)
         {
             _rcCheckUsersExistence = rcCheckUsersExistence;
             _logger = logger;
 
             RuleFor(lt => lt.UserId)
-                .NotEmpty()
                 .Must(UserId => CheckUserExistence(new List<Guid>() { UserId }))
-                .WithMessage("Project users don't exist.");
-            /*.Must(lt =>
-            {
-                List<Guid> Ids = new();
-                Ids.Add(lt.UserId);
-                var existUsers = CheckUserExistence(Ids);
-                return existUsers.UserIds.Count == 0;
-            }).WithMessage("The user must participate in the project.");*/
-
-            /*RuleFor(lt => lt)
-                .Must(lt =>
-                {
-                    *//*List<Guid> Ids = new();
-                    Ids.Add(lt.UserId);
-                    var existUsers = CheckUserExistence(Ids);
-                    return existUsers.UserIds.Count != 0;*//*
-
-                }).WithMessage("Project users don't exist.");*/
+                .WithMessage("Project users don't exist.")
+                .NotEmpty().WithMessage("User Id can't be empty");
 
             RuleFor(lt => lt.LeaveType)
                 .IsInEnum();

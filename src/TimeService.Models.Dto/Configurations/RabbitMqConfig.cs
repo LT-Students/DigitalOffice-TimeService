@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
         [AutoInjectRequest(typeof(IFindProjectsRequest))]
         public string FindProjectsEndpoint { get; set; }
 
-        [AutoInjectRequest(typeof(ICheckUserExistence))]
-        public string CheckUserExistenceEndpoint { get; set; }
+        [AutoInjectRequest(typeof(ICheckUsersExistence))]
+        public string CheckUsersExistenceEndpoint { get; set; }
     }
 }
