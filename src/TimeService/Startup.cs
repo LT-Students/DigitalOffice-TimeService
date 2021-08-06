@@ -3,6 +3,9 @@ using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
+using LT.DigitalOffice.TimeService.Broker.Consumers;
+using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Dto.Configurations;
 using MassTransit;
@@ -98,6 +101,9 @@ namespace LT.DigitalOffice.TimeService
 
             ConfigureMassTransit(services);
 
+            services.AddTransient<WorkTimeCreater>();
+            services.AddTransient<WorkTimeLimitCreater>();
+
             services
                 .AddHealthChecks()
                 .AddSqlServer(connStr)
@@ -109,6 +115,8 @@ namespace LT.DigitalOffice.TimeService
             UpdateDatabase(app);
 
             app.UseForwardedHeaders();
+
+            CreateTime(app);
 
             app.UseExceptionsHandler(loggerFactory);
 
@@ -157,6 +165,8 @@ namespace LT.DigitalOffice.TimeService
         {
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<CreateWorkTimeConsumer>();
+
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(_rabbitMqConfig.Host, "/", host =>
@@ -164,12 +174,33 @@ namespace LT.DigitalOffice.TimeService
                         host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
                         host.Password(_serviceInfoConfig.Id);
                     });
+
+                    cfg.ReceiveEndpoint(_rabbitMqConfig.CreateWorkTimeEndpoint, ep =>
+                    {
+                        ep.ConfigureConsumer<CreateWorkTimeConsumer>(context);
+                    });
                 });
 
                 x.AddRequestClients(_rabbitMqConfig);
             });
 
             services.AddMassTransitHostedService();
+        }
+
+        private void CreateTime(IApplicationBuilder app)
+        {
+            var scope = app.ApplicationServices.CreateScope();
+
+            var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreater>();
+            var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreater>();
+            var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
+            var limitRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeMonthLimitRepository>();
+
+            var lastWorkTime = workTimeRepository.GetLast();
+            var lastLimit = limitRepository.GetLast();
+
+            workTimeCreater.Start(1, 10, lastWorkTime != null ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1) : default);
+            workTimeLimitCreater.Start(1, 10, lastLimit != null ? new DateTime(year: lastLimit.Year, month: lastLimit.Month, day: 1) : default);
         }
 
         #endregion

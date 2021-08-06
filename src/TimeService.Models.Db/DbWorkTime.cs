@@ -14,8 +14,8 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public Guid ProjectId { get; set; }
         public int Year { get; set; }
         public int Month { get; set; }
-        public float UserHours { get; set; }
-        public float ManagerHours { get; set; }
+        public float? UserHours { get; set; }
+        public float? ManagerHours { get; set; }
         public string Description { get; set; }
         public DateTime? ModifiedAtUtc { get; set; }
         public Guid? ModifiedBy { get; set; }
