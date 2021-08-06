@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef.Migrations
 {
     [DbContext(typeof(TimeServiceDbContext))]
-    [Migration("20210208143300_AddIsActiveColumns")]
+    [Migration("20210802143300_AddIsActiveColumns")]
     public class AddIsActiveColumns : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

@@ -12,6 +12,8 @@ namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef
     {
         public DbSet<DbLeaveTime> LeaveTimes { get; set; }
         public DbSet<DbWorkTime> WorkTimes { get; set; }
+        public DbSet<DbWorkTimeDayJob> WorkTimeDayJobs { get; set; }
+        public DbSet<DbWorkTimeMonthLimit> WorkTimeMonthLimits { get; set; }
 
         public TimeServiceDbContext(DbContextOptions<TimeServiceDbContext> options) : base(options)
         {

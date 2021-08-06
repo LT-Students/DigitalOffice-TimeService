@@ -1,6 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Models.Db
 {
@@ -11,29 +12,35 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public Guid Id { get; set; }
         public Guid UserId { get; set; }
         public Guid ProjectId { get; set; }
-        public Guid CreatedBy { get; set; }
-        public int Minutes { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public DateTime CreatedAt { get; set; }
-        public string Title { get; set; }
+        public int Year { get; set; }
+        public int Month { get; set; }
+        public float UserHours { get; set; }
+        public float ManagerHours { get; set; }
         public string Description { get; set; }
-        public bool IsActive { get; set; }
+        public DateTime? ModifiedAtUtc { get; set; }
+        public Guid? ModifiedBy { get; set; }
+
+        public ICollection<DbWorkTimeDayJob> WorkTimeDayJobs { get; set; }
+
+        public DbWorkTime()
+        {
+            WorkTimeDayJobs = new HashSet<DbWorkTimeDayJob>();
+        }
     }
 
     public class DbWorkTimeConfiguration : IEntityTypeConfiguration<DbWorkTime>
     {
         public void Configure(EntityTypeBuilder<DbWorkTime> builder)
         {
-            builder.
-                ToTable(DbWorkTime.TableName);
-
-            builder.
-                HasKey(p => p.Id);
+            builder
+                .ToTable(DbWorkTime.TableName);
 
             builder
-                .Property(p => p.Title)
-                .IsRequired();
+                .HasKey(p => p.Id);
+
+            builder
+                .HasMany(d => d.WorkTimeDayJobs)
+                .WithOne(w => w.WorkTime);
         }
     }
 }

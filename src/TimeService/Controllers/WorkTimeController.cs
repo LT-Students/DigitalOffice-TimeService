@@ -3,7 +3,6 @@ using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -14,14 +13,6 @@ namespace LT.DigitalOffice.TimeService.Controllers
     [ApiController]
     public class WorkTimeController : ControllerBase
     {
-        [HttpPost("add")]
-        public OperationResultResponse<Guid> Add(
-            [FromBody] CreateWorkTimeRequest workTime,
-            [FromServices] ICreateWorkTimeCommand command)
-        {
-            return command.Execute(workTime);
-        }
-
         [HttpGet("find")]
         public FindResultResponse<WorkTimeInfo> Find(
             [FromServices] IFindWorkTimesCommand command,
