@@ -68,21 +68,6 @@ namespace LT.DigitalOffice.TimeService.Data
                 dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
             }
 
-            if (filter.StartTime.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.StartTime >= filter.StartTime);
-            }
-
-            if (filter.EndTime.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.EndTime <= filter.EndTime);
-            }
-
-            if (!(filter.IncludeDeactivated.HasValue && filter.IncludeDeactivated.Value))
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.IsActive);
-            }
-
             totalCount = dbWorkTimes.Count();
 
             return dbWorkTimes.Skip(skipCount).Take(takeCount).ToList();

@@ -10,7 +10,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests.Models
 {
     public class WorkTimeInfoMapperTests
     {
-        private IWorkTimeInfoMapper _mapper;
+        /*private IWorkTimeInfoMapper _mapper;
 
         private DbWorkTime _dbWorkTime;
         private WorkTimeInfo _expectedWorkTimeInfo;
@@ -71,6 +71,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests.Models
             var result = _mapper.Map(_dbWorkTime, _expectedWorkTimeInfo.Project);
 
             SerializerAssert.AreEqual(_expectedWorkTimeInfo, result);
-        }
+        }*/
     }
 }

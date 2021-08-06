@@ -12,7 +12,7 @@ using System.Collections.Generic;
 
 namespace LT.DigitalOffice.ProjectService.Mappers.UnitTests.RequestsMappers
 {
-    public class PatchDbWorkTimeMapperTests
+    /*public class PatchDbWorkTimeMapperTests
     {
         private IPatchDbWorkTimeMapper _mapper;
         private JsonPatchDocument<EditWorkTimeRequest> _request;
@@ -116,5 +116,5 @@ namespace LT.DigitalOffice.ProjectService.Mappers.UnitTests.RequestsMappers
             JsonPatchDocument<EditWorkTimeRequest> nullRequest = null;
             Assert.Throws<ArgumentNullException>(() => _mapper.Map(nullRequest));
         }
-    }
+    }*/
 }

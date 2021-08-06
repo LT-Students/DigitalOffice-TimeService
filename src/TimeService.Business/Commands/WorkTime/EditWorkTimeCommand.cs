@@ -30,7 +30,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IRequestClient<IGetUserProjectsRequest> _rcGetUserProjects;
-        private readonly ILogger<ICreateWorkTimeRequestValidator> _logger;
+        private readonly ILogger<EditWorkTimeRequest> _logger;
 
         private bool IsUserInProject(Guid userId, Guid projectId)
         {
@@ -67,7 +67,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             IAccessValidator accessValidator,
             IHttpContextAccessor httpContextAccessor,
             IRequestClient<IGetUserProjectsRequest> rcGetUserProjects,
-            ILogger<ICreateWorkTimeRequestValidator> logger)
+            ILogger<EditWorkTimeRequest> logger)
         {
             _validator = validator;
             _repository = repository;
