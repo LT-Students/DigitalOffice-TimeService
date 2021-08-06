@@ -1,19 +1,76 @@
 ﻿using FluentValidation;
+using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using MassTransit;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
     public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
     {
-        public CreateLeaveTimeRequestValidator(ILeaveTimeRepository repository)
+        private readonly IRequestClient<ICheckUserExistence> _rcCheckUsersExistence;
+        private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
+
+        private bool CheckUserExistence(List<Guid> userIds)
         {
+            string logMessage = "Cannot check existing users {userIds}";
+
+            try
+            {
+                var s = ICheckUserExistence.CreateObj(userIds);
+                IOperationResult<ICheckUserExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUserExistence>>(
+                    s).Result.Message;
+                if (response.IsSuccess && response.Body.UserIds.Count == 1)
+                {
+                    return true;
+                }
+
+                _logger.LogWarning($"Can not find users with these Ids '{userIds}': " +
+                    $"{Environment.NewLine}{string.Join('\n', response.Errors)}");
+            }
+            catch (Exception exc)
+            {
+                _logger.LogError(exc, logMessage);
+            }
+            return false;
+        }
+
+        public CreateLeaveTimeRequestValidator(
+            ILeaveTimeRepository repository,
+            IRequestClient<ICheckUserExistence> rcCheckUsersExistence,
+            ILogger<CreateLeaveTimeRequestValidator> logger)
+        {
+            _rcCheckUsersExistence = rcCheckUsersExistence;
+            _logger = logger;
+
             RuleFor(lt => lt.UserId)
-                .NotEmpty();
+                .NotEmpty()
+                .Must(UserId => CheckUserExistence(new List<Guid>() { UserId }))
+                .WithMessage("Project users don't exist.");
+            /*.Must(lt =>
+            {
+                List<Guid> Ids = new();
+                Ids.Add(lt.UserId);
+                var existUsers = CheckUserExistence(Ids);
+                return existUsers.UserIds.Count == 0;
+            }).WithMessage("The user must participate in the project.");*/
+
+            /*RuleFor(lt => lt)
+                .Must(lt =>
+                {
+                    *//*List<Guid> Ids = new();
+                    Ids.Add(lt.UserId);
+                    var existUsers = CheckUserExistence(Ids);
+                    return existUsers.UserIds.Count != 0;*//*
+
+                }).WithMessage("Project users don't exist.");*/
 
             RuleFor(lt => lt.LeaveType)
                 .IsInEnum();

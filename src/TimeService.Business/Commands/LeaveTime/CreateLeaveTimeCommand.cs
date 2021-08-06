@@ -26,34 +26,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         private readonly ILeaveTimeRepository _repository;
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly IRequestClient<ICheckUserExistence> _rcCheckUsersExistence;
-        private readonly ILogger<CreateLeaveTimeCommand> _logger;
-
-        private ICheckUserExistence CheckUserExistence(List<Guid> userIds, List<string> errors)
-        {
-            string errorMessage = "Failed to check the existing users. Please try again later ";
-            string logMessage = "Cannot check existing users {userIds}";
-
-            try
-            {
-                var response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUserExistence>>(
-                    ICheckUserExistence.CreateObj(userIds)).Result;
-                if (response.Message.IsSuccess)
-                {
-                    return response.Message.Body;
-                }
-
-                _logger.LogWarning($"Can not find users with these Ids '{userIds}': " +
-                    $"{Environment.NewLine}{string.Join('\n', response.Message.Errors)}");
-            }
-            catch (Exception exc)
-            {
-                _logger.LogError(exc, logMessage);
-
-                errors.Add(errorMessage);
-            }
-            return null;
-        }
 
         public CreateLeaveTimeCommand(
             ICreateLeaveTimeRequestValidator validator,
@@ -68,18 +40,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             _mapper = mapper;
             _repository = repository;
             _accessValidator = accessValidator;
-            _httpContextAccessor = httpContextAccessor;
-            _rcCheckUsersExistence = rcCheckUsersExistence;
-            _logger = logger;
         }
 
         public OperationResultResponse<Guid> Execute(CreateLeaveTimeRequest request)
         {
             List<string> errors = new();
-
-            List<Guid> userIds = new(){request.UserId};
-
-            OperationResultResponse<Guid> response = new();
 
             var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
@@ -90,16 +55,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
             _validator.ValidateAndThrowCustom(request);
 
-            var existUsers = CheckUserExistence(userIds, errors);
-            if (existUsers.UserIds.Count == 0 )
-            {
-                response.Status = OperationResultStatusType.Failed;
-                response.Errors.Add("Project users don't exist.");
-                return response;
-            }
-
             var createdBy = _httpContextAccessor.HttpContext.GetUserId();
-            var dbLeaveTime = _mapper.Map(request, createdBy, existUsers.UserIds);
+            var dbLeaveTime = _mapper.Map(request, createdBy);
 
             return new OperationResultResponse<Guid>
             {

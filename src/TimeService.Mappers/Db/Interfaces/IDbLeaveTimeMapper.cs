@@ -9,6 +9,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
     [AutoInject]
     public interface IDbLeaveTimeMapper
     {
-        DbLeaveTime Map(CreateLeaveTimeRequest leaveTime, Guid createdBy, List<Guid> userIds);
+        DbLeaveTime Map(CreateLeaveTimeRequest leaveTime, Guid createdBy);
     }
 }

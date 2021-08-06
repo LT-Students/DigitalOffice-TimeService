@@ -9,7 +9,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
 {
     public class DbLeaveTimeMapper : IDbLeaveTimeMapper
     {
-        public DbLeaveTime Map(CreateLeaveTimeRequest request, Guid createdBy, List<Guid> userIds)
+        public DbLeaveTime Map(CreateLeaveTimeRequest request, Guid createdBy)
         {
             if (request == null)
             {
@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
             return new DbLeaveTime
             {
                 Id = Guid.NewGuid(),
-                UserId = userIds.FirstOrDefault(),
+                UserId = request.UserId,
                 CreatedBy = createdBy,
                 LeaveType = (int)request.LeaveType,
                 Minutes = request.Minutes,
