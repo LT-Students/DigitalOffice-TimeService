@@ -7,6 +7,7 @@ using LT.DigitalOffice.TimeService.Broker.Consumers;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Configurations;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -27,6 +28,7 @@ namespace LT.DigitalOffice.TimeService
         public const string CorsPolicyName = "LtDoCorsPolicy";
 
         private readonly RabbitMqConfig _rabbitMqConfig;
+        private readonly TimeConfig _timeConfig;
         private readonly BaseServiceInfoConfig _serviceInfoConfig;
 
         public IConfiguration Configuration { get; }
@@ -38,6 +40,10 @@ namespace LT.DigitalOffice.TimeService
             _rabbitMqConfig = Configuration
                 .GetSection(BaseRabbitMqConfig.SectionName)
                 .Get<RabbitMqConfig>();
+
+            _timeConfig = Configuration
+                .GetSection(TimeConfig.SectionName)
+                .Get<TimeConfig>();
 
             _serviceInfoConfig = Configuration
                 .GetSection(BaseServiceInfoConfig.SectionName)
@@ -74,6 +80,7 @@ namespace LT.DigitalOffice.TimeService
 
             services.Configure<TokenConfiguration>(Configuration.GetSection("CheckTokenMiddleware"));
             services.Configure<BaseRabbitMqConfig>(Configuration.GetSection(BaseRabbitMqConfig.SectionName));
+            services.Configure<TimeConfig>(Configuration.GetSection(TimeConfig.SectionName));
             services.Configure<BaseServiceInfoConfig>(Configuration.GetSection(BaseServiceInfoConfig.SectionName));
 
             services.AddHttpContextAccessor();
@@ -86,10 +93,15 @@ namespace LT.DigitalOffice.TimeService
                 .AddNewtonsoftJson();
 
             string connStr = Environment.GetEnvironmentVariable("ConnectionString");
-
             if (string.IsNullOrEmpty(connStr))
             {
                 connStr = Configuration.GetConnectionString("SQLConnectionString");
+            }
+
+            string timeToTryAgaing = Environment.GetEnvironmentVariable("TimeToRestartCreatingRecords");
+            if (string.IsNullOrEmpty(timeToTryAgaing) && int.TryParse(timeToTryAgaing, out int minutes))
+            {
+                _timeConfig.MinutesToRestart = minutes;
             }
 
             services.AddDbContext<TimeServiceDbContext>(options =>
@@ -196,11 +208,20 @@ namespace LT.DigitalOffice.TimeService
             var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
             var limitRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeMonthLimitRepository>();
 
-            var lastWorkTime = workTimeRepository.GetLast();
-            var lastLimit = limitRepository.GetLast();
+            DbWorkTime lastWorkTime = workTimeRepository.GetLast();
+            DbWorkTimeMonthLimit lastLimit = limitRepository.GetLast();
 
-            workTimeCreater.Start(1, 10, lastWorkTime != null ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1) : default);
-            workTimeLimitCreater.Start(1, 10, lastLimit != null ? new DateTime(year: lastLimit.Year, month: lastLimit.Month, day: 1) : default);
+            workTimeCreater.Start(
+                _timeConfig.MinutesToRestart,
+                lastWorkTime != null
+                    ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1)
+                    : default);
+
+            workTimeLimitCreater.Start(
+                _timeConfig.MinutesToRestart,
+                lastLimit != null
+                    ? new DateTime(year: lastLimit.Year, month: lastLimit.Month, day: 1)
+                    : default);
         }
 
         #endregion

@@ -18,10 +18,9 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         private readonly IRequestClient<IGetProjectsUsersRequest> _rcProjectsUsers;
         private readonly ILogger<WorkTimeCreater> _logger;
 
-        public int StartDayOfMonth { get; private set; }
-        public int CountOfMinutesToRestartAfterError { get; private set; }
-        public DateTime LastSuccessfulAttempt { get; private set; }
-        public DateTime PreviousAttempt { get; private set; }
+        private int _minutesToRestart;
+        private DateTime _lastSuccessfulAttempt;
+        private DateTime _previousAttempt;
 
         private Dictionary<Guid, List<Guid>> GetProjectsUsers()
         {
@@ -55,7 +54,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 
             if (projectsUsers == null)
             {
-                PreviousAttempt = DateTime.UtcNow;
+                _previousAttempt = DateTime.UtcNow;
                 return false;
             }
 
@@ -75,8 +74,8 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
                 }
             }
 
-            PreviousAttempt = DateTime.UtcNow;
-            LastSuccessfulAttempt = PreviousAttempt;
+            _previousAttempt = DateTime.UtcNow;
+            _lastSuccessfulAttempt = _previousAttempt;
             return true;
         }
 
@@ -91,28 +90,25 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         }
 
         public void Start(
-            int startDayOfMonth,
-            int countOfMinutesToRestartAfterError,
+            int minutesToRestartAfterError,
             DateTime lastSuccessfulAttempt)
         {
-            StartDayOfMonth = startDayOfMonth;
-            CountOfMinutesToRestartAfterError = countOfMinutesToRestartAfterError;
-            LastSuccessfulAttempt = lastSuccessfulAttempt;
+            _minutesToRestart = minutesToRestartAfterError;
+            _lastSuccessfulAttempt = lastSuccessfulAttempt;
 
             Task.Run(() =>
             {
                 while (true)
                 {
-                    if (LastSuccessfulAttempt == default
-                    || DateTime.UtcNow.Month != LastSuccessfulAttempt.Month && DateTime.UtcNow.Day >= StartDayOfMonth
-                    || LastSuccessfulAttempt != PreviousAttempt)
+                    if (_lastSuccessfulAttempt == default
+                    || DateTime.UtcNow.Month != _lastSuccessfulAttempt.Month)
                     {
                         Execute();
                     }
 
-                    if (LastSuccessfulAttempt != PreviousAttempt)
+                    if (_lastSuccessfulAttempt != _previousAttempt)
                     {
-                        Thread.Sleep(countOfMinutesToRestartAfterError * 60000);
+                        Thread.Sleep(_minutesToRestart * 60000);
                     }
                     else
                     {
