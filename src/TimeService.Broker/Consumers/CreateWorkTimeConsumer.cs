@@ -24,6 +24,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
                     Id = Guid.NewGuid(),
                     ProjectId = request.ProjectId,
                     UserId = userId,
+                    Day = now.Day,
                     Month = now.Month,
                     Year = now.Year
                 });
