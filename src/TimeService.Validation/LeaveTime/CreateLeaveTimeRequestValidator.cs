@@ -24,14 +24,12 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
             try
             {
-                var s = ICheckUsersExistence.CreateObj(userIds);
                 IOperationResult<ICheckUsersExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
-                    s).Result.Message;
+                    ICheckUsersExistence.CreateObj(userIds)).Result.Message;
                 if (response.IsSuccess && response.Body.UserIds.Count == 1)
                 {
                     return true;
                 }
-
                 _logger.LogWarning($"Can not find users with these Ids '{userIds}': " +
                     $"{Environment.NewLine}{string.Join('\n', response.Errors)}");
             }
