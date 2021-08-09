@@ -20,15 +20,13 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 
         private string GetNonWorkingDays(DateTime time)
         {
-            const string logMessage = "Cannot get non-working days.";
-
             try
             {
                 return _calendarHelper.GetWorkCalendarByMonth(time.Month, time.Year);
             }
             catch (Exception exc)
             {
-                _logger.LogError(exc, logMessage);
+                _logger.LogError(exc, "Cannot get non-working days.");
 
                 return null;
             }

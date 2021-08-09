@@ -10,6 +10,11 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         private const string BaseUrl = "https://isdayoff.ru/api/getdata";
         private readonly HttpClient _httpClient;
 
+        private const string _badRequest = "101";
+        private const string _notFound = "101";
+        private const char _nonWorkingDay = '1';
+        private const char _workingDay = '0';
+
         public WorkCalendarHelper()
         {
             _httpClient = new HttpClient();
@@ -19,17 +24,17 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         {
             string stringResponse = responseMessage.Content.ReadAsStringAsync().Result;
 
-            if (stringResponse == "101")
+            if (stringResponse == _badRequest)
             {
                 throw new InvalidOperationException("Incorrect format of data.");
             }
 
-            if (stringResponse == "100")
+            if (stringResponse == _notFound)
             {
                 throw new InvalidOperationException("Data was not found.");
             }
 
-            return new string(stringResponse.Select(c => c == '1' ? '1' : '0').ToArray());
+            return new string(stringResponse.Select(c => c == _nonWorkingDay ? _nonWorkingDay : _workingDay).ToArray());
         }
 
         private HttpResponseMessage SendGetRequest(string url, IDictionary<string, object> parameters)
