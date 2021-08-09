@@ -9,7 +9,6 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
         public ProjectInfo Project { get; set; }
         public int Year { get; set; }
         public int Month { get; set; }
-        public int Day { get; set; }
         public float? UserHours { get; set; }
         public float? ManagerHours { get; set; }
         public string Description { get; set; }

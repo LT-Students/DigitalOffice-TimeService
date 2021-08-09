@@ -20,28 +20,14 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
             AddСorrectPaths(
                 new()
                 {
-                    nameof(EditWorkTimeRequest.Day),
                     nameof(EditWorkTimeRequest.UserHours),
                     nameof(EditWorkTimeRequest.ManagerHours),
                     nameof(EditWorkTimeRequest.Description)
                 });
 
-            AddСorrectOperations(nameof(EditWorkTimeRequest.Day), new List<OperationType> { OperationType.Replace });
             AddСorrectOperations(nameof(EditWorkTimeRequest.UserHours), new List<OperationType> { OperationType.Replace });
             AddСorrectOperations(nameof(EditWorkTimeRequest.ManagerHours), new List<OperationType> { OperationType.Replace });
             AddСorrectOperations(nameof(EditWorkTimeRequest.Description), new List<OperationType> { OperationType.Replace });
-            #endregion
-
-            #region Day
-
-            AddFailureForPropertyIf(
-                nameof(EditWorkTimeRequest.Day),
-                x => x == OperationType.Replace,
-                new()
-                {
-                    { x => int.TryParse(x.value.ToString(), out int day) && day < 32 && day > 0, "Incorrect format of Day." }
-                });
-
             #endregion
 
             #region UserHours

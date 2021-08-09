@@ -66,7 +66,6 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
                         new DbWorkTime
                         {
                             Id = Guid.NewGuid(),
-                            Day = 1,
                             Month = time.Month,
                             Year = time.Year,
                             ProjectId = pair.Key,
