@@ -8,10 +8,15 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     {
         public string AuthenticationServiceValidationUrl { get; set; }
 
+        public string CreateWorkTimeEndpoint { get; set; }
+
         [AutoInjectRequest(typeof(IGetUserProjectsRequest))]
         public string GetProjectIdsEndpoint { get; set; }
 
         [AutoInjectRequest(typeof(IFindProjectsRequest))]
         public string FindProjectsEndpoint { get; set; }
+
+        [AutoInjectRequest(typeof(IGetProjectsUsersRequest))]
+        public string GetProjectsUsersEndpoint { get; set; }
     }
 }

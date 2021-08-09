@@ -15,6 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TimeService.Broker\TimeService.Broker.csproj" />
     <ProjectReference Include="..\TimeService.Business\TimeService.Business.csproj" />
     <ProjectReference Include="..\TimeService.Data.Provider.MsSql.Ef\TimeService.Data.Provider.MsSql.Ef.csproj" />
     <ProjectReference Include="..\TimeService.Models.Dto\TimeService.Models.Dto.csproj" />

@@ -52,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
             }
 
             Operation<EditLeaveTimeRequest> endTimeOperation = request.Operations.FirstOrDefault(
-                o => o.path.EndsWith(nameof(EditWorkTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+                o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
             if (endTimeOperation != null)
             {
                 DateTime endTime = DateTime.Parse(endTimeOperation.value.ToString());
