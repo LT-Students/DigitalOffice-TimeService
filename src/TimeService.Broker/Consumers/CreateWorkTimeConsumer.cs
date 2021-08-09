@@ -14,7 +14,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
 
         private bool CreateWorkTime(ICreateWorkTimeRequest request)
         {
-            DateTime now = DateTime.UtcNow;
+            DateTime timeNow = DateTime.UtcNow;
 
             foreach(Guid userId in request.UserIds)
             {
@@ -24,8 +24,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
                     Id = Guid.NewGuid(),
                     ProjectId = request.ProjectId,
                     UserId = userId,
-                    Month = now.Month,
-                    Year = now.Year
+                    Month = timeNow.Month,
+                    Year = timeNow.Year
                 });
             }
 
