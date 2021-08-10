@@ -1,4 +1,5 @@
 ﻿using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
@@ -6,10 +7,9 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Requests.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Models.Dto.Requests.HelpersModels;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
@@ -42,21 +42,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         {
             var oldDbWorkTime = _repository.Get(workTimeId);
 
-            var isAuthor = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.CreatedBy;
-            if (!isAuthor && !_accessValidator.IsAdmin())
+            var isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.UserId;
+            if (!isOwner && !_accessValidator.IsAdmin() && !_accessValidator.HasRights(Rights.AddEditRemoveTime))
             {
                 throw new ForbiddenException("Not enough rights.");
             }
 
-            //TODO update validation
-            //var editModel = new EditWorkTimeModel
-            //{
-            //    JsonPatchDocument = request,
-            //    Id = workTimeId,
-            //    UserId = oldDbWorkTime.UserId
-            //};
-
-            //_validator.ValidateAndThrowCustom(editModel);
+            _validator.ValidateAndThrowCustom(request);
 
             return new OperationResultResponse<bool>
             {

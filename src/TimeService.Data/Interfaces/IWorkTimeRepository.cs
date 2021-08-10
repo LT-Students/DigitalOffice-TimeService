@@ -21,5 +21,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
         List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipCount, int takeCount, out int totalCount);
 
         bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
+
+        DbWorkTime GetLast();
     }
 }

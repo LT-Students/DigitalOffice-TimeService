@@ -25,7 +25,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
                 StartTime = request.StartTime,
                 EndTime = request.EndTime,
                 CreatedAt = DateTime.Now,
-                Comment = !string.IsNullOrEmpty(request.Comment?.Trim()) ? request.Comment.Trim() : null
+                Comment = !string.IsNullOrEmpty(request.Comment?.Trim()) ? request.Comment.Trim() : null,
+                IsActive = true
             };
         }
     }

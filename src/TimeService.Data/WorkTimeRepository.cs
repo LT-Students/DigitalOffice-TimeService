@@ -68,16 +68,6 @@ namespace LT.DigitalOffice.TimeService.Data
                 dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
             }
 
-            if (filter.StartTime.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.StartTime >= filter.StartTime);
-            }
-
-            if (filter.EndTime.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.EndTime <= filter.EndTime);
-            }
-
             totalCount = dbWorkTimes.Count();
 
             return dbWorkTimes.Skip(skipCount).Take(takeCount).ToList();
@@ -89,6 +79,14 @@ namespace LT.DigitalOffice.TimeService.Data
             _provider.Save();
 
             return true;
+        }
+
+        public DbWorkTime GetLast()
+        {
+            return _provider.WorkTimes
+                .OrderByDescending(wt => wt.Year)
+                .ThenByDescending(wt => wt.Month)
+                .FirstOrDefault();
         }
     }
 }

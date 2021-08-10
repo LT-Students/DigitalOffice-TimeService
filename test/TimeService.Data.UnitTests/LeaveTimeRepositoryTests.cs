@@ -39,7 +39,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 5),
                 EndTime = new DateTime(2020, 7, 25),
-                UserId = _firstWorkerId
+                UserId = _firstWorkerId,
+                IsActive = true
             };
             _secondLeaveTime = new DbLeaveTime
             {
@@ -48,7 +49,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 10),
                 EndTime = new DateTime(2020, 7, 20),
-                UserId = _secondWorkerId
+                UserId = _secondWorkerId,
+                IsActive = true
             };
             _thirdLeaveTime = new DbLeaveTime
             {
@@ -57,7 +59,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
                 Comment = "SickLeave",
                 StartTime = new DateTime(2020, 7, 5),
                 EndTime = new DateTime(2020, 7, 25),
-                UserId = _firstWorkerId
+                UserId = _firstWorkerId,
+                IsActive = true
             };
         }
 

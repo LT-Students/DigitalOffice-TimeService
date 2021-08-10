@@ -1,19 +1,19 @@
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using Moq;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
     public class CreateWorkTimeRequestValidatorTests
     {
-        private Mock<IWorkTimeRepository> _repositoryMock;
+        /*private Mock<IWorkTimeRepository> _repositoryMock;
         private ICreateWorkTimeRequestValidator _validator;
 
         private CreateWorkTimeRequest _request;
         private int _totalCount;
-        private DbWorkTime _expectedDbWorkTime;
+        private DbWorkTime _expectedDbWorkTime;*/
 
         //[SetUp]
         //public void Setup()

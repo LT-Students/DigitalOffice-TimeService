@@ -2,11 +2,11 @@
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using System;
 using System.Linq;
 
-namespace LT.DigitalOffice.TimeService.Validation
+namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
     public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
     {
