@@ -51,9 +51,9 @@ namespace LT.DigitalOffice.TimeService.Data
                 throw new BadRequestException("Skip count can't be less than 0.");
             }
 
-            if (takeCount <= 0)
+            if (takeCount < 1)
             {
-                throw new BadRequestException("Take count can't be equal or less than 0.");
+                throw new BadRequestException("Take count can't be less than 1.");
             }
 
             var dbWorkTimes = _provider.WorkTimes.AsQueryable();
@@ -66,6 +66,16 @@ namespace LT.DigitalOffice.TimeService.Data
             if (filter.ProjectId.HasValue)
             {
                 dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
+            }
+
+            if (filter.Month.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.Month == filter.Month.Value);
+            }
+
+            if (filter.Year.HasValue)
+            {
+                dbWorkTimes = dbWorkTimes.Where(x => x.Year == filter.Year.Value);
             }
 
             totalCount = dbWorkTimes.Count();
