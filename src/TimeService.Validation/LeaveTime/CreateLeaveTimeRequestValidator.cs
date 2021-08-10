@@ -26,7 +26,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
             {
                 IOperationResult<ICheckUsersExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
                     ICheckUsersExistence.CreateObj(userIds)).Result.Message;
-                if (response.IsSuccess && response.Body.UserIds.Count == 1)
+                if (response.IsSuccess && response.Body.UserIds.Count == 1 && response.Body.UserIds[0] == userIds[0])
                 {
                     return true;
                 }
