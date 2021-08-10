@@ -1,8 +1,10 @@
 ﻿using LT.DigitalOffice.Kernel.Exceptions.Models;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
@@ -13,10 +15,14 @@ namespace LT.DigitalOffice.TimeService.Data
     public class WorkTimeRepository : IWorkTimeRepository
     {
         private readonly IDataProvider _provider;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public WorkTimeRepository(IDataProvider provider)
+        public WorkTimeRepository(
+            IDataProvider provider,
+            IHttpContextAccessor httpContextAccessor)
         {
             _provider = provider;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Guid Create(DbWorkTime dbWorkTime)
@@ -86,6 +92,8 @@ namespace LT.DigitalOffice.TimeService.Data
         public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
         {
             jsonPatchDocument.ApplyTo(dbWorkTime);
+            dbWorkTime.ModifiedAtUtc = DateTime.UtcNow;
+            dbWorkTime.ModifiedBy = _httpContextAccessor.HttpContext.GetUserId();
             _provider.Save();
 
             return true;

@@ -1,8 +1,10 @@
 ﻿using LT.DigitalOffice.Kernel.Exceptions.Models;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using System;
 using System.Collections.Generic;
@@ -13,10 +15,14 @@ namespace LT.DigitalOffice.TimeService.Data
     public class WorkTimeMonthLimitRepository : IWorkTimeMonthLimitRepository
     {
         private readonly IDataProvider _provider;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public WorkTimeMonthLimitRepository(IDataProvider provider)
+        public WorkTimeMonthLimitRepository(
+            IDataProvider provider,
+            IHttpContextAccessor httpContextAccessor)
         {
             _provider = provider;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public Guid Add(DbWorkTimeMonthLimit workTimeMonthLimit)
@@ -38,6 +44,8 @@ namespace LT.DigitalOffice.TimeService.Data
                 ?? throw new NotFoundException($"No worktime month limits with id {workTimeMonthLimitId}");
 
             request.ApplyTo(dbWorkTimeMonthLimit);
+            dbWorkTimeMonthLimit.ModifiedAtUtc = DateTime.UtcNow;
+            dbWorkTimeMonthLimit.ModifiedBy = _httpContextAccessor.HttpContext.GetUserId();
             _provider.Save();
 
             return true;
