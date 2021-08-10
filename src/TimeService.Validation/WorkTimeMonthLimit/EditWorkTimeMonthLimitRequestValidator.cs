@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit
                     {
                         x =>
                         {
-                            Regex regex = new("[10]+");
+                            Regex regex = new("^[10]+");
 
                             return regex.IsMatch(x.value?.ToString()?.Trim());
                         },
