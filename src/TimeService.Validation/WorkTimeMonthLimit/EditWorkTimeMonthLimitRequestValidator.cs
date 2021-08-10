@@ -12,6 +12,8 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit
     public class EditWorkTimeMonthLimitRequestValidator
         : BaseEditRequestValidator<EditWorkTimeMonthLimitRequest>, IEditWorkTimeMonthLimitRequestValidator
     {
+        private static Regex _holidayRegex = new("^[10]+$");
+
         private void HandleInternalPropertyValidation(Operation<EditWorkTimeMonthLimitRequest> requestedOperation, CustomContext context)
         {
             Context = context;
@@ -69,9 +71,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit
                     {
                         x =>
                         {
-                            Regex regex = new("^[10]+$");
-
-                            return regex.IsMatch(x.value?.ToString()?.Trim());
+                            return _holidayRegex.IsMatch(x.value?.ToString()?.Trim());
                         },
                         "Incorrect format of holidays."
                     }
