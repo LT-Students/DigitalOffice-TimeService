@@ -80,5 +80,13 @@ namespace LT.DigitalOffice.TimeService.Data
 
             return true;
         }
+
+        public DbWorkTime GetLast()
+        {
+            return _provider.WorkTimes
+                .OrderByDescending(wt => wt.Year)
+                .ThenByDescending(wt => wt.Month)
+                .FirstOrDefault();
+        }
     }
 }

@@ -3,7 +3,11 @@ using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.Kernel.Middlewares.Token;
+using LT.DigitalOffice.TimeService.Broker.Consumers;
+using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Configurations;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
@@ -24,6 +28,7 @@ namespace LT.DigitalOffice.TimeService
         public const string CorsPolicyName = "LtDoCorsPolicy";
 
         private readonly RabbitMqConfig _rabbitMqConfig;
+        private readonly TimeConfig _timeConfig;
         private readonly BaseServiceInfoConfig _serviceInfoConfig;
 
         public IConfiguration Configuration { get; }
@@ -35,6 +40,10 @@ namespace LT.DigitalOffice.TimeService
             _rabbitMqConfig = Configuration
                 .GetSection(BaseRabbitMqConfig.SectionName)
                 .Get<RabbitMqConfig>();
+
+            _timeConfig = Configuration
+                .GetSection(TimeConfig.SectionName)
+                .Get<TimeConfig>();
 
             _serviceInfoConfig = Configuration
                 .GetSection(BaseServiceInfoConfig.SectionName)
@@ -71,6 +80,7 @@ namespace LT.DigitalOffice.TimeService
 
             services.Configure<TokenConfiguration>(Configuration.GetSection("CheckTokenMiddleware"));
             services.Configure<BaseRabbitMqConfig>(Configuration.GetSection(BaseRabbitMqConfig.SectionName));
+            services.Configure<TimeConfig>(Configuration.GetSection(TimeConfig.SectionName));
             services.Configure<BaseServiceInfoConfig>(Configuration.GetSection(BaseServiceInfoConfig.SectionName));
 
             services.AddHttpContextAccessor();
@@ -83,10 +93,15 @@ namespace LT.DigitalOffice.TimeService
                 .AddNewtonsoftJson();
 
             string connStr = Environment.GetEnvironmentVariable("ConnectionString");
-
             if (string.IsNullOrEmpty(connStr))
             {
                 connStr = Configuration.GetConnectionString("SQLConnectionString");
+            }
+
+            string timeToTryAgaing = Environment.GetEnvironmentVariable("TimeToRestartCreatingRecords");
+            if (string.IsNullOrEmpty(timeToTryAgaing) && int.TryParse(timeToTryAgaing, out int minutes))
+            {
+                _timeConfig.MinutesToRestart = minutes;
             }
 
             services.AddDbContext<TimeServiceDbContext>(options =>
@@ -97,6 +112,9 @@ namespace LT.DigitalOffice.TimeService
             services.AddBusinessObjects();
 
             ConfigureMassTransit(services);
+
+            services.AddTransient<WorkTimeCreater>();
+            services.AddTransient<WorkTimeLimitCreater>();
 
             services
                 .AddHealthChecks()
@@ -109,6 +127,8 @@ namespace LT.DigitalOffice.TimeService
             UpdateDatabase(app);
 
             app.UseForwardedHeaders();
+
+            CreateTime(app);
 
             app.UseExceptionsHandler(loggerFactory);
 
@@ -157,6 +177,8 @@ namespace LT.DigitalOffice.TimeService
         {
             services.AddMassTransit(x =>
             {
+                x.AddConsumer<CreateWorkTimeConsumer>();
+
                 x.UsingRabbitMq((context, cfg) =>
                 {
                     cfg.Host(_rabbitMqConfig.Host, "/", host =>
@@ -164,12 +186,42 @@ namespace LT.DigitalOffice.TimeService
                         host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
                         host.Password(_serviceInfoConfig.Id);
                     });
+
+                    cfg.ReceiveEndpoint(_rabbitMqConfig.CreateWorkTimeEndpoint, ep =>
+                    {
+                        ep.ConfigureConsumer<CreateWorkTimeConsumer>(context);
+                    });
                 });
 
                 x.AddRequestClients(_rabbitMqConfig);
             });
 
             services.AddMassTransitHostedService();
+        }
+
+        private void CreateTime(IApplicationBuilder app)
+        {
+            var scope = app.ApplicationServices.CreateScope();
+
+            var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreater>();
+            var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreater>();
+            var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
+            var limitRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeMonthLimitRepository>();
+
+            DbWorkTime lastWorkTime = workTimeRepository.GetLast();
+            DbWorkTimeMonthLimit lastLimit = limitRepository.GetLast();
+
+            workTimeCreater.Start(
+                _timeConfig.MinutesToRestart,
+                lastWorkTime != null
+                    ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1)
+                    : default);
+
+            workTimeLimitCreater.Start(
+                _timeConfig.MinutesToRestart,
+                lastLimit != null
+                    ? new DateTime(year: lastLimit.Year, month: lastLimit.Month, day: 1)
+                    : default);
         }
 
         #endregion
