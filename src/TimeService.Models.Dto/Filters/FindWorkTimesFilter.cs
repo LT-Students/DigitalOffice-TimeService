@@ -19,5 +19,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 
         [FromQuery(Name = "includedeactivated")]
         public bool? IncludeDeactivated { get; set; }
+
+        [FromQuery(Name = "includedayjobs")]
+        public bool? IncludeDayJobs { get; set; }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 {
@@ -12,5 +13,6 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
         public float? UserHours { get; set; }
         public float? ManagerHours { get; set; }
         public string Description { get; set; }
+        public List<WorkTimeDayJobInfo> Jobs { get; set; }
     }
 }
