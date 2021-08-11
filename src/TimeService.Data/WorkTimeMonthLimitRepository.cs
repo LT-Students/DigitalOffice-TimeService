@@ -40,7 +40,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
         public bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request)
         {
-            DbWorkTimeMonthLimit dbWorkTimeMonthLimit = _provider.WorkTimeMonthLimits.FirstOrDefault(l => l.Id == workTimeMonthLimitId)
+            DbWorkTimeMonthLimit dbWorkTimeMonthLimit = _provider.WorkTimeMonthLimits.FirstOrDefault(ml => ml.Id == workTimeMonthLimitId)
                 ?? throw new NotFoundException($"No worktime month limits with id {workTimeMonthLimitId}");
 
             request.ApplyTo(dbWorkTimeMonthLimit);
@@ -63,9 +63,9 @@ namespace LT.DigitalOffice.TimeService.Data
                 throw new BadRequestException("Skip count can't be less than 0.");
             }
 
-            if (takeCount <= 0)
+            if (takeCount < 1)
             {
-                throw new BadRequestException("Take count can't be equal or less than 0.");
+                throw new BadRequestException("Take count can't be less than 1.");
             }
 
             var dbWorkTimeMonthLimits = _provider.WorkTimeMonthLimits.AsQueryable();

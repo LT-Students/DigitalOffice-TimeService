@@ -27,8 +27,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
             return new()
             {
                 Status = OperationResultStatusType.FullSuccess,
-                Body = _repository.Find(filter, skipCount, takeCount, out int total).Select(_mapper.Map).ToList(),
-                TotalCount = total,
+                Body = _repository.Find(filter, skipCount, takeCount, out int totalCount).Select(_mapper.Map).ToList(),
+                TotalCount = totalCount,
                 Errors = new()
             };
         }
