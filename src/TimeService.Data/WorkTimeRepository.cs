@@ -6,6 +6,7 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -74,6 +75,11 @@ namespace LT.DigitalOffice.TimeService.Data
                 dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
             }
 
+            if (filter.IncludeDayJobs.HasValue && filter.IncludeDayJobs.Value)
+            {
+                dbWorkTimes = dbWorkTimes.Include(wt => wt.WorkTimeDayJobs.Where(dj => dj.IsActive));
+            }
+
             if (filter.Month.HasValue)
             {
                 dbWorkTimes = dbWorkTimes.Where(x => x.Month == filter.Month.Value);
@@ -105,6 +111,11 @@ namespace LT.DigitalOffice.TimeService.Data
                 .OrderByDescending(wt => wt.Year)
                 .ThenByDescending(wt => wt.Month)
                 .FirstOrDefault();
+        }
+
+        public bool Contains(Guid id)
+        {
+            return _provider.WorkTimes.Any(wt => wt.Id == id);
         }
     }
 }
