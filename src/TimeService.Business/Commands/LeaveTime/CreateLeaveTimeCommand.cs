@@ -1,16 +1,21 @@
 ﻿using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
