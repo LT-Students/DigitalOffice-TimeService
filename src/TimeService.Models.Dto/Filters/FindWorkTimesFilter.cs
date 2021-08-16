@@ -11,11 +11,11 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
         [FromQuery(Name = "projectid")]
         public Guid? ProjectId { get; set; }
 
-        [FromQuery(Name = "starttime")]
-        public DateTime? StartTime { get; set; }
+        [FromQuery(Name = "month")]
+        public int? Month { get; set; }
 
-        [FromQuery(Name = "endtime")]
-        public DateTime? EndTime { get; set; }
+        [FromQuery(Name = "year")]
+        public int? Year { get; set; }
 
         [FromQuery(Name = "includedeactivated")]
         public bool? IncludeDeactivated { get; set; }
