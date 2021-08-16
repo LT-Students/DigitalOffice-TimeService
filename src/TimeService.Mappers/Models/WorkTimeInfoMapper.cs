@@ -18,7 +18,11 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
             {
                 Id = dbWorkTime.Id,
                 UserId = dbWorkTime.UserId,
-                Project = project,
+                Project = project
+                    ?? new ProjectInfo
+                    {
+                        Id = dbWorkTime.Id
+                    },
                 Year = dbWorkTime.Year,
                 Month = dbWorkTime.Month,
                 UserHours = dbWorkTime.UserHours,
