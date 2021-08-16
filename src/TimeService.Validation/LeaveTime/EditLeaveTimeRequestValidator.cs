@@ -37,6 +37,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
             AddСorrectOperations(nameof(EditLeaveTimeRequest.LeaveType), new List<OperationType> { OperationType.Replace });
             AddСorrectOperations(nameof(EditLeaveTimeRequest.IsActive), new List<OperationType> { OperationType.Replace });
             AddСorrectOperations(nameof(EditLeaveTimeRequest.Comment), new List<OperationType> { OperationType.Replace });
+
             #endregion
 
             #region StartTime

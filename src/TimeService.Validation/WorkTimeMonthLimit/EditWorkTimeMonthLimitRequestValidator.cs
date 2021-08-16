@@ -30,6 +30,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit
 
             AddСorrectOperations(nameof(EditWorkTimeMonthLimitRequest.NormHours), new List<OperationType> { OperationType.Replace });
             AddСorrectOperations(nameof(EditWorkTimeMonthLimitRequest.Holidays), new List<OperationType> { OperationType.Replace });
+
             #endregion
 
             #region NormHours
