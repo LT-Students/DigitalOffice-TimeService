@@ -11,7 +11,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         {
             if (dbWorkTimeMonthLimit == null)
             {
-                throw new ArgumentNullException(nameof(dbWorkTimeMonthLimit));
+                return null;
             }
 
             return new WorkTimeMonthLimitInfo

@@ -85,6 +85,28 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbWorkTimeMonthLimits.Skip(skipCount).Take(takeCount).ToList();
         }
 
+        public List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter)
+        {
+            if (filter == null)
+            {
+                throw new ArgumentNullException(nameof(filter));
+            }
+
+            var dbWorkTimeMonthLimits = _provider.WorkTimeMonthLimits.AsQueryable();
+
+            if (filter.Month.HasValue)
+            {
+                dbWorkTimeMonthLimits = dbWorkTimeMonthLimits.Where(x => x.Month == filter.Month.Value);
+            }
+
+            if (filter.Year.HasValue)
+            {
+                dbWorkTimeMonthLimits = dbWorkTimeMonthLimits.Where(x => x.Year == filter.Year.Value);
+            }
+
+            return dbWorkTimeMonthLimits.ToList();
+        }
+
         public DbWorkTimeMonthLimit Get(int year, int month)
         {
             return _provider.WorkTimeMonthLimits.FirstOrDefault(l => l.Year == year && l.Month == month);
