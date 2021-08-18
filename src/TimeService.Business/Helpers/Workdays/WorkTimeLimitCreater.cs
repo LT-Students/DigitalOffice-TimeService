@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.TimeService.Data.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
+using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,7 +12,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
     public class WorkTimeLimitCreater
     {
         private readonly IWorkTimeMonthLimitRepository _limitRepository;
-        private readonly WorkCalendarHelper _calendarHelper;
+        private readonly ICalendar _calendar;
         private readonly ILogger<WorkTimeLimitCreater> _logger;
 
         private int _minutesToRestart;
@@ -22,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         {
             try
             {
-                return _calendarHelper.GetWorkCalendarByMonth(time.Month, time.Year);
+                return _calendar.GetWorkCalendarByMonth(time.Month, time.Year);
             }
             catch (Exception exc)
             {
@@ -67,7 +68,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
             ILogger<WorkTimeLimitCreater> logger)
         {
             _limitRepository = limitRepository;
-            _calendarHelper = new();
+            _calendar = new IsDayOffIntegration();
             _logger = logger;
         }
 

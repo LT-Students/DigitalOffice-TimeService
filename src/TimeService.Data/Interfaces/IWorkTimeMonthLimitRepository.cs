@@ -18,6 +18,8 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
         List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter, int skipCount, int takeCount, out int totalCount);
 
+        List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter);
+
         bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
     }
 }
