@@ -13,6 +13,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -113,6 +114,7 @@ namespace LT.DigitalOffice.TimeService
 
             ConfigureMassTransit(services);
 
+            services.AddSingleton<IMemoryCache, MemoryCache>();
             services.AddTransient<WorkTimeCreater>();
             services.AddTransient<WorkTimeLimitCreater>();
 

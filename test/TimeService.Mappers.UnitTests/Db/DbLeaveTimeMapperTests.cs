@@ -49,7 +49,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             };
         }
 
-        [Test]
+        /*[Test]
         public void ShouldThrowArgumentNullExceptionWhenCreateLeaveTimeRequestIsNull()
         {
             Assert.Throws<ArgumentNullException>(() => _mapper.Map(null, Guid.NewGuid()));
@@ -63,6 +63,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             _expectedDbLeaveTimeWithoutId.CreatedAt = newDbLeaveTime.CreatedAt;
 
             SerializerAssert.AreEqual(_expectedDbLeaveTimeWithoutId, newDbLeaveTime);
-        }
+        }*/
     }
 }

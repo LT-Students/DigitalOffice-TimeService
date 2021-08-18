@@ -2,6 +2,7 @@
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using System;
+using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
 {

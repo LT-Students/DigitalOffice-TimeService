@@ -22,7 +22,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         private DbLeaveTime _expectedDbLeaveTime;
         private int _totalCount;
 
-        [SetUp]
+        /*[SetUp]
         public void Setup()
         {
             _repositoryMock = new Mock<ILeaveTimeRepository>();
@@ -166,6 +166,6 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             };
 
             _validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
-        }
+        }*/
     }
 }
