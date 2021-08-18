@@ -28,43 +28,46 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         private readonly IAccessValidator _accessValidator;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
-        private void ValidateOverlapping(DbLeaveTime oldLeaveTime, Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
+        private void ValidateOverlapping(DbLeaveTime oldLeaveTime, JsonPatchDocument<EditLeaveTimeRequest> request)
         {
-            List<DbLeaveTime> leaveTimes = null;
-
             Operation<EditLeaveTimeRequest> startTimeOperation = request.Operations.FirstOrDefault(
                 o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
-            if (startTimeOperation != null)
+            Operation<EditLeaveTimeRequest> endTimeOperation = request.Operations.FirstOrDefault(
+                o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+
+            if (startTimeOperation == null && endTimeOperation == null)
+            {
+                return;
+            }
+
+            List<DbLeaveTime> leaveTimes = _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId }, 0, int.MaxValue, out _)
+                .Where(lt => lt.Id != oldLeaveTime.Id).ToList();
+
+            if (startTimeOperation != null && endTimeOperation == null)
             {
                 DateTime startTime = DateTime.Parse(startTimeOperation.value.ToString());
 
-                if (oldLeaveTime.EndTime <= startTime)
+                if (oldLeaveTime.EndTime < startTime)
                 {
                     throw new BadRequestException("Start time should be less than end.");
                 }
 
-                leaveTimes = _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId }, 0, int.MaxValue, out _);
-
-                if (!leaveTimes.All(t => t.EndTime <= startTime || t.StartTime >= startTime))
+                if (!leaveTimes.All(t => t.EndTime < startTime || t.StartTime > oldLeaveTime.EndTime))
                 {
                     throw new BadRequestException("New LeaveTime should not overlap with old ones.");
                 }
             }
 
-            Operation<EditLeaveTimeRequest> endTimeOperation = request.Operations.FirstOrDefault(
-                o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
-            if (endTimeOperation != null)
+            if (startTimeOperation == null && endTimeOperation != null)
             {
                 DateTime endTime = DateTime.Parse(endTimeOperation.value.ToString());
 
-                if (oldLeaveTime.StartTime >= endTime)
+                if (oldLeaveTime.StartTime > endTime)
                 {
                     throw new BadRequestException("End time should be greater than start.");
                 }
 
-                leaveTimes ??= _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId }, 0, int.MaxValue, out _);
-
-                if (!leaveTimes.All(t => t.StartTime >= endTime || t.EndTime <= endTime && t.StartTime <= endTime))
+                if (!leaveTimes.All(t => t.StartTime > endTime || t.EndTime > oldLeaveTime.StartTime))
                 {
                     throw new BadRequestException("New LeaveTime should not overlap with old ones.");
                 }
@@ -76,7 +79,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
                 DateTime startTime = DateTime.Parse(startTimeOperation.value.ToString());
                 DateTime endTime = DateTime.Parse(endTimeOperation.value.ToString());
 
-                if (!leaveTimes.All(t => t.StartTime >= endTime || t.EndTime <= startTime))
+                if (!leaveTimes.All(t => t.StartTime > endTime || t.EndTime < startTime))
                 {
                     throw new BadRequestException("New LeaveTime should not overlap with old ones.");
                 }
@@ -109,7 +112,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
             _validator.ValidateAndThrowCustom(request);
 
-            ValidateOverlapping(oldLeaveTime, leaveTimeId, request);
+            ValidateOverlapping(oldLeaveTime, request);
 
             return new OperationResultResponse<bool>
             {
