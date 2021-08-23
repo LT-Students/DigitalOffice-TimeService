@@ -114,7 +114,7 @@ namespace LT.DigitalOffice.TimeService
 
             ConfigureMassTransit(services);
 
-            services.AddSingleton<IMemoryCache, MemoryCache>();
+            services.AddMemoryCache();
             services.AddTransient<WorkTimeCreater>();
             services.AddTransient<WorkTimeLimitCreater>();
 
