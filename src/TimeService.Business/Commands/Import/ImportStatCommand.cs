@@ -207,10 +207,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         AddHeaderCell(ws, columnNumber, project.Name, MainProjectColor);
         columnNumber++;
 
+        int leaveTypeCount = 0;
         foreach (var leaveName in Enum.GetValues(typeof(LeaveType)))
         {
           AddHeaderCell(ws, columnNumber, leaveName.ToString(), LeaveTypesColor);
           columnNumber++;
+          leaveTypeCount++;
         }
 
         ws.Cell(2, 2).Value = "Total";
@@ -244,10 +246,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           int column = 7;
 
-          foreach (var leaveTime in leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id))
+          List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id).ToList();
+
+          for(int i = 0; i < leaveTypeCount; i++)
           {
             //TODO use method
-            ws.Cell(row, column + leaveTime.LeaveType).SetValue((float)leaveTime.Minutes / 60);
+            ws.Cell(row, column + i).SetValue((float)usersLeaveTimes.Where(lt => lt.LeaveType == i).Sum(lt => lt.Minutes) / 60);
           }
         }
 
@@ -312,10 +316,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           columnNumber++;
         }
 
+        int leaveTypeCount = 0;
         foreach(var leaveName in Enum.GetValues(typeof(LeaveType)))
         {
           AddHeaderCell(ws, columnNumber, leaveName.ToString(), LeaveTypesColor);
           columnNumber++;
+          leaveTypeCount++;
         }
 
         ws.Cell(2, 2).Value = "Total";
@@ -365,10 +371,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
             column++;
           }
 
-          foreach(var leaveTime in leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id))
+          List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id).ToList();
+
+          for (int i = 0; i < leaveTypeCount; i++)
           {
             //TODO use method
-            ws.Cell(row, column + leaveTime.LeaveType).SetValue((float)leaveTime.Minutes / 60);
+            ws.Cell(row, column + i).SetValue((float)usersLeaveTimes.Where(lt => lt.LeaveType == i).Sum(lt => lt.Minutes) / 60);
           }
         }
 
