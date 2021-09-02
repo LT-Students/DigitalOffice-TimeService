@@ -66,12 +66,12 @@ namespace LT.DigitalOffice.TimeService.Data
 
       if (filter.StartTime.HasValue)
       {
-        dbLeaveTimes = dbLeaveTimes.Where(x => x.StartTime >= filter.StartTime);
+        dbLeaveTimes = dbLeaveTimes.Where(x => x.StartTime >= filter.StartTime || x.EndTime > filter.StartTime);
       }
 
       if (filter.EndTime.HasValue)
       {
-        dbLeaveTimes = dbLeaveTimes.Where(x => x.EndTime <= filter.EndTime);
+        dbLeaveTimes = dbLeaveTimes.Where(x => x.EndTime <= filter.EndTime || x.StartTime < filter.EndTime);
       }
 
       if (!(filter.IncludeDeactivated.HasValue && filter.IncludeDeactivated.Value))

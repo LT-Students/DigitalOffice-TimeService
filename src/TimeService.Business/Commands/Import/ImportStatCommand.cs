@@ -147,7 +147,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     #region Create table
 
-    //create this method for counting
+    //create this method for counting ours
     private float GetLeaveTimeOurs(DbWorkTimeMonthLimit monthLimit, DbLeaveTime leaveTime, int year, int month)
     {
       if (leaveTime.StartTime.Month == month && leaveTime.StartTime.Year == year
