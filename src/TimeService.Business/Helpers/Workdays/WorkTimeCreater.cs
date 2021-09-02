@@ -1,4 +1,5 @@
 ﻿using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -22,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         private DateTime _lastSuccessfulAttempt;
         private DateTime _previousAttempt;
 
-        private Dictionary<Guid, List<Guid>> GetProjectsUsers()
+        private List<ProjectUserData> GetProjectsUsers()
         {
             const string logMessage = "Cannot get projects users.";
 
@@ -33,7 +34,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 
                 if (response.Message.IsSuccess)
                 {
-                    return response.Message.Body.ProjectUsers;
+                    return response.Message.Body.Users;
                 }
 
                 _logger.LogWarning(logMessage);
@@ -50,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         {
             DateTime time = DateTime.UtcNow;
 
-            Dictionary<Guid, List<Guid>> projectsUsers = GetProjectsUsers();
+            List<ProjectUserData> projectsUsers = GetProjectsUsers();
 
             if (projectsUsers == null)
             {
@@ -58,20 +59,17 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
                 return false;
             }
 
-            foreach (var pair in projectsUsers)
+            foreach (var user in projectsUsers)
             {
-                foreach (var userId in pair.Value)
-                {
-                    _workTimeRepository.Create(
-                        new DbWorkTime
-                        {
-                            Id = Guid.NewGuid(),
-                            Month = time.Month,
-                            Year = time.Year,
-                            ProjectId = pair.Key,
-                            UserId = userId
-                        });
-                }
+                _workTimeRepository.Create(
+                    new DbWorkTime
+                    {
+                        Id = Guid.NewGuid(),
+                        Month = time.Month,
+                        Year = time.Year,
+                        ProjectId = user.ProjectId,
+                        UserId = user.UserId
+                    });
             }
 
             _previousAttempt = DateTime.UtcNow;
