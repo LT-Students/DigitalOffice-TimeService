@@ -205,7 +205,6 @@ namespace LT.DigitalOffice.TimeService
       var limitRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeMonthLimitRepository>();
 
       DbWorkTime lastWorkTime = workTimeRepository.GetLast();
-      DbWorkTimeMonthLimit lastLimit = limitRepository.GetLast();
 
       workTimeCreater.Start(
           _timeConfig.MinutesToRestart,
@@ -214,10 +213,7 @@ namespace LT.DigitalOffice.TimeService
               : default);
 
       workTimeLimitCreater.Start(
-          _timeConfig.MinutesToRestart,
-          lastLimit != null
-              ? new DateTime(year: lastLimit.Year, month: lastLimit.Month, day: 1)
-              : default);
+          _timeConfig.MinutesToRestart);
     }
 
     #endregion
