@@ -6,7 +6,7 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Patch.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
@@ -20,7 +20,7 @@ using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
-    public class EditLeaveTimeCommand : IEditLeaveTimeCommand
+  public class EditLeaveTimeCommand : IEditLeaveTimeCommand
     {
         private readonly IEditLeaveTimeRequestValidator _validator;
         private readonly ILeaveTimeRepository _repository;
@@ -40,7 +40,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
                 return;
             }
 
-            List<DbLeaveTime> leaveTimes = _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId }, 0, int.MaxValue, out _)
+            //TODO rework this line
+            List<DbLeaveTime> leaveTimes = _repository.Find(new FindLeaveTimesFilter { UserId = oldLeaveTime.UserId, SkipCount = 0, TakeCount = int.MaxValue }, out _)
                 .Where(lt => lt.Id != oldLeaveTime.Id).ToList();
 
             if (startTimeOperation != null && endTimeOperation == null)

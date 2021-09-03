@@ -10,7 +10,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Controllers
 {
-    [Route("[controller]")]
+  [Route("[controller]")]
     [ApiController]
     public class LeaveTimeController : ControllerBase
     {
@@ -23,13 +23,11 @@ namespace LT.DigitalOffice.TimeService.Controllers
         }
 
         [HttpGet("find")]
-        public FindResultResponse<LeaveTimeInfo> Find(
+        public FindResultResponse<LeaveTimeResponse> Find(
             [FromServices] IFindLeaveTimesCommand command,
-            [FromQuery] FindLeaveTimesFilter filter,
-            [FromQuery] int skipPagesCount,
-            [FromQuery] int takeCount)
+            [FromQuery] FindLeaveTimesFilter filter)
         {
-            return command.Execute(filter, skipPagesCount, takeCount);
+            return command.Execute(filter);
         }
 
         [HttpPatch("edit")]

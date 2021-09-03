@@ -46,19 +46,19 @@ namespace LT.DigitalOffice.TimeService.Data
             return dbWorkTime;
         }
 
-        public List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipCount, int takeCount, out int totalCount)
+        public List<DbWorkTime> Find(FindWorkTimesFilter filter, out int totalCount)
         {
             if (filter == null)
             {
                 throw new ArgumentNullException(nameof(filter));
             }
 
-            if (skipCount < 0)
+            if (filter.SkipCount < 0)
             {
                 throw new BadRequestException("Skip count can't be less than 0.");
             }
 
-            if (takeCount < 1)
+            if (filter.TakeCount < 1)
             {
                 throw new BadRequestException("Take count can't be less than 1.");
             }
@@ -92,7 +92,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
             totalCount = dbWorkTimes.Count();
 
-            return dbWorkTimes.Skip(skipCount).Take(takeCount).ToList();
+            return dbWorkTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToList();
         }
 
         public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
@@ -117,5 +117,23 @@ namespace LT.DigitalOffice.TimeService.Data
         {
             return _provider.WorkTimes.Any(wt => wt.Id == id);
         }
+
+    public List<DbWorkTime> Find(List<Guid> usersIds, int year, int month, bool includeJobs = false)
+    {
+      if (usersIds == null)
+      {
+        return null;
+      }
+
+      IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
+        .Where(wt => usersIds.Contains(wt.UserId) && wt.Year == year && wt.Month == month);
+
+      if (includeJobs)
+      {
+        workTimes = workTimes.Include(wt => wt.WorkTimeDayJobs);
+      }
+
+      return workTimes.ToList();
     }
+  }
 }

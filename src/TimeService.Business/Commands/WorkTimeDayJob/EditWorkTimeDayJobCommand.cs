@@ -7,7 +7,7 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Patch.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTimeDayJob.Interfaces;
@@ -17,7 +17,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
 {
-    public class EditWorkTimeDayJobCommand : IEditWorkTimeDayJobCommand
+  public class EditWorkTimeDayJobCommand : IEditWorkTimeDayJobCommand
     {
         private readonly IEditWorkTimeDayJobRequestValidator _validator;
         private readonly IAccessValidator _accessValidator;
