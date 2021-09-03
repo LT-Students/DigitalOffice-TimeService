@@ -145,7 +145,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     {
       if (userIds == null || !userIds.Any())
       {
-        return new();
+        return null;
       }
 
       string message = "Cannot get users data. Please try again later.";
@@ -170,7 +170,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       errors.Add(message);
 
-      return new();
+      return null;
     }
 
     #endregion
@@ -275,6 +275,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       }
 
       List<UserInfo> usersInfos = GetUsers(userIds, errors);
+
+      if (usersInfos == null)
+      {
+        return new FindResultResponse<StatInfo>
+        {
+          Status = OperationResultStatusType.Failed,
+          Errors = errors
+        };
+      }
+
       List<DbWorkTime> workTimes = _workTimeRepository.Find(userIds, filter.Year, filter.Month, true);
       List<DbLeaveTime> leaveTimes = _leaveTimeRepository.Find(userIds, filter.Year, filter.Month);
       List<ProjectInfo> projectsInfos = projects.Select(_projectInfoMapper.Map).ToList();

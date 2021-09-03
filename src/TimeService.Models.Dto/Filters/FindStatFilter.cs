@@ -5,16 +5,16 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 {
   public record FindStatFilter
   {
-    [FromQuery(Name = "departmentId")]
+    [FromQuery(Name = "departmentid")]
     public Guid? DepartmentId { get; set; }
 
-    [FromQuery(Name = "projectId")]
+    [FromQuery(Name = "projectid")]
     public Guid? ProjectId { get; set; }
 
-    [FromQuery(Name = "skipCount")]
+    [FromQuery(Name = "skipcount")]
     public int SkipCount { get; set; }
 
-    [FromQuery(Name = "takeCount")]
+    [FromQuery(Name = "takecount")]
     public int TakeCount { get; set; }
 
     [FromQuery(Name = "year")]

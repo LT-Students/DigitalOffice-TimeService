@@ -11,6 +11,8 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 {
   public class WorkTimeLimitCreater
   {
+    private const int WorkingDayDuration = 8;
+
     private readonly IWorkTimeMonthLimitRepository _limitRepository;
     private readonly ICalendar _calendar;
     private readonly ILogger<WorkTimeLimitCreater> _logger;
@@ -60,7 +62,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         ModifiedBy = null,
         Month = time.Month,
         Year = time.Year,
-        NormHours = holidays.ToCharArray().Count(h => h == '0') * 8
+        NormHours = holidays.ToCharArray().Count(h => h == '0') * WorkingDayDuration
       };
 
       _limitRepository.Add(limit);

@@ -14,6 +14,33 @@ namespace LT.DigitalOffice.TimeService.Data
   {
     private readonly IDataProvider _provider;
 
+    private IQueryable<DbLeaveTime> CreateQueryble(FindLeaveTimesFilter filter)
+    {
+      var dbLeaveTimes = _provider.LeaveTimes.AsQueryable();
+
+      if (filter.UserId.HasValue)
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(x => x.UserId == filter.UserId);
+      }
+
+      if (filter.StartTime.HasValue)
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(x => x.StartTime >= filter.StartTime || x.EndTime > filter.StartTime);
+      }
+
+      if (filter.EndTime.HasValue)
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(x => x.EndTime <= filter.EndTime || x.StartTime < filter.EndTime);
+      }
+
+      if (!(filter.IncludeDeactivated.HasValue && filter.IncludeDeactivated.Value))
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(x => x.IsActive);
+      }
+
+      return dbLeaveTimes;
+    }
+
     public LeaveTimeRepository(IDataProvider provider)
     {
       _provider = provider;
@@ -57,27 +84,7 @@ namespace LT.DigitalOffice.TimeService.Data
         throw new ArgumentNullException(nameof(filter));
       }
 
-      var dbLeaveTimes = _provider.LeaveTimes.AsQueryable();
-
-      if (filter.UserId.HasValue)
-      {
-        dbLeaveTimes = dbLeaveTimes.Where(x => x.UserId == filter.UserId);
-      }
-
-      if (filter.StartTime.HasValue)
-      {
-        dbLeaveTimes = dbLeaveTimes.Where(x => x.StartTime >= filter.StartTime || x.EndTime > filter.StartTime);
-      }
-
-      if (filter.EndTime.HasValue)
-      {
-        dbLeaveTimes = dbLeaveTimes.Where(x => x.EndTime <= filter.EndTime || x.StartTime < filter.EndTime);
-      }
-
-      if (!(filter.IncludeDeactivated.HasValue && filter.IncludeDeactivated.Value))
-      {
-        dbLeaveTimes = dbLeaveTimes.Where(x => x.IsActive);
-      }
+      IQueryable<DbLeaveTime> dbLeaveTimes = CreateQueryble(filter);
 
       totalCount = dbLeaveTimes.Count();
 
