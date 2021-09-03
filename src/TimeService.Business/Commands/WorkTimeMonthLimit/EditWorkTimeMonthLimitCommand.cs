@@ -6,7 +6,7 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Patch.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit.Interfaces;
 using Microsoft.AspNetCore.JsonPatch;
@@ -14,7 +14,7 @@ using System;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
 {
-    public class EditWorkTimeMonthLimitCommand : IEditWorkTimeMonthLimitCommand
+  public class EditWorkTimeMonthLimitCommand : IEditWorkTimeMonthLimitCommand
     {
         private readonly IWorkTimeMonthLimitRepository _repository;
         private readonly IPatchDbWorkTimeMonthLimitMapper _mapper;

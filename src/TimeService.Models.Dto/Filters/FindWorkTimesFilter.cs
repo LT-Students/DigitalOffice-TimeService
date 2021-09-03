@@ -1,26 +1,32 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System;
+﻿using System;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 {
-    public class FindWorkTimesFilter
-    {
-        [FromQuery(Name = "userid")]
-        public Guid? UserId { get; set; }
+  public class FindWorkTimesFilter
+  {
+    [FromQuery(Name = "userid")]
+    public Guid? UserId { get; set; }
 
-        [FromQuery(Name = "projectid")]
-        public Guid? ProjectId { get; set; }
+    [FromQuery(Name = "projectid")]
+    public Guid? ProjectId { get; set; }
 
-        [FromQuery(Name = "month")]
-        public int? Month { get; set; }
+    [FromQuery(Name = "month")]
+    public int? Month { get; set; }
 
-        [FromQuery(Name = "year")]
-        public int? Year { get; set; }
+    [FromQuery(Name = "year")]
+    public int? Year { get; set; }
 
-        [FromQuery(Name = "includedeactivated")]
-        public bool? IncludeDeactivated { get; set; }
+    [FromQuery(Name = "skipCount")]
+    public int SkipCount { get; set; }
 
-        [FromQuery(Name = "includedayjobs")]
-        public bool? IncludeDayJobs { get; set; }
-    }
+    [FromQuery(Name = "takeCount")]
+    public int TakeCount { get; set; }
+
+    [FromQuery(Name = "includedeactivated")]
+    public bool? IncludeDeactivated { get; set; }
+
+    [FromQuery(Name = "includedayjobs")]
+    public bool? IncludeDayJobs { get; set; }
+  }
 }
