@@ -260,7 +260,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       {
         projectUsers = projects?.SelectMany(p => p.Users).ToList();
 
-        userIds = projectUsers?.Select(pu => pu.UserId).OrderBy(id => id).Distinct().ToList();
+        userIds = projectUsers?.Select(pu => pu.UserId).Distinct().ToList();
 
         totalCount = userIds.Count();
       }
