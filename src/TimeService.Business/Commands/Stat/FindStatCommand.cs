@@ -285,7 +285,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         };
       }
 
-      List<DbWorkTime> workTimes = _workTimeRepository.Find(userIds, filter.Year, filter.Month, true);
+      List<DbWorkTime> workTimes = _workTimeRepository.Find(userIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month, true);
       List<DbLeaveTime> leaveTimes = _leaveTimeRepository.Find(userIds, filter.Year, filter.Month);
       List<ProjectInfo> projectsInfos = projects.Select(_projectInfoMapper.Map).ToList();
 

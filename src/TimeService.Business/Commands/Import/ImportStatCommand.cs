@@ -391,7 +391,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
             ws.Cell(row, column + i).SetValue(
                 usersLeaveTimes
                 .Where(lt => lt.LeaveType == i)
-                .Select(lt => GetLeaveTimeOurs(monthsLimits, lt, filter.Year, filter.Month)).Sum());
+                .Select(lt => GetLeaveTimeOurs(monthsLimits, lt, filter.Year, filter.Month))
+                .Sum());
           }
         }
 
@@ -550,7 +551,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         projectsUsers = GetProjectsUsers(usersIds, errors);
 
-        projects = GetProjects(projectsUsers.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
+        projects = GetProjects(projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
       }
       else
       {
@@ -570,7 +571,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         };
       }
 
-      List<DbWorkTime> workTimes = _workTimeRepository.Find(usersIds, filter.Year, filter.Month);
+      List<DbWorkTime> workTimes = _workTimeRepository.Find(usersIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month);
       List<DbLeaveTime> leaveTimes = _leaveTimeRepository.Find(usersIds, filter.Year, filter.Month);
       List<DbWorkTimeMonthLimit> monthsLimits = GetNeededRangeOfMonthLimits(
         filter.Year,
