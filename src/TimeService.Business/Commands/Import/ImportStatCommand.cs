@@ -300,7 +300,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       List<DbLeaveTime> leaveTimes,
       List<DbWorkTimeMonthLimit> monthsLimits)
     {
-      monthsLimits = monthsLimits.OrderBy(ml => ml.Year * 12 + ml.Month).ToList();
+      monthsLimits = monthsLimits?.OrderBy(ml => ml.Year * 12 + ml.Month).ToList();
       DbWorkTimeMonthLimit thisMonthLimit = monthsLimits.First(ml => ml.Year == filter.Year && ml.Month == filter.Month);
       MemoryStream ms = new MemoryStream();
 
