@@ -98,12 +98,14 @@ namespace LT.DigitalOffice.TimeService.Data
         return null;
       }
 
+      int countMonths = year * 12 + month;
+
       return _provider.LeaveTimes
         .Where(
           lt =>
             usersIds.Contains(lt.UserId)
-            && (lt.StartTime.Month == month && lt.StartTime.Year == year
-            || lt.EndTime.Month == month && lt.EndTime.Year == year)).ToList();
+            && lt.StartTime.Month + lt.StartTime.Year * 12 <= countMonths
+            && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths).ToList();
     }
 
     public DbLeaveTime Get(Guid leaveTimeId)

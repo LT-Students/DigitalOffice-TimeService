@@ -22,7 +22,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     List<DbWorkTime> Find(FindWorkTimesFilter filter, out int totalCount);
 
-    List<DbWorkTime> Find(List<Guid> usersIds, int year, int month, bool includeJobs = false);
+    List<DbWorkTime> Find(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false);
 
     bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
 
