@@ -118,7 +118,7 @@ namespace LT.DigitalOffice.TimeService.Data
             return _provider.WorkTimes.Any(wt => wt.Id == id);
         }
 
-    public List<DbWorkTime> Find(List<Guid> usersIds, int year, int month, bool includeJobs = false)
+    public List<DbWorkTime> Find(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false)
     {
       if (usersIds == null)
       {
@@ -126,7 +126,11 @@ namespace LT.DigitalOffice.TimeService.Data
       }
 
       IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
-        .Where(wt => usersIds.Contains(wt.UserId) && wt.Year == year && wt.Month == month);
+        .Where(wt =>
+          usersIds.Contains(wt.UserId)
+          && projectsIds.Contains(wt.ProjectId)
+          && wt.Year == year
+          && wt.Month == month);
 
       if (includeJobs)
       {

@@ -380,18 +380,22 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         column += projects.Count;
 
-        for (int number = 0; number < usersInfos.Count; number++)
+        if (leaveTimes != null && leaveTimes.Any())
         {
-          int row = number + 3;
-
-          List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id).ToList();
-
-          for (int i = 0; i < leaveTypeCount; i++)
+          for (int number = 0; number < usersInfos.Count; number++)
           {
-            ws.Cell(row, column + i).SetValue(
-                usersLeaveTimes
-                .Where(lt => lt.LeaveType == i)
-                .Select(lt => GetLeaveTimeOurs(monthsLimits, lt, filter.Year, filter.Month)).Sum());
+            int row = number + 3;
+
+            List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id).ToList();
+
+            for (int i = 0; i < leaveTypeCount; i++)
+            {
+              ws.Cell(row, column + i).SetValue(
+                  usersLeaveTimes
+                  .Where(lt => lt.LeaveType == i)
+                  .Select(lt => GetLeaveTimeOurs(monthsLimits, lt, filter.Year, filter.Month))
+                  .Sum());
+            }
           }
         }
 
@@ -550,7 +554,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         projectsUsers = GetProjectsUsers(usersIds, errors);
 
-        projects = GetProjects(projectsUsers.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
+        projects = GetProjects(projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
       }
       else
       {
@@ -570,13 +574,36 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         };
       }
 
-      List<DbWorkTime> workTimes = _workTimeRepository.Find(usersIds, filter.Year, filter.Month);
+      List<DbWorkTime> workTimes = _workTimeRepository.Find(usersIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month);
       List<DbLeaveTime> leaveTimes = _leaveTimeRepository.Find(usersIds, filter.Year, filter.Month);
-      List<DbWorkTimeMonthLimit> monthsLimits = GetNeededRangeOfMonthLimits(
-        filter.Year,
-        filter.Month,
-        leaveTimes.Select(lt => lt.StartTime).Min(),
-        leaveTimes.Select(lt => lt.EndTime).Max());
+      List<DbWorkTimeMonthLimit> monthsLimits;
+      if (leaveTimes.Any())
+      {
+        monthsLimits = GetNeededRangeOfMonthLimits(
+          filter.Year,
+          filter.Month,
+          leaveTimes.Select(lt => lt.StartTime).Min(),
+          leaveTimes.Select(lt => lt.EndTime).Max());
+      }
+      else
+      {
+        DbWorkTimeMonthLimit monthLimit = _workTimeMonthLimitRepository.Get(filter.Year, filter.Month);
+
+        if (monthLimit == null)
+        {
+          errors.Add("Cannot get month limit.");
+
+          return new()
+          {
+            Status = OperationResultStatusType.Failed,
+            Errors = errors
+          };
+        }
+        else
+        {
+          monthsLimits = new() { monthLimit };
+        }
+      }
 
       return new()
       {
