@@ -17,7 +17,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
             {
                 Id = project.Id,
                 Name = project.Name,
-                Description = project.Description,
                 ShortDescription = project.ShortDescription,
                 ShortName = project.ShortName,
                 Status = project.Status

@@ -41,7 +41,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
-    private readonly IRequestClient<IFindDepartmentUsersRequest> _rcFindDepartmentUsers;
+    private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IWorkTimeRepository _workTimeRepository;
@@ -128,8 +128,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       try
       {
-        IOperationResult<IFindDepartmentUsersResponse> result = _rcFindDepartmentUsers.GetResponse<IOperationResult<IFindDepartmentUsersResponse>>(
-            IFindDepartmentUsersRequest.CreateObj(departmentId, null, null)).Result.Message;
+        IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
+            IGetDepartmentUsersRequest.CreateObj(departmentId)).Result.Message;
 
         if (result.IsSuccess)
         {
@@ -493,7 +493,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     public ImportStatCommand(
       IRequestClient<IGetProjectsRequest> rcGetProjects,
       IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
-      IRequestClient<IFindDepartmentUsersRequest> rcFindDepartmentUsers,
+      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
       IUserInfoMapper userInfoMapper,
       IWorkTimeRepository workTimeRepository,
@@ -505,7 +505,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     {
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
-      _rcFindDepartmentUsers = rcFindDepartmentUsers;
+      _rcGetDepartmentUsers = rcGetDepartmentUsers;
       _rcGetUsers = rcGetUsers;
       _userInfoMapper = userInfoMapper;
       _workTimeRepository = workTimeRepository;
