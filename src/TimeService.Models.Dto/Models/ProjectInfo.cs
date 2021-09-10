@@ -8,7 +8,6 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
         public string Name { get; set; }
         public string Status { get; set; }
         public string ShortName { get; set; }
-        public string Description { get; set; }
         public string ShortDescription { get; set; }
     }
 }
