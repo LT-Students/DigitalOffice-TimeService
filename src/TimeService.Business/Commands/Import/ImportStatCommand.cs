@@ -119,7 +119,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return null;
     }
 
-    private List<Guid> FindDepartmentUsers(Guid departmentId, List<string> errors)
+    private List<Guid> FindDepartmentUsers(Guid departmentId, DateTime filterbyEntryDate, List<string> errors)
     {
       string messageError = "Cannot get department users info. Please, try again later.";
       const string logError = "Cannot get users of department with id: '{id}'.";
@@ -129,7 +129,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       try
       {
         IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj(departmentId)).Result.Message;
+            IGetDepartmentUsersRequest.CreateObj(departmentId, null, null, filterbyEntryDate)).Result.Message;
 
         if (result.IsSuccess)
         {
@@ -550,7 +550,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (filter.DepartmentId.HasValue)
       {
-        usersIds = FindDepartmentUsers(filter.DepartmentId.Value, errors);
+        DateTime filterByEntryDate = new DateTime(filter.Year, filter.Month, 1).AddMonths(1);
+
+        usersIds = FindDepartmentUsers(filter.DepartmentId.Value, filterByEntryDate, errors);
 
         projectsUsers = GetProjectsUsers(usersIds, errors);
 

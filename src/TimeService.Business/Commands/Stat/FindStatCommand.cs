@@ -245,10 +245,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (filter.DepartmentId.HasValue)
       {
-        DateTime filterByEntryDate = new DateTime(
-          filter.Year,
-          filter.Month,
-          DateTime.DaysInMonth(filter.Year, filter.Month));
+        DateTime filterByEntryDate = new DateTime(filter.Year, filter.Month, 1).AddMonths(1);
 
         userIds = FindDepartmentUsers(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filterByEntryDate, out totalCount, errors);
       }
