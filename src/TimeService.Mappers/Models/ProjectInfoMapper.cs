@@ -16,8 +16,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
             return new ProjectInfo
             {
                 Id = project.Id,
+                DepartmentId = project.DepartmentId,
                 Name = project.Name,
-                Description = project.Description,
                 ShortDescription = project.ShortDescription,
                 ShortName = project.ShortName,
                 Status = project.Status

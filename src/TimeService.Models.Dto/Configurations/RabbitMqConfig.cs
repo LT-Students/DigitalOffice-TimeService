@@ -25,8 +25,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(IGetUsersDataRequest))]
     public string GetUsersDataEndpoint { get; set; }
 
-    [AutoInjectRequest(typeof(IFindDepartmentUsersRequest))]
-    public string FindDepartmentUsersEndpoint { get; set; }
+    [AutoInjectRequest(typeof(IGetDepartmentUsersRequest))]
+    public string GetDepartmentUsersEndpoint { get; set; }
 
   }
 }

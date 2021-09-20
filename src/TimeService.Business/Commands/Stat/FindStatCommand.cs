@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
   {
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
-    private readonly IRequestClient<IFindDepartmentUsersRequest> _rcFindDepartmentUsers;
+    private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
@@ -118,8 +118,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       try
       {
-        IOperationResult<IFindDepartmentUsersResponse> result = _rcFindDepartmentUsers.GetResponse<IOperationResult<IFindDepartmentUsersResponse>>(
-            IFindDepartmentUsersRequest.CreateObj(departmentId, skipCount, takeCount)).Result.Message;
+        IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
+            IGetDepartmentUsersRequest.CreateObj(departmentId, skipCount, takeCount)).Result.Message;
 
         if (result.IsSuccess)
         {
@@ -178,7 +178,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     public FindStatCommand(
       IRequestClient<IGetProjectsRequest> rcGetProjects,
       IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
-      IRequestClient<IFindDepartmentUsersRequest> rcFindDepartmentUsers,
+      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
       IUserInfoMapper userInfoMapper,
       IProjectInfoMapper projectInfoMapper,
@@ -191,7 +191,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     {
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
-      _rcFindDepartmentUsers = rcFindDepartmentUsers;
+      _rcGetDepartmentUsers = rcGetDepartmentUsers;
       _rcGetUsers = rcGetUsers;
       _userInfoMapper = userInfoMapper;
       _projectInfoMapper = projectInfoMapper;
