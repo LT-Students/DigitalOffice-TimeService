@@ -129,7 +129,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       try
       {
         IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj(departmentId, null, null, filterbyEntryDate)).Result.Message;
+            IGetDepartmentUsersRequest.CreateObj(departmentId, ByEntryDate: filterbyEntryDate)).Result.Message;
 
         if (result.IsSuccess)
         {
@@ -550,9 +550,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (filter.DepartmentId.HasValue)
       {
-        DateTime filterByEntryDate = new DateTime(filter.Year, filter.Month, 1).AddMonths(1);
-
-        usersIds = FindDepartmentUsers(filter.DepartmentId.Value, filterByEntryDate, errors);
+        usersIds = FindDepartmentUsers(filter.DepartmentId.Value, new DateTime(filter.Year, filter.Month, 1), errors);
 
         projectsUsers = GetProjectsUsers(usersIds, errors);
 
