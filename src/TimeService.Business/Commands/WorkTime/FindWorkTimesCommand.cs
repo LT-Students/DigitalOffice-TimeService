@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
@@ -18,11 +20,12 @@ using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Response.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
-using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 {
@@ -38,6 +41,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly ILogger<FindWorkTimesCommand> _logger;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
+    private readonly IConnectionMultiplexer _cache;
 
     private List<ProjectData> GetProjects(List<Guid> projectIds, Guid? userId, List<string> errors)
     {
@@ -70,11 +74,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       return null;
     }
 
-    private List<UserInfo> GetUsersData(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
+    {
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
+
+      if (valueFromCache.HasValue)
+      {
+        return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
+      }
+
+      return await GetUsersDataFromBroker(userIds, errors);
+    }
+
+    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> userIds, List<string> errors)
     {
       if (userIds == null || !userIds.Any())
       {
-        return new();
+        return null;
       }
 
       string message = "Cannot get users data. Please try again later.";
@@ -82,12 +98,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       try
       {
-        var response = _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds)).Result;
+        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+            IGetUsersDataRequest.CreateObj(userIds));
 
         if (response.Message.IsSuccess)
         {
-          return response.Message.Body.UsersData.Select(_userInfoMapper.Map).ToList();
+          return response.Message.Body.UsersData;
         }
 
         _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
@@ -99,7 +115,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       errors.Add(message);
 
-      return new();
+      return null;
     }
 
     public FindWorkTimesCommand(
@@ -112,7 +128,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
       ILogger<FindWorkTimesCommand> logger,
       IProjectInfoMapper projectInfoMapper,
-      IUserInfoMapper userInfoMapper)
+      IUserInfoMapper userInfoMapper,
+      IConnectionMultiplexer cache)
     {
       _workTimeResponseMapper = workTimeResponseMapper;
       _workTimeRepository = repository;
@@ -124,9 +141,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _logger = logger;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
+      _cache = cache;
     }
 
-    public FindResultResponse<WorkTimeResponse> Execute(FindWorkTimesFilter filter)
+    public async Task<FindResultResponse<WorkTimeResponse>> Execute(FindWorkTimesFilter filter)
     {
       if (filter == null)
       {
@@ -145,7 +163,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       var dbWorkTimes = _workTimeRepository.Find(filter, out int totalCount);
 
       List<ProjectData> projects = GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
-      List<UserInfo> users = GetUsersData(dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList(), errors);
+      List<UserData> users = await GetUsersData(dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList(), errors);
 
       List<DbWorkTimeMonthLimit> monthLimits = _monthLimitRepository.Find(
         new()
@@ -165,8 +183,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             return _workTimeResponseMapper.Map(
               wt,
               monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
-              users.FirstOrDefault(u => u.Id == wt.UserId),
-              project.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
+              _userInfoMapper.Map(users.FirstOrDefault(u => u.Id == wt.UserId)),
+              project?.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
               _projectInfoMapper.Map(project));
           }).ToList(),
         Errors = errors

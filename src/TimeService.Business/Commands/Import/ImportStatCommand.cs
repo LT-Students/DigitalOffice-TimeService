@@ -3,10 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using ClosedXML.Excel;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
@@ -27,6 +30,8 @@ using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
@@ -43,7 +48,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
     private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IUserInfoMapper _userInfoMapper;
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ILeaveTimeRepository _leaveTimeRepository;
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
@@ -51,6 +55,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAccessValidator _accessValidator;
     private readonly ICalendar _calendar;
+    private readonly IConnectionMultiplexer _cache;
 
     #region private methods
 
@@ -148,11 +153,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return null;
     }
 
-    private List<UserInfo> GetUsers(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
+    {
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
+
+      if (valueFromCache.HasValue)
+      {
+        return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
+      }
+
+      return await GetUsersDataFromBroker(userIds, errors);
+    }
+
+    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> userIds, List<string> errors)
     {
       if (userIds == null || !userIds.Any())
       {
-        return new();
+        return null;
       }
 
       string message = "Cannot get users data. Please try again later.";
@@ -160,12 +177,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       try
       {
-        var response = _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds)).Result;
+        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+            IGetUsersDataRequest.CreateObj(userIds));
 
         if (response.Message.IsSuccess)
         {
-          return response.Message.Body.UsersData.Select(_userInfoMapper.Map).ToList();
+          return response.Message.Body.UsersData;
         }
 
         _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
@@ -177,7 +194,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       errors.Add(message);
 
-      return new();
+      return null;
     }
 
     private List<DbWorkTimeMonthLimit> GetNeededRangeOfMonthLimits(int year, int month, DateTime start, DateTime end)
@@ -294,7 +311,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private byte[] CreateTable(
       ImportStatFilter filter,
-      List<UserInfo> usersInfos,
+      List<UserData> usersInfos,
       List<ProjectData> projects,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
@@ -417,7 +434,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       int startColumn,
       List<ProjectData> departmentProjects,
       List<ProjectData> otherProjects,
-      List<UserInfo> usersInfos,
+      List<UserData> usersInfos,
       List<DbWorkTime> workTimes)
     {
       int column = startColumn;
@@ -469,7 +486,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       IXLWorksheet ws,
       int startColumn,
       ProjectData project,
-      List<UserInfo> usersInfos,
+      List<UserData> usersInfos,
       List<DbWorkTime> workTimes)
     {
       AddHeaderCell(ws, startColumn, project.Name, MainProjectColor);
@@ -495,29 +512,29 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
       IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IUserInfoMapper userInfoMapper,
       IWorkTimeRepository workTimeRepository,
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
       ILogger<ImportStatCommand> logger,
       IHttpContextAccessor httpContextAccessor,
-      IAccessValidator accessValidator)
+      IAccessValidator accessValidator,
+      IConnectionMultiplexer cache)
     {
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
       _rcGetDepartmentUsers = rcGetDepartmentUsers;
       _rcGetUsers = rcGetUsers;
-      _userInfoMapper = userInfoMapper;
       _workTimeRepository = workTimeRepository;
       _leaveTimeRepository = leaveTimeRepository;
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
       _logger = logger;
       _httpContextAccessor = httpContextAccessor;
       _accessValidator = accessValidator;
+      _cache = cache;
       _calendar = new IsDayOffIntegration();
     }
 
-    public OperationResultResponse<byte[]> Execute(ImportStatFilter filter)
+    public async Task<OperationResultResponse<byte[]>> Execute(ImportStatFilter filter)
     {
       if (!_accessValidator.IsAdmin())
       {
@@ -563,7 +580,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         usersIds = projects?.SelectMany(p => p.Users.Select(pu => pu.UserId)).OrderBy(id => id).Distinct().ToList();
       }
 
-      List<UserInfo> usersInfos = GetUsers(usersIds, errors);
+      List<UserData> usersInfos = await GetUsersData(usersIds, errors);
 
       if (usersInfos == null || projects == null)
       {

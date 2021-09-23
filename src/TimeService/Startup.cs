@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService
 {
@@ -103,6 +104,15 @@ namespace LT.DigitalOffice.TimeService
       {
         options.UseSqlServer(connStr);
       });
+
+      string redisConnStr = Environment.GetEnvironmentVariable("RedisConnectionString");
+      if (string.IsNullOrEmpty(redisConnStr))
+      {
+        redisConnStr = Configuration.GetConnectionString("Redis");
+      }
+
+      services.AddSingleton<IConnectionMultiplexer>(
+        x => ConnectionMultiplexer.Connect(redisConnStr));
 
       services.AddBusinessObjects();
 

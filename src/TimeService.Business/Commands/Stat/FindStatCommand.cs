@@ -2,9 +2,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
@@ -21,6 +25,8 @@ using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 {
@@ -38,6 +44,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
     private readonly ILogger<FindStatCommand> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IConnectionMultiplexer _cache;
 
     #region private methods
 
@@ -141,7 +148,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       return null;
     }
 
-    private List<UserInfo> GetUsers(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
+    {
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
+
+      if (valueFromCache.HasValue)
+      {
+        return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
+      }
+
+      return await GetUsersDataFromBroker(userIds, errors);
+    }
+
+    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> userIds, List<string> errors)
     {
       if (userIds == null || !userIds.Any())
       {
@@ -153,12 +172,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       try
       {
-        var response = _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds)).Result;
+        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+            IGetUsersDataRequest.CreateObj(userIds));
 
         if (response.Message.IsSuccess)
         {
-          return response.Message.Body.UsersData.Select(_userInfoMapper.Map).ToList();
+          return response.Message.Body.UsersData;
         }
 
         _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
@@ -187,7 +206,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
       ILogger<FindStatCommand> logger,
-      IHttpContextAccessor httpContextAccessor)
+      IHttpContextAccessor httpContextAccessor,
+      IConnectionMultiplexer cache)
     {
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
@@ -201,9 +221,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
       _logger = logger;
       _httpContextAccessor = httpContextAccessor;
+      _cache = cache;
     }
 
-    public FindResultResponse<StatInfo> Execute(FindStatFilter filter)
+    public async Task<FindResultResponse<StatInfo>> Execute(FindStatFilter filter)
     {
       if (!filter.DepartmentId.HasValue && !filter.ProjectId.HasValue
         || filter.DepartmentId.HasValue && filter.ProjectId.HasValue)
@@ -279,7 +300,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         };
       }
 
-      List<UserInfo> usersInfos = GetUsers(userIds, errors);
+      List<UserData> usersInfos = await GetUsersData(userIds, errors);
 
       if (usersInfos == null)
       {
@@ -300,7 +321,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         Body = userIds.Select(
           id => _statInfoMapper.Map(
             id,
-            usersInfos?.FirstOrDefault(u => u.Id == id),
+            _userInfoMapper.Map(usersInfos?.FirstOrDefault(u => u.Id == id)),
             projectUsers?.FirstOrDefault(pu => pu.UserId == id),
             _workTimeMonthLimitRepository.Get(filter.Year, filter.Month),
             workTimes.Where(wt => wt.UserId == id).ToList(),

@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.Kernel.Responses;
+﻿using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.Stat.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
@@ -11,11 +12,11 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class StatController : ControllerBase
   {
     [HttpGet("find")]
-    public FindResultResponse<StatInfo> Find(
+    public async Task<FindResultResponse<StatInfo>> Find(
       [FromServices] IFindStatCommand command,
       [FromQuery] FindStatFilter filter)
     {
-      return command.Execute(filter);
+      return await command.Execute(filter);
     }
   }
 }
