@@ -22,15 +22,15 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       #region Paths
 
       AddСorrectPaths(
-          new()
-          {
-            nameof(EditLeaveTimeRequest.StartTime),
-            nameof(EditLeaveTimeRequest.EndTime),
-            nameof(EditLeaveTimeRequest.Minutes),
-            nameof(EditLeaveTimeRequest.LeaveType),
-            nameof(EditLeaveTimeRequest.IsActive),
-            nameof(EditLeaveTimeRequest.Comment)
-          });
+        new()
+        {
+          nameof(EditLeaveTimeRequest.StartTime),
+          nameof(EditLeaveTimeRequest.EndTime),
+          nameof(EditLeaveTimeRequest.Minutes),
+          nameof(EditLeaveTimeRequest.LeaveType),
+          nameof(EditLeaveTimeRequest.IsActive),
+          nameof(EditLeaveTimeRequest.Comment)
+        });
 
       AddСorrectOperations(nameof(EditLeaveTimeRequest.StartTime), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.EndTime), new List<OperationType> { OperationType.Replace });
@@ -44,60 +44,60 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       #region StartTime
 
       AddFailureForPropertyIf(
-          nameof(EditLeaveTimeRequest.StartTime),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => DateTime.TryParse(x.value.ToString(), out _), "Incorrect format of StartTime." },
-          });
+        nameof(EditLeaveTimeRequest.StartTime),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => DateTime.TryParse(x.value.ToString(), out _), "Incorrect format of StartTime." },
+        });
 
       #endregion
 
       #region EndTime
 
       AddFailureForPropertyIf(
-          nameof(EditLeaveTimeRequest.EndTime),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => DateTime.TryParse(x.value.ToString(), out _), "Incorrect format of EndTime." },
-          });
+        nameof(EditLeaveTimeRequest.EndTime),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => DateTime.TryParse(x.value.ToString(), out _), "Incorrect format of EndTime." },
+        });
 
       #endregion
 
       #region Minutes
 
       AddFailureForPropertyIf(
-          nameof(EditLeaveTimeRequest.Minutes),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => int.TryParse(x.value.ToString(), out int count) && count > 0, "Incorrect format of Minutes." },
-          });
+        nameof(EditLeaveTimeRequest.Minutes),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => int.TryParse(x.value.ToString(), out int count) && count > 0, "Incorrect format of Minutes." },
+        });
 
       #endregion
 
       #region LeaveType
 
       AddFailureForPropertyIf(
-          nameof(EditLeaveTimeRequest.LeaveType),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), "Incorrect format of LeaveType." },
-          });
+        nameof(EditLeaveTimeRequest.LeaveType),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), "Incorrect format of LeaveType." },
+        });
 
       #endregion
 
       #region IsActive
 
       AddFailureForPropertyIf(
-          nameof(EditLeaveTimeRequest.IsActive),
-          x => x == OperationType.Replace,
-          new()
-          {
-            { x => bool.TryParse(x.value.ToString(), out _), "Incorrect format of IsActive." },
-          });
+        nameof(EditLeaveTimeRequest.IsActive),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => bool.TryParse(x.value.ToString(), out _), "Incorrect format of IsActive." },
+        });
 
       #endregion
     }

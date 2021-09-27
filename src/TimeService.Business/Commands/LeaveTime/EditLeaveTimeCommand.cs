@@ -33,9 +33,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       List<string> errors)
     {
       Operation<EditLeaveTimeRequest> startTimeOperation = request.Operations.FirstOrDefault(
-          o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
       Operation<EditLeaveTimeRequest> endTimeOperation = request.Operations.FirstOrDefault(
-          o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
 
       if (startTimeOperation == null && endTimeOperation == null)
       {

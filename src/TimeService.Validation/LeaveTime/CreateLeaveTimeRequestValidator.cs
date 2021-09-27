@@ -23,25 +23,26 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       try
       {
         IOperationResult<ICheckUsersExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
-            ICheckUsersExistence.CreateObj(userIds)).Result.Message;
+          ICheckUsersExistence.CreateObj(userIds)).Result.Message;
         if (response.IsSuccess && response.Body.UserIds.Count == 1 && response.Body.UserIds[0] == userIds[0])
         {
           return true;
         }
         _logger.LogWarning($"Can not find users with these Ids '{userIds}': " +
-            $"{Environment.NewLine}{string.Join('\n', response.Errors)}");
+          $"{Environment.NewLine}{string.Join('\n', response.Errors)}");
       }
       catch (Exception exc)
       {
         _logger.LogError(exc, logMessage);
       }
+
       return false;
     }
 
     public CreateLeaveTimeRequestValidator(
-        ILeaveTimeRepository repository,
-        IRequestClient<ICheckUsersExistence> rcCheckUsersExistence,
-        ILogger<CreateLeaveTimeRequestValidator> logger)
+      ILeaveTimeRepository repository,
+      IRequestClient<ICheckUsersExistence> rcCheckUsersExistence,
+      ILogger<CreateLeaveTimeRequestValidator> logger)
     {
       _rcCheckUsersExistence = rcCheckUsersExistence;
       _logger = logger;
