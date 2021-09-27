@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using FluentValidation;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using MassTransit;
@@ -62,16 +60,14 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleFor(lt => lt.EndTime)
         .NotEqual(new DateTime());
 
-      //TODO rework line 70
-      RuleFor(lt => lt)
-        .Must(lt => lt.StartTime < lt.EndTime).WithMessage("Start time must be before end time.")
-        .Must(lt =>
-        {
-          var leaveTimes = repository.Find(new FindLeaveTimesFilter { UserId = lt.UserId, SkipCount = 0, TakeCount = int.MaxValue }, out _);
+      RuleFor(lt => lt.Minutes)
+        .GreaterThan(0);
 
-          return leaveTimes.All(oldLeaveTime =>
-                    lt.EndTime <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= lt.StartTime);
-        }).WithMessage("New LeaveTime should not overlap with old ones.");
+      RuleFor(lt => lt)
+        .Must(lt => lt.StartTime <= lt.EndTime)
+        .WithMessage("Start time must be before end time.")
+        .Must(lt => !repository.HasOverlap(lt.StartTime, lt.EndTime))
+        .WithMessage("New LeaveTime should not overlap with old ones.");
     }
   }
 }

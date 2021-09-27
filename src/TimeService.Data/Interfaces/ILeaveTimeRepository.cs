@@ -28,5 +28,9 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
     DbLeaveTime Get(Guid leaveTimeId);
 
     bool Edit(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request);
+
+    bool HasOverlap(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd);
+
+    bool HasOverlap(DateTime start, DateTime end);
   }
 }
