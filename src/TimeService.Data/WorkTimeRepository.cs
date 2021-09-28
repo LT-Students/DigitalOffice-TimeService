@@ -127,10 +127,18 @@ namespace LT.DigitalOffice.TimeService.Data
 
       IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
         .Where(wt =>
-          usersIds.Contains(wt.UserId)
-          && projectsIds.Contains(wt.ProjectId)
-          && wt.Year == year
+          wt.Year == year
           && wt.Month == month);
+
+      if (usersIds != null)
+      {
+        workTimes = workTimes.Where(wt => usersIds.Contains(wt.UserId));
+      }
+
+      if (projectsIds != null)
+      {
+        workTimes = workTimes.Where(wt => projectsIds.Contains(wt.ProjectId));
+      }
 
       if (includeJobs)
       {

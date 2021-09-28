@@ -214,7 +214,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       while(countNeededMonth > 0)
       {
-        string holidays = _calendar.GetWorkCalendarByMonth(month, year);
+        string holidays = _calendar.GetWorkCalendarByMonth(requestedMonth, requestedYear);
 
         if (holidays == null)
         {
