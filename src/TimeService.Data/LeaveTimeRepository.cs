@@ -113,5 +113,25 @@ namespace LT.DigitalOffice.TimeService.Data
       return _provider.LeaveTimes.FirstOrDefault(lt => lt.Id == leaveTimeId)
         ?? throw new NotFoundException($"No leave time with id {leaveTimeId}.");
     }
+
+    public bool HasOverlap(DateTime start, DateTime end)
+    {
+        return !_provider.LeaveTimes.All(oldLeaveTime =>
+          end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+    }
+
+    public bool HasOverlap(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd)
+    {
+      if (!newStart.HasValue && !newEnd.HasValue)
+      {
+        return false;
+      }
+
+      DateTime start = newStart ?? leaveTime.StartTime;
+      DateTime end = newEnd ?? leaveTime.EndTime;
+
+      return !_provider.LeaveTimes.All(oldLeaveTime =>
+          end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+    }
   }
 }
