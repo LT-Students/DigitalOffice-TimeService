@@ -45,20 +45,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       DateTime? start = startTimeOperation == null ? null : DateTime.Parse(startTimeOperation.value.ToString());
       DateTime? end = endTimeOperation == null ? null : DateTime.Parse(endTimeOperation.value.ToString());
 
-      const string compareTimeError = "Start time must be less than end time.";
-      const string intervalError = "Incorrect time interval.";
-
       if (start.HasValue && !end.HasValue && oldLeaveTime.EndTime <= start
         || !start.HasValue && end.HasValue && oldLeaveTime.StartTime >= end)
       {
-        errors.Add(compareTimeError);
+        errors.Add("Start time must be less than end time.");
 
         return false;
       }
 
       if (_repository.HasOverlap(oldLeaveTime, start, end))
       {
-        errors.Add(intervalError);
+        errors.Add("Incorrect time interval.");
 
         return false;
       }
@@ -82,10 +79,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
     public OperationResultResponse<bool> Execute(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
     {
-      var oldLeaveTime = _repository.Get(leaveTimeId);
+      DbLeaveTime oldLeaveTime = _repository.Get(leaveTimeId);
 
-      var isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldLeaveTime.UserId;
-      if (!isOwner && !_accessValidator.IsAdmin())
+      if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId 
+        && !_accessValidator.IsAdmin())
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
