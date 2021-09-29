@@ -49,6 +49,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
     private async Task<List<ProjectData>> GetProjects(List<Guid> projectIds, List<string> errors)
     {
+      if (projectIds == null || !projectIds.Any())
+      {
+        return null;
+      }
+
       RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(projectIds.GetRedisCacheHashCode(true).ToString());
 
       if (projectsFromCache.HasValue)
@@ -165,6 +170,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
     private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
     {
+      if (userIds == null || !userIds.Any())
+      {
+        return null;
+      }
+
       RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
 
       if (valueFromCache.HasValue)

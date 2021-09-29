@@ -153,6 +153,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
     {
+      if (userIds == null || !userIds.Any())
+      {
+        return null;
+      }
+
       RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
 
       if (valueFromCache.HasValue)
@@ -176,7 +181,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       try
       {
         Response<IOperationResult<IGetUsersDataResponse>> response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds));
+          IGetUsersDataRequest.CreateObj(userIds));
 
         if (response.Message.IsSuccess)
         {

@@ -40,6 +40,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
     private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
     {
+      if (userIds == null || !userIds.Any())
+      {
+        return null;
+      }
+
       RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
 
       if (valueFromCache.HasValue)
