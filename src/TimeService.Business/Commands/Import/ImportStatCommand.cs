@@ -129,8 +129,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       string messageError = "Cannot get department users info. Please, try again later.";
       const string logError = "Cannot get users of department with id: '{id}'.";
 
-      List<Guid> response = new();
-
       try
       {
         IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
@@ -177,7 +175,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       try
       {
-        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+        Response<IOperationResult<IGetUsersDataResponse>> response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
             IGetUsersDataRequest.CreateObj(userIds));
 
         if (response.Message.IsSuccess)
