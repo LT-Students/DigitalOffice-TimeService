@@ -2,8 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
@@ -21,6 +24,8 @@ using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 {
@@ -38,10 +43,30 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
     private readonly ILogger<FindStatCommand> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IConnectionMultiplexer _cache;
 
     #region private methods
 
-    private List<ProjectData> GetProjects(List<Guid> projectIds, List<string> errors)
+    private async Task<List<ProjectData>> GetProjects(List<Guid> projectIds, List<string> errors)
+    {
+      if (projectIds == null || !projectIds.Any())
+      {
+        return null;
+      }
+
+      RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(projectIds.GetRedisCacheHashCode(true).ToString());
+
+      if (projectsFromCache.HasValue)
+      {
+        (List<ProjectData> projects, int _) = JsonConvert.DeserializeObject<(List<ProjectData>, int)>(projectsFromCache);
+
+        return projects;
+      }
+
+      return await GetProjectsThroughBroker(projectIds, errors);
+    }
+
+    private async Task<List<ProjectData>> GetProjectsThroughBroker(List<Guid> projectIds, List<string> errors)
     {
       string messageError = "Cannot get projects info. Please, try again later.";
       const string logError = "Cannot get projects info.";
@@ -53,17 +78,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       try
       {
-        IOperationResult<IGetProjectsResponse> result = _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
-            IGetProjectsRequest.CreateObj(
-              projectsIds: projectIds,
-              includeUsers: true)).Result.Message;
+        Response<IOperationResult<IGetProjectsResponse>> result = await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
+          IGetProjectsRequest.CreateObj(
+            projectsIds: projectIds,
+            includeUsers: true));
 
-        if (result.IsSuccess)
+        if (result.Message.IsSuccess)
         {
-          return result.Body.Projects;
+          return result.Message.Body.Projects;
         }
 
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Errors));
+        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
       }
       catch (Exception exc)
       {
@@ -121,7 +146,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       try
       {
         IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj(departmentId, skipCount, takeCount, filterByEntryDate)).Result.Message;
+          IGetDepartmentUsersRequest.CreateObj(departmentId, skipCount, takeCount, filterByEntryDate)).Result.Message;
 
         if (result.IsSuccess)
         {
@@ -143,7 +168,24 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       return null;
     }
 
-    private List<UserInfo> GetUsers(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
+    {
+      if (userIds == null || !userIds.Any())
+      {
+        return null;
+      }
+
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
+
+      if (valueFromCache.HasValue)
+      {
+        return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
+      }
+
+      return await GetUsersDataThroughBroker(userIds, errors);
+    }
+
+    private async Task<List<UserData>> GetUsersDataThroughBroker(List<Guid> userIds, List<string> errors)
     {
       if (userIds == null || !userIds.Any())
       {
@@ -155,12 +197,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       try
       {
-        var response = _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds)).Result;
+        Response<IOperationResult<IGetUsersDataResponse>> response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+          IGetUsersDataRequest.CreateObj(userIds));
 
         if (response.Message.IsSuccess)
         {
-          return response.Message.Body.UsersData.Select(_userInfoMapper.Map).ToList();
+          return response.Message.Body.UsersData;
         }
 
         _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
@@ -175,63 +217,62 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       return null;
     }
 
-    private (List<Guid> usersIds,
+    private async Task<(List<Guid> usersIds,
       List<ProjectData> projectsDatas,
       List<ProjectUserData> projectUsersDatas,
       List<DbWorkTime> dbWorkTimes,
-      List<DbLeaveTime> dbLeaveTimes)
+      List<DbLeaveTime> dbLeaveTimes, int totalCount)>
       FindStatByDepartmentId(
         Guid departmentId,
         int skipCount,
         int takeCount,
         int year,
         int month,
-        out int totalCount,
         List<string> errors)
     {
       List<Guid> userIds = FindDepartmentUsers(
-          departmentId,
-          skipCount,
-          takeCount,
-          new DateTime(year, month, 1),
-          out totalCount,
-          errors);
+        departmentId,
+        skipCount,
+        takeCount,
+        new DateTime(year, month, 1),
+        out int totalCount,
+        errors);
 
       List<DbWorkTime> workTimes = _workTimeRepository.Find(userIds, null, year, month, true);
       List<DbLeaveTime> leaveTimes = _leaveTimeRepository.Find(userIds, year, month);
 
-      List<ProjectData> projectsDatas = GetProjects(workTimes.Select(wt => wt.ProjectId).ToList(), errors);
+      List<ProjectData> projectsDatas = await GetProjects(workTimes.Select(wt => wt.ProjectId).ToList(), errors);
 
-      return (userIds, projectsDatas, projectsDatas?.SelectMany(p => p.Users).ToList(), workTimes, leaveTimes);
+      return (userIds, projectsDatas, projectsDatas?.SelectMany(p => p.Users).ToList(), workTimes, leaveTimes, totalCount);
     }
 
-    private (List<Guid> usersIds,
+    private async Task<(List<Guid> usersIds,
       List<ProjectData> projectsDatas,
       List<ProjectUserData> projectUsersDatas,
       List<DbWorkTime> dbWorkTimes,
-      List<DbLeaveTime> dbLeaveTimes)
+      List<DbLeaveTime> dbLeaveTimes,
+      int totalCount)>
       FindStatByProjectId(
         Guid projectId,
         int skipCount,
         int takeCount,
         int year,
         int month,
-        out int totalCount,
         List<string> errors)
     {
       List<Guid> userIds = GetProjectsUsers(
-          projectId,
-          skipCount,
-          takeCount,
-          out totalCount,
-          errors).Select(pu => pu.UserId).ToList();
+        projectId,
+        skipCount,
+        takeCount,
+        out int totalCount,
+        errors).Select(pu => pu.UserId).ToList();
 
       List<DbWorkTime> workTimes = _workTimeRepository.Find(userIds, null, year, month, true);
       List<DbLeaveTime> leaveTimes = _leaveTimeRepository.Find(userIds, year, month);
 
-      List<ProjectData> projectsDatas = GetProjects(workTimes.Select(wt => wt.ProjectId).ToList(), errors);
+      List<ProjectData> projectsDatas = await GetProjects(workTimes.Select(wt => wt.ProjectId).ToList(), errors);
 
-      return (userIds, projectsDatas, projectsDatas?.SelectMany(p => p.Users).ToList(), workTimes, leaveTimes);
+      return (userIds, projectsDatas, projectsDatas?.SelectMany(p => p.Users).ToList(), workTimes, leaveTimes, totalCount);
     }
 
     #endregion
@@ -248,7 +289,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
       ILogger<FindStatCommand> logger,
-      IHttpContextAccessor httpContextAccessor)
+      IHttpContextAccessor httpContextAccessor,
+      IConnectionMultiplexer cache)
     {
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
@@ -262,9 +304,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
       _logger = logger;
       _httpContextAccessor = httpContextAccessor;
+      _cache = cache;
     }
 
-    public FindResultResponse<StatInfo> Execute(FindStatFilter filter)
+    public async Task<FindResultResponse<StatInfo>> Execute(FindStatFilter filter)
     {
       if (!filter.DepartmentId.HasValue && !filter.ProjectId.HasValue
         || filter.DepartmentId.HasValue && filter.ProjectId.HasValue)
@@ -311,16 +354,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (filter.DepartmentId.HasValue)
       {
-        (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes) = 
-          FindStatByDepartmentId(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, out totalCount , errors);
+        (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes, totalCount) = 
+          await FindStatByDepartmentId(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, errors);
       }
       else
       {
-        (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes) =
-          FindStatByProjectId(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, out totalCount, errors);
+        (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes, totalCount) =
+          await FindStatByProjectId(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, errors);
       }
 
-      List<UserInfo> usersInfos = GetUsers(usersIds, errors);
+      List<UserInfo> usersInfos = (await GetUsersData(usersIds, errors)).Select(_userInfoMapper.Map).ToList();
       List<ProjectInfo> projectInfos = projectsDatas?.Select(_projectInfoMapper.Map).ToList();
 
       return new FindResultResponse<StatInfo>

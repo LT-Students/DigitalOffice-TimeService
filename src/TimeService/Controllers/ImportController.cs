@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.Kernel.Responses;
+﻿using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.Mvc;
@@ -10,11 +11,11 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class ImportController : ControllerBase
   {
     [HttpGet("get")]
-    public OperationResultResponse<byte[]> Get(
+    public async Task<OperationResultResponse<byte[]>> Get(
       [FromServices] IImportStatCommand command,
       [FromQuery] ImportStatFilter filter)
     {
-      return command.Execute(filter);
+      return await command.Execute(filter);
     }
   }
 }
