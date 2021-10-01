@@ -3,12 +3,13 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
-using LT.DigitalOffice.TimeService.Validation.Interfaces;
 using Moq;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using LT.DigitalOffice.TimeService.Data.Filters;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime;
 
 namespace LT.DigitalOffice.TimeService.Validation.UnitTests
 {
@@ -21,7 +22,7 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         private DbLeaveTime _expectedDbLeaveTime;
         private int _totalCount;
 
-        [SetUp]
+        /*[SetUp]
         public void Setup()
         {
             _repositoryMock = new Mock<ILeaveTimeRepository>();
@@ -95,18 +96,6 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
         }
         #endregion
 
-        #region Comment
-        [Test]
-        public void ShouldHaveValidationErrorWhenCommentIsEmpty()
-        {
-            var comment = string.Empty;
-            _repositoryMock.Setup(x => x.Find(It.IsAny<FindLeaveTimesFilter>(), 0, It.IsAny<int>(), out _totalCount))
-                .Returns(new List<DbLeaveTime>());
-
-            _validator.ShouldHaveValidationErrorFor(x => x.Comment, comment);
-        }
-        #endregion
-
         #region LeaveType
         [Test]
         public void ShouldHaveValidationErrorWhenLeaveTypeIsNotInEnum()
@@ -177,6 +166,6 @@ namespace LT.DigitalOffice.TimeService.Validation.UnitTests
             };
 
             _validator.TestValidate(failRequest).ShouldHaveAnyValidationError();
-        }
+        }*/
     }
 }

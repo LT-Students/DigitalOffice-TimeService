@@ -1,25 +1,31 @@
-﻿using LT.DigitalOffice.Kernel.Attributes;
-using LT.DigitalOffice.TimeService.Data.Filters;
-using LT.DigitalOffice.TimeService.Models.Db;
-using Microsoft.AspNetCore.JsonPatch;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.JsonPatch;
 
 namespace LT.DigitalOffice.TimeService.Data.Interfaces
 {
-    /// <summary>
-    /// Represents interface of repository in repository pattern.
-    /// Provides methods for working with the database of TimeService.
-    /// </summary>
-    [AutoInject]
-    public interface IWorkTimeRepository
-    {
-        Guid Create(DbWorkTime workTime);
+  /// <summary>
+  /// Represents interface of repository in repository pattern.
+  /// Provides methods for working with the database of TimeService.
+  /// </summary>
+  [AutoInject]
+  public interface IWorkTimeRepository
+  {
+    Guid Create(DbWorkTime workTime);
 
-        DbWorkTime Get(Guid id);
+    DbWorkTime Get(Guid id);
 
-        List<DbWorkTime> Find(FindWorkTimesFilter filter, int skipPagesCount, int takeCount, out int totalCount);
+    bool Contains(Guid id);
 
-        bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
-    }
+    List<DbWorkTime> Find(FindWorkTimesFilter filter, out int totalCount);
+
+    List<DbWorkTime> Find(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false);
+
+    bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
+
+    DbWorkTime GetLast();
+  }
 }

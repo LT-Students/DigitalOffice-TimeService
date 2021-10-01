@@ -1,12 +1,14 @@
-﻿using LT.DigitalOffice.Kernel.Attributes;
-using LT.DigitalOffice.TimeService.Data.Filters;
+﻿using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces
 {
-    [AutoInject]
+  [AutoInject]
     public interface IFindLeaveTimesCommand
     {
-        LeaveTimesResponse Execute(FindLeaveTimesFilter filter, int skipPagesCount, int takeCount);
+        Task<FindResultResponse<LeaveTimeResponse>> Execute(FindLeaveTimesFilter filter);
     }
 }
