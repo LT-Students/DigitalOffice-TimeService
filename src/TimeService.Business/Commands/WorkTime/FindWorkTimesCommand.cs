@@ -60,33 +60,33 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       return ids.GetRedisCacheHashCode(includeUsers);
     }
 
-    private async Task<List<ProjectData>> GetProjects(List<Guid> projectIds, Guid? userId, List<string> errors)
+    private async Task<List<ProjectData>> GetProjects(List<Guid> projectsIds, Guid? userId, List<string> errors)
     {
-      if (projectIds == null || !projectIds.Any())
+      if (projectsIds == null || !projectsIds.Any())
       {
         return null;
       }
 
-      RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(CreateProjectCacheKey(projectIds, userId));
+      RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(CreateProjectCacheKey(projectsIds, userId));
 
       if (projectsFromCache.HasValue)
       {
-        _logger.LogInformation("Projects were taken from the cache.");
+        _logger.LogInformation("Projects were taken from the cache. Projects ids: {projectsIds}", string.Join(", ", projectsIds));
 
         (List<ProjectData> projects, int _) = JsonConvert.DeserializeObject<(List<ProjectData>, int)>(projectsFromCache);
 
         return projects;
       }
 
-      return await GetProjectsThroughBroker(projectIds, userId, errors);
+      return await GetProjectsThroughBroker(projectsIds, userId, errors);
     }
 
-    private async Task<List<ProjectData>> GetProjectsThroughBroker(List<Guid> projectIds, Guid? userId, List<string> errors)
+    private async Task<List<ProjectData>> GetProjectsThroughBroker(List<Guid> projectsIds, Guid? userId, List<string> errors)
     {
       string messageError = "Cannot get projects info. Please, try again later.";
       const string logError = "Cannot get projects info.";
 
-      if (projectIds == null || !projectIds.Any())
+      if (projectsIds == null || !projectsIds.Any())
       {
         return null;
       }
@@ -95,13 +95,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       {
         Response<IOperationResult<IGetProjectsResponse>> result = await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
           IGetProjectsRequest.CreateObj(
-            projectsIds: projectIds,
+            projectsIds: projectsIds,
             userId: userId,
             includeUsers: true));
 
         if (result.Message.IsSuccess)
         {
-          _logger.LogInformation("Projects were taken from the service.");
+          _logger.LogInformation("Projects were taken from the service. Projects ids: {projectsIds}", string.Join(", ", projectsIds));
 
           return result.Message.Body.Projects;
         }
@@ -117,43 +117,43 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       return null;
     }
 
-    private async Task<List<UserData>> GetUsersData(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> usersIds, List<string> errors)
     {
-      if (userIds == null || !userIds.Any())
+      if (usersIds == null || !usersIds.Any())
       {
         return null;
       }
 
-      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(userIds.GetRedisCacheHashCode());
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(usersIds.GetRedisCacheHashCode());
 
       if (valueFromCache.HasValue)
       {
-        _logger.LogInformation("UserDatas were taken from the cache.");
+        _logger.LogInformation("UserDatas were taken from the cache. Users ids: {usersIds}", string.Join(", ", usersIds));
 
         return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
       }
 
-      return await GetUsersDataFromBroker(userIds, errors);
+      return await GetUsersDataFromBroker(usersIds, errors);
     }
 
-    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> usersIds, List<string> errors)
     {
-      if (userIds == null || !userIds.Any())
+      if (usersIds == null || !usersIds.Any())
       {
         return null;
       }
 
       string message = "Cannot get users data. Please try again later.";
-      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", userIds)}'.";
+      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
 
       try
       {
         var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds));
+            IGetUsersDataRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          _logger.LogInformation("UserDatas were taken from the service.");
+          _logger.LogInformation("UserDatas were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
 
           return response.Message.Body.UsersData;
         }
