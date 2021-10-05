@@ -71,6 +71,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       if (projectsFromCache.HasValue)
       {
+        _logger.LogInformation("Projects were taken from the cache.");
+
         (List<ProjectData> projects, int _) = JsonConvert.DeserializeObject<(List<ProjectData>, int)>(projectsFromCache);
 
         return projects;
@@ -99,6 +101,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
         if (result.Message.IsSuccess)
         {
+          _logger.LogInformation("Projects were taken from the service.");
+
           return result.Message.Body.Projects;
         }
 
@@ -124,6 +128,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       if (valueFromCache.HasValue)
       {
+        _logger.LogInformation("UserDatas were taken from the cache.");
+
         return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
       }
 
@@ -147,6 +153,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
         if (response.Message.IsSuccess)
         {
+          _logger.LogInformation("UserDatas were taken from the service.");
+
           return response.Message.Body.UsersData;
         }
 

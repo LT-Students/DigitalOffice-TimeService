@@ -162,6 +162,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (valueFromCache.HasValue)
       {
+        _logger.LogInformation("UsersDatas were taken from the cache.");
+
         return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
       }
 
@@ -185,6 +187,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         if (response.Message.IsSuccess)
         {
+          _logger.LogInformation("UsersDatas were taken from the service.");
+
           return response.Message.Body.UsersData;
         }
 

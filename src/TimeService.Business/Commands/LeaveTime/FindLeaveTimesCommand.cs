@@ -49,6 +49,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       if (valueFromCache.HasValue)
       {
+        _logger.LogInformation("UserDatas were taken from the cache.");
+
         return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
       }
 
@@ -72,6 +74,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
         if (response.Message.IsSuccess)
         {
+          _logger.LogInformation("UserDatas were taken from the service.");
+
           return response.Message.Body.UsersData;
         }
 

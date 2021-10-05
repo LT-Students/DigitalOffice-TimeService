@@ -58,6 +58,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (projectsFromCache.HasValue)
       {
+        _logger.LogInformation("Projects were taken from the cache.");
+
         (List<ProjectData> projects, int _) = JsonConvert.DeserializeObject<(List<ProjectData>, int)>(projectsFromCache);
 
         return projects;
@@ -85,6 +87,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
         if (result.Message.IsSuccess)
         {
+          _logger.LogInformation("Projects were taken from the service.");
+
           return result.Message.Body.Projects;
         }
 
