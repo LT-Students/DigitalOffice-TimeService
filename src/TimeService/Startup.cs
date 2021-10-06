@@ -22,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
+using Serilog;
 
 namespace LT.DigitalOffice.TimeService
 {
@@ -61,14 +62,6 @@ namespace LT.DigitalOffice.TimeService
 
     public void ConfigureServices(IServiceCollection services)
     {
-      using ILoggerFactory loggerFactory = LoggerFactory.Create(builder =>
-      {
-        builder.SetMinimumLevel(LogLevel.Information);
-        builder.AddConsole();
-        builder.AddEventSourceLogger();
-      });
-      ILogger logger = loggerFactory.CreateLogger("Startup");
-
       services.AddCors(options =>
       {
         options.AddPolicy(
@@ -101,11 +94,11 @@ namespace LT.DigitalOffice.TimeService
       {
         connStr = Configuration.GetConnectionString("SQLConnectionString");
 
-        logger.LogInformation(message: $"SQL connection string from appsettings.json was used. Value '{HidePassord(connStr)}'.");
+        Log.Information($"SQL connection string from appsettings.json was used. Value '{HidePassord(connStr)}'.");
       }
       else
       {
-        logger.LogInformation(message: $"SQL connection string from environment was used. Value '{HidePassord(connStr)}'.");
+        Log.Information($"SQL connection string from environment was used. Value '{HidePassord(connStr)}'.");
       }
 
       string timeToTryAgaing = Environment.GetEnvironmentVariable("TimeToRestartCreatingRecords");
@@ -124,11 +117,11 @@ namespace LT.DigitalOffice.TimeService
       {
         redisConnStr = Configuration.GetConnectionString("Redis");
 
-        logger.LogInformation(message: $"Redis connection string from appsettings.json was used. Value '{HidePassord(redisConnStr)}'");
+        Log.Information($"Redis connection string from appsettings.json was used. Value '{HidePassord(redisConnStr)}'");
       }
       else
       {
-        logger.LogInformation(message: $"Redis connection string from environment was used. Value '{HidePassord(redisConnStr)}'");
+        Log.Information($"Redis connection string from environment was used. Value '{HidePassord(redisConnStr)}'");
       }
 
       services.AddSingleton<IConnectionMultiplexer>(
@@ -250,7 +243,7 @@ namespace LT.DigitalOffice.TimeService
     {
       string password = "Password";
 
-      int index = line.IndexOf(password, 0);
+      int index = line.IndexOf(password, 0, StringComparison.OrdinalIgnoreCase);
 
       if (index != -1)
       {
@@ -258,7 +251,7 @@ namespace LT.DigitalOffice.TimeService
 
         for (int i = 0; i < words.Length; i++)
         {
-          if (password.Equals(words[i]))
+          if (string.Equals(password, words[i], StringComparison.OrdinalIgnoreCase))
           {
             line = line.Replace(words[i + 1], "****");
             break;
