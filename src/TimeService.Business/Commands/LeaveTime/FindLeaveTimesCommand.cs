@@ -128,7 +128,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       var dbLeaveTimes = _repository.Find(filter, out int totalCount);
 
       List<string> errors = new();
-      List<UserInfo> users = (await GetUsersData(dbLeaveTimes.Select(lt => lt.UserId).ToList(), errors)).Select(_userInfoMapper.Map).ToList();
+      List<UserInfo> users = (await GetUsersData(dbLeaveTimes.Select(lt => lt.UserId).ToList(), errors))
+        ?.Select(_userInfoMapper.Map).ToList();
 
       return new()
       {

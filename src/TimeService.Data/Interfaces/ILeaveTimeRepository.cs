@@ -31,6 +31,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     bool HasOverlap(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd);
 
-    bool HasOverlap(DateTime start, DateTime end);
+    bool HasOverlap(Guid userId, DateTime start, DateTime end);
   }
 }

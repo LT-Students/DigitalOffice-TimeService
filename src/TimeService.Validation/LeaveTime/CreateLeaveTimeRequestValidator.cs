@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using FluentValidation;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using MassTransit;
@@ -16,14 +18,14 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
     private readonly IRequestClient<ICheckUsersExistence> _rcCheckUsersExistence;
     private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
 
-    private bool CheckUserExistence(List<Guid> userIds)
+    private async Task<bool> CheckUserExistence(List<Guid> userIds)
     {
       string logMessage = "Cannot check existing users {userIds}";
 
       try
       {
-        IOperationResult<ICheckUsersExistence> response = _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
-          ICheckUsersExistence.CreateObj(userIds)).Result.Message;
+        IOperationResult<ICheckUsersExistence> response = (await _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
+          ICheckUsersExistence.CreateObj(userIds))).Message;
         if (response.IsSuccess && response.Body.UserIds.Count == 1 && response.Body.UserIds[0] == userIds[0])
         {
           return true;
@@ -49,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
-        .Must(UserId => CheckUserExistence(new List<Guid>() { UserId }))
+        .MustAsync(async (userId, cancellation) => await CheckUserExistence(new List<Guid>() { userId }))
         .WithMessage("This user doesn't exist.");
 
       RuleFor(lt => lt.LeaveType)
@@ -65,9 +67,36 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .GreaterThan(0);
 
       RuleFor(lt => lt)
+        .Cascade(CascadeMode.Stop)
         .Must(lt => lt.StartTime <= lt.EndTime)
         .WithMessage("Start time must be before end time.")
-        .Must(lt => !repository.HasOverlap(lt.StartTime, lt.EndTime))
+        .Must(lt =>
+        {
+          DateTime timeNow = DateTime.UtcNow;
+
+          if (lt.EndTime >= timeNow && lt.StartTime <= timeNow)
+          {
+            return true;
+          }
+
+          int countMonthNow = timeNow.Month + timeNow.Year * 12;
+
+          if (lt.EndTime < timeNow)
+          {
+            return countMonthNow - lt.EndTime.Month + lt.EndTime.Year * 12 < 2
+              && (lt.LeaveType == LeaveType.SickLeave || timeNow.Day < 6);
+          }
+
+          if (lt.StartTime > timeNow)
+          {
+            return lt.StartTime.Month + (lt.StartTime.Year * 12) - countMonthNow < 2
+              || lt.LeaveType != LeaveType.SickLeave;
+          }
+
+          return true;
+        })
+        .WithMessage("Incorrect interval for leave time.")
+        .Must(lt => !repository.HasOverlap(lt.UserId, lt.StartTime, lt.EndTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
     }
   }
