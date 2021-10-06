@@ -47,31 +47,33 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
     #region private methods
 
-    private async Task<List<ProjectData>> GetProjects(List<Guid> projectIds, List<string> errors)
+    private async Task<List<ProjectData>> GetProjects(List<Guid> projectsIds, List<string> errors)
     {
-      if (projectIds == null || !projectIds.Any())
+      if (projectsIds == null || !projectsIds.Any())
       {
         return null;
       }
 
-      RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(projectIds.GetRedisCacheHashCode(true).ToString());
+      RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(projectsIds.GetRedisCacheHashCode(true).ToString());
 
       if (projectsFromCache.HasValue)
       {
+        _logger.LogInformation("Projects were taken from the cache. Projects ids: {projectsIds}", string.Join(", ", projectsIds));
+
         (List<ProjectData> projects, int _) = JsonConvert.DeserializeObject<(List<ProjectData>, int)>(projectsFromCache);
 
         return projects;
       }
 
-      return await GetProjectsThroughBroker(projectIds, errors);
+      return await GetProjectsThroughBroker(projectsIds, errors);
     }
 
-    private async Task<List<ProjectData>> GetProjectsThroughBroker(List<Guid> projectIds, List<string> errors)
+    private async Task<List<ProjectData>> GetProjectsThroughBroker(List<Guid> projectsIds, List<string> errors)
     {
       string messageError = "Cannot get projects info. Please, try again later.";
       const string logError = "Cannot get projects info.";
 
-      if (projectIds == null || !projectIds.Any())
+      if (projectsIds == null || !projectsIds.Any())
       {
         return null;
       }
@@ -80,11 +82,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       {
         Response<IOperationResult<IGetProjectsResponse>> result = await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
           IGetProjectsRequest.CreateObj(
-            projectsIds: projectIds,
+            projectsIds: projectsIds,
             includeUsers: true));
 
         if (result.Message.IsSuccess)
         {
+          _logger.LogInformation("Projects were taken from the service. Projects ids: {projectsIds}", string.Join(", ", projectsIds));
+
           return result.Message.Body.Projects;
         }
 
