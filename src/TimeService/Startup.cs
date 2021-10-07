@@ -247,7 +247,7 @@ namespace LT.DigitalOffice.TimeService
 
       if (index != -1)
       {
-        string[] words = line.Split(';', '=');
+        string[] words = Regex.Split(line, @"[=,; ]");
 
         for (int i = 0; i < words.Length; i++)
         {
