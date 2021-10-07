@@ -21,6 +21,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using StackExchange.Redis;
+using Serilog;
+using System.Text.RegularExpressions;
 
 namespace LT.DigitalOffice.TimeService
 {
@@ -91,6 +94,12 @@ namespace LT.DigitalOffice.TimeService
       if (string.IsNullOrEmpty(connStr))
       {
         connStr = Configuration.GetConnectionString("SQLConnectionString");
+
+        Log.Information($"SQL connection string from appsettings.json was used. Value '{HidePassord(connStr)}'.");
+      }
+      else
+      {
+        Log.Information($"SQL connection string from environment was used. Value '{HidePassord(connStr)}'.");
       }
 
       string timeToTryAgaing = Environment.GetEnvironmentVariable("TimeToRestartCreatingRecords");
@@ -103,6 +112,21 @@ namespace LT.DigitalOffice.TimeService
       {
         options.UseSqlServer(connStr);
       });
+
+      string redisConnStr = Environment.GetEnvironmentVariable("RedisConnectionString");
+      if (string.IsNullOrEmpty(redisConnStr))
+      {
+        redisConnStr = Configuration.GetConnectionString("Redis");
+
+        Log.Information($"Redis connection string from appsettings.json was used. Value '{HidePassord(redisConnStr)}'");
+      }
+      else
+      {
+        Log.Information($"Redis connection string from environment was used. Value '{HidePassord(redisConnStr)}'");
+      }
+
+      services.AddSingleton<IConnectionMultiplexer>(
+        x => ConnectionMultiplexer.Connect(redisConnStr));
 
       services.AddBusinessObjects();
 
@@ -214,6 +238,29 @@ namespace LT.DigitalOffice.TimeService
 
       workTimeLimitCreater.Start(
           _timeConfig.MinutesToRestart);
+    }
+
+    private string HidePassord(string line)
+    {
+      string password = "Password";
+
+      int index = line.IndexOf(password, 0, StringComparison.OrdinalIgnoreCase);
+
+      if (index != -1)
+      {
+        string[] words = Regex.Split(line, @"[=,; ]");
+
+        for (int i = 0; i < words.Length; i++)
+        {
+          if (string.Equals(password, words[i], StringComparison.OrdinalIgnoreCase))
+          {
+            line = line.Replace(words[i + 1], "****");
+            break;
+          }
+        }
+      }
+
+      return line;
     }
 
     #endregion

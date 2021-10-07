@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
@@ -18,11 +20,12 @@ using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Response.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
-using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 {
@@ -38,56 +41,121 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly ILogger<FindWorkTimesCommand> _logger;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
+    private readonly IConnectionMultiplexer _cache;
 
-    private List<ProjectData> GetProjects(List<Guid> projectIds, Guid? userId, List<string> errors)
+    private string CreateProjectCacheKey(List<Guid> projectIds, Guid? userId, bool includeUsers = true)
+    {
+      List<Guid> ids = new();
+
+      if (projectIds != null && projectIds.Any())
+      {
+        ids.AddRange(projectIds);
+      }
+
+      if (userId.HasValue)
+      {
+        ids.Add(userId.Value);
+      }
+
+      return ids.GetRedisCacheHashCode(includeUsers);
+    }
+
+    private async Task<List<ProjectData>> GetProjects(List<Guid> projectsIds, Guid? userId, List<string> errors)
+    {
+      if (projectsIds == null || !projectsIds.Any())
+      {
+        return null;
+      }
+
+      RedisValue projectsFromCache = await _cache.GetDatabase(Cache.Projects).StringGetAsync(CreateProjectCacheKey(projectsIds, userId));
+
+      if (projectsFromCache.HasValue)
+      {
+        _logger.LogInformation("Projects were taken from the cache. Projects ids: {projectsIds}", string.Join(", ", projectsIds));
+
+        (List<ProjectData> projects, int _) = JsonConvert.DeserializeObject<(List<ProjectData>, int)>(projectsFromCache);
+
+        return projects;
+      }
+
+      return await GetProjectsThroughBroker(projectsIds, userId, errors);
+    }
+
+    private async Task<List<ProjectData>> GetProjectsThroughBroker(List<Guid> projectsIds, Guid? userId, List<string> errors)
     {
       string messageError = "Cannot get projects info. Please, try again later.";
-      const string logError = "Cannot get projects info with ids: {projectIds}.";
+      const string logError = "Cannot get projects info.";
 
-      if (projectIds == null || projectIds.Count == 0)
+      if (projectsIds == null || !projectsIds.Any())
       {
         return null;
       }
 
       try
       {
-        IOperationResult<IGetProjectsResponse> result = _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
-            IGetProjectsRequest.CreateObj(projectsIds: projectIds, userId: userId, includeUsers: true)).Result.Message;
+        Response<IOperationResult<IGetProjectsResponse>> result = await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
+          IGetProjectsRequest.CreateObj(
+            projectsIds: projectsIds,
+            userId: userId,
+            includeUsers: true));
 
-        if (result.IsSuccess)
+        if (result.Message.IsSuccess)
         {
-          return result.Body.Projects;
+          _logger.LogInformation("Projects were taken from the service. Projects ids: {projectsIds}", string.Join(", ", projectsIds));
+
+          return result.Message.Body.Projects;
         }
 
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join(", ", projectIds), string.Join("\n", result.Errors));
+        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
       }
       catch (Exception exc)
       {
-        _logger.LogError(exc, logError, string.Join(", ", projectIds));
+        _logger.LogError(exc, logError);
       }
 
       errors.Add(messageError);
       return null;
     }
 
-    private List<UserInfo> GetUsersData(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> usersIds, List<string> errors)
     {
-      if (userIds == null || !userIds.Any())
+      if (usersIds == null || !usersIds.Any())
       {
-        return new();
+        return null;
+      }
+
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(usersIds.GetRedisCacheHashCode());
+
+      if (valueFromCache.HasValue)
+      {
+        _logger.LogInformation("UserDatas were taken from the cache. Users ids: {usersIds}", string.Join(", ", usersIds));
+
+        return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
+      }
+
+      return await GetUsersDataFromBroker(usersIds, errors);
+    }
+
+    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> usersIds, List<string> errors)
+    {
+      if (usersIds == null || !usersIds.Any())
+      {
+        return null;
       }
 
       string message = "Cannot get users data. Please try again later.";
-      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", userIds)}'.";
+      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
 
       try
       {
-        var response = _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds)).Result;
+        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+            IGetUsersDataRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          return response.Message.Body.UsersData.Select(_userInfoMapper.Map).ToList();
+          _logger.LogInformation("UserDatas were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
+
+          return response.Message.Body.UsersData;
         }
 
         _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
@@ -99,7 +167,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       errors.Add(message);
 
-      return new();
+      return null;
     }
 
     public FindWorkTimesCommand(
@@ -112,7 +180,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
       ILogger<FindWorkTimesCommand> logger,
       IProjectInfoMapper projectInfoMapper,
-      IUserInfoMapper userInfoMapper)
+      IUserInfoMapper userInfoMapper,
+      IConnectionMultiplexer cache)
     {
       _workTimeResponseMapper = workTimeResponseMapper;
       _workTimeRepository = repository;
@@ -124,9 +193,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _logger = logger;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
+      _cache = cache;
     }
 
-    public FindResultResponse<WorkTimeResponse> Execute(FindWorkTimesFilter filter)
+    public async Task<FindResultResponse<WorkTimeResponse>> Execute(FindWorkTimesFilter filter)
     {
       if (filter == null)
       {
@@ -144,8 +214,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       var dbWorkTimes = _workTimeRepository.Find(filter, out int totalCount);
 
-      List<ProjectData> projects = GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
-      List<UserInfo> users = GetUsersData(dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList(), errors);
+      List<ProjectData> projects = await GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
+      List<UserData> users = await GetUsersData(dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList(), errors);
 
       List<DbWorkTimeMonthLimit> monthLimits = _monthLimitRepository.Find(
         new()
@@ -165,8 +235,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
             return _workTimeResponseMapper.Map(
               wt,
               monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
-              users.FirstOrDefault(u => u.Id == wt.UserId),
-              project.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
+              _userInfoMapper.Map(users.FirstOrDefault(u => u.Id == wt.UserId)),
+              project?.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
               _projectInfoMapper.Map(project));
           }).ToList(),
         Errors = errors

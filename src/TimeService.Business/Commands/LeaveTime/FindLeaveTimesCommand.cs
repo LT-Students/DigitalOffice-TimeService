@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.User;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
@@ -19,6 +22,8 @@ using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
@@ -31,25 +36,47 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
     private readonly ILogger<FindLeaveTimesCommand> _logger;
+    private readonly IConnectionMultiplexer _cache;
 
-    private List<UserInfo> GetUsers(List<Guid> userIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersData(List<Guid> usersIds, List<string> errors)
     {
-      if (userIds == null || !userIds.Any())
+      if (usersIds == null || !usersIds.Any())
       {
-        return new();
+        return null;
+      }
+
+      RedisValue valueFromCache = await _cache.GetDatabase(Cache.Users).StringGetAsync(usersIds.GetRedisCacheHashCode());
+
+      if (valueFromCache.HasValue)
+      {
+        _logger.LogInformation("UserDatas were taken from the cache. Users ids: {usersIds}", string.Join(", ", usersIds));
+
+        return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
+      }
+
+      return await GetUsersDataFromBroker(usersIds, errors);
+    }
+
+    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> usersIds, List<string> errors)
+    {
+      if (usersIds == null || !usersIds.Any())
+      {
+        return null;
       }
 
       string message = "Cannot get users data. Please try again later.";
-      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", userIds)}'.";
+      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
 
       try
       {
-        var response = _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(userIds)).Result;
+        Response<IOperationResult<IGetUsersDataResponse>> response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+            IGetUsersDataRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          return response.Message.Body.UsersData.Select(_userInfoMapper.Map).ToList();
+          _logger.LogInformation("UserDatas were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
+
+          return response.Message.Body.UsersData;
         }
 
         _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
@@ -61,7 +88,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       errors.Add(message);
 
-      return new();
+      return null;
     }
 
     public FindLeaveTimesCommand(
@@ -71,7 +98,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      ILogger<FindLeaveTimesCommand> logger)
+      ILogger<FindLeaveTimesCommand> logger,
+      IConnectionMultiplexer cache)
     {
       _leaveTimeResponseMapper = leaveTimeResponseMapper;
       _userInfoMapper = userInfoMapper;
@@ -80,9 +108,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _httpContextAccessor = httpContextAccessor;
       _rcGetUsers = rcGetUsers;
       _logger = logger;
+      _cache = cache;
     }
 
-    public FindResultResponse<LeaveTimeResponse> Execute(FindLeaveTimesFilter filter)
+    public async Task<FindResultResponse<LeaveTimeResponse>> Execute(FindLeaveTimesFilter filter)
     {
       if (filter == null)
       {
@@ -99,7 +128,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       var dbLeaveTimes = _repository.Find(filter, out int totalCount);
 
       List<string> errors = new();
-      List<UserInfo> users = GetUsers(dbLeaveTimes.Select(lt => lt.UserId).ToList(), errors);
+      List<UserInfo> users = (await GetUsersData(dbLeaveTimes.Select(lt => lt.UserId).ToList(), errors))
+        ?.Select(_userInfoMapper.Map).ToList();
 
       return new()
       {

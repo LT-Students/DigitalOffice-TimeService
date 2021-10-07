@@ -114,10 +114,11 @@ namespace LT.DigitalOffice.TimeService.Data
         ?? throw new NotFoundException($"No leave time with id {leaveTimeId}.");
     }
 
-    public bool HasOverlap(DateTime start, DateTime end)
+    public bool HasOverlap(Guid userId, DateTime start, DateTime end)
     {
-        return !_provider.LeaveTimes.All(oldLeaveTime =>
-          end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+        return !_provider.LeaveTimes.All(oldLeaveTime => !oldLeaveTime.IsActive
+          || oldLeaveTime.UserId != userId
+          || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
     }
 
     public bool HasOverlap(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd)
@@ -130,8 +131,9 @@ namespace LT.DigitalOffice.TimeService.Data
       DateTime start = newStart ?? leaveTime.StartTime;
       DateTime end = newEnd ?? leaveTime.EndTime;
 
-      return !_provider.LeaveTimes.All(oldLeaveTime =>
-          end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+      return !_provider.LeaveTimes.All(oldLeaveTime => !oldLeaveTime.IsActive
+        || oldLeaveTime.UserId != leaveTime.UserId
+        || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
     }
   }
 }
