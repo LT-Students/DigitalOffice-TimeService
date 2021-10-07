@@ -431,6 +431,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         ws.Range(3, 6, 2 + usersInfos.Count, columnNumber - 1).Style.Fill.SetBackgroundColor(TimesColor);
 
         workbook.SaveAs(ms);
+        workbook.SaveAs("C://Users/Egor/sample.xlsx");
       }
 
       return ms.ToArray();
