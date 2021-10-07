@@ -23,6 +23,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Serilog;
+using System.Text.RegularExpressions;
 
 namespace LT.DigitalOffice.TimeService
 {
