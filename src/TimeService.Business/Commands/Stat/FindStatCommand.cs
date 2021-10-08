@@ -137,11 +137,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     }
 
     private List<Guid> FindDepartmentUsers(
-      Guid departmentId, 
-      int skipCount, 
-      int takeCount, 
-      DateTime filterByEntryDate, 
-      out int totalCount, 
+      Guid departmentId,
+      int skipCount,
+      int takeCount,
+      DateTime filterByEntryDate,
+      out int totalCount,
       List<string> errors)
     {
       string messageError = "Cannot get department users info. Please, try again later.";
@@ -358,16 +358,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (filter.DepartmentId.HasValue)
       {
-        (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes, totalCount) = 
+        (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes, totalCount) =
           await FindStatByDepartmentId(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, errors);
       }
       else
       {
         (usersIds, projectsDatas, projectUsersDatas, dbWorkTimes, dbLeaveTimes, totalCount) =
-          await FindStatByProjectId(filter.DepartmentId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, errors);
+          await FindStatByProjectId(filter.ProjectId.Value, filter.SkipCount, filter.TakeCount, filter.Year, filter.Month, errors);
       }
 
-      List<UserInfo> usersInfos = (await GetUsersData(usersIds, errors)).Select(_userInfoMapper.Map).ToList();
+      List<UserInfo> usersInfos = (await GetUsersData(usersIds, errors))?.Select(_userInfoMapper.Map).ToList();
       List<ProjectInfo> projectInfos = projectsDatas?.Select(_projectInfoMapper.Map).ToList();
 
       return new FindResultResponse<StatInfo>
