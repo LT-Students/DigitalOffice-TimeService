@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     private bool ValidateOverlapping(
-      DbLeaveTime oldLeaveTime, 
+      DbLeaveTime oldLeaveTime,
       JsonPatchDocument<EditLeaveTimeRequest> request,
       List<string> errors)
     {
@@ -81,7 +81,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     {
       DbLeaveTime oldLeaveTime = _repository.Get(leaveTimeId);
 
-      if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId 
+      if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId
         && !_accessValidator.IsAdmin())
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;

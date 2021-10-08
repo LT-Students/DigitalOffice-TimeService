@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using FluentValidation.Validators;
+using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Helper;
 using LT.DigitalOffice.TimeService.Validation.WorkTimeDayJob.Interfaces;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTimeDayJob
 {
-    public class EditWorkTimeDayJobRequestValidator : BaseEditRequestValidator<EditWorkTimeDayJobRequest>, IEditWorkTimeDayJobRequestValidator
+  public class EditWorkTimeDayJobRequestValidator : BaseEditRequestValidator<EditWorkTimeDayJobRequest>, IEditWorkTimeDayJobRequestValidator
     {
         private readonly IWorkTimeRepository _repository;
 

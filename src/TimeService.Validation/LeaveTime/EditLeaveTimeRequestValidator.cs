@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using FluentValidation;
 using FluentValidation.Validators;
+using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Helper;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
