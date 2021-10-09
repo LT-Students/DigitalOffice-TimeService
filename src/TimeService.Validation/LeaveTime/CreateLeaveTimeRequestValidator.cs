@@ -83,7 +83,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
           if (lt.EndTime < timeNow)
           {
-            return countMonthNow - lt.EndTime.Month + lt.EndTime.Year * 12 < 2
+            return countMonthNow - (lt.EndTime.Month + lt.EndTime.Year * 12) < 2
               && (lt.LeaveType == LeaveType.SickLeave || timeNow.Day < 6);
           }
 
