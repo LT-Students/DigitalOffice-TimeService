@@ -33,32 +33,32 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       #region UserHours
 
       AddFailureForPropertyIf(
-          nameof(EditWorkTimeRequest.UserHours),
-          x => x == OperationType.Replace,
-          new()
+        nameof(EditWorkTimeRequest.UserHours),
+        x => x == OperationType.Replace,
+        new()
+        {
           {
-            {
-              x => x.value == null
-                || float.TryParse(x.value.ToString(), out _),
-              "Incorrect format of UserHours."
-            }
-          });
+            x => x.value == null
+              || float.TryParse(x.value.ToString(), out _),
+            "Incorrect format of UserHours."
+          }
+        });
 
       #endregion
 
       #region ManagerHours
 
       AddFailureForPropertyIf(
-          nameof(EditWorkTimeRequest.ManagerHours),
-          x => x == OperationType.Replace,
-          new()
+        nameof(EditWorkTimeRequest.ManagerHours),
+        x => x == OperationType.Replace,
+        new()
+        {
           {
-            {
-              x => x.value == null
-                      || float.TryParse(x.value.ToString(), out _),
-              "Incorrect format of ManagerHours."
-            }
-          });
+            x => x.value == null
+              || float.TryParse(x.value.ToString(), out _),
+            "Incorrect format of ManagerHours."
+          }
+        });
 
       #endregion
     }
@@ -66,7 +66,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
     public EditWorkTimeRequestValidator()
     {
       RuleForEach(x => x.Operations)
-         .Custom(HandleInternalPropertyValidation);
+        .Custom(HandleInternalPropertyValidation);
     }
   }
 }
