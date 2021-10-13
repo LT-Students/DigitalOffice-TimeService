@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
       [FromServices] IFindStatCommand command,
       [FromQuery] FindStatFilter filter)
     {
-      return await command.Execute(filter);
+      return await command.ExecuteAsync(filter);
     }
   }
 }

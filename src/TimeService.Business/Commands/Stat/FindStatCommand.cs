@@ -311,7 +311,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _cache = cache;
     }
 
-    public async Task<FindResultResponse<StatInfo>> Execute(FindStatFilter filter)
+    public async Task<FindResultResponse<StatInfo>> ExecuteAsync(FindStatFilter filter)
     {
       if (!filter.DepartmentId.HasValue && !filter.ProjectId.HasValue
         || filter.DepartmentId.HasValue && filter.ProjectId.HasValue)

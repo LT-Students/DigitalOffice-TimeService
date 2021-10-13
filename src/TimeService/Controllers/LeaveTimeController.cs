@@ -15,11 +15,11 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class LeaveTimeController : ControllerBase
   {
     [HttpPost("add")]
-    public OperationResultResponse<Guid> Add(
+    public async Task<OperationResultResponse<Guid>> Add(
       [FromBody] CreateLeaveTimeRequest leaveTime,
       [FromServices] ICreateLeaveTimeCommand command)
     {
-      return command.Execute(leaveTime);
+      return await command.ExecuteAsync(leaveTime);
     }
 
     [HttpGet("find")]
@@ -27,16 +27,16 @@ namespace LT.DigitalOffice.TimeService.Controllers
       [FromServices] IFindLeaveTimesCommand command,
       [FromQuery] FindLeaveTimesFilter filter)
     {
-      return await command.Execute(filter);
+      return await command.ExecuteAsync(filter);
     }
 
     [HttpPatch("edit")]
-    public OperationResultResponse<bool> Edit(
+    public async Task<OperationResultResponse<bool>> Edit(
       [FromServices] IEditLeaveTimeCommand command,
       [FromQuery] Guid leaveTimeId,
       [FromBody] JsonPatchDocument<EditLeaveTimeRequest> request)
     {
-      return command.Execute(leaveTimeId, request);
+      return await command.ExecuteAsync(leaveTimeId, request);
     }
   }
 }

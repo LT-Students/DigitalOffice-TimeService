@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
@@ -77,12 +78,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _httpContextAccessor = httpContextAccessor;
     }
 
-    public OperationResultResponse<bool> Execute(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
+    public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
     {
       DbLeaveTime oldLeaveTime = _repository.Get(leaveTimeId);
 
       if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId
-        && !_accessValidator.IsAdmin())
+        && !await _accessValidator.IsAdminAsync())
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 

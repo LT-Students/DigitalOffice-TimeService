@@ -16,19 +16,19 @@ namespace LT.DigitalOffice.TimeService.Controllers
   {
     [HttpGet("find")]
     public async Task<FindResultResponse<WorkTimeResponse>> Find(
-        [FromServices] IFindWorkTimesCommand command,
-        [FromQuery] FindWorkTimesFilter filter)
+      [FromServices] IFindWorkTimesCommand command,
+      [FromQuery] FindWorkTimesFilter filter)
     {
-      return await command.Execute(filter);
+      return await command.ExecuteAsync(filter);
     }
 
     [HttpPatch("edit")]
-    public OperationResultResponse<bool> Edit(
-        [FromServices] IEditWorkTimeCommand command,
-        [FromQuery] Guid workTimeId,
-        [FromBody] JsonPatchDocument<EditWorkTimeRequest> request)
+    public async Task<OperationResultResponse<bool>> Edit(
+      [FromServices] IEditWorkTimeCommand command,
+      [FromQuery] Guid workTimeId,
+      [FromBody] JsonPatchDocument<EditWorkTimeRequest> request)
     {
-      return command.Execute(workTimeId, request);
+      return await command.ExecuteAsync(workTimeId, request);
     }
   }
 }

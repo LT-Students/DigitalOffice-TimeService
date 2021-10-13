@@ -7,8 +7,8 @@ using LT.DigitalOffice.TimeService.Models.Dto.Responses;
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces
 {
   [AutoInject]
-    public interface IFindWorkTimesCommand
-    {
-        Task<FindResultResponse<WorkTimeResponse>> Execute(FindWorkTimesFilter filter);
-    }
+  public interface IFindWorkTimesCommand
+  {
+    Task<FindResultResponse<WorkTimeResponse>> ExecuteAsync(FindWorkTimesFilter filter);
+  }
 }
