@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
@@ -29,12 +28,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public CreateWorkTimeDayJobCommand(
-        ICreateWorkTimeDayJobRequestValidator validator,
-        IAccessValidator accessValidator,
-        IDbWorkTimeDayJobMapper mapper,
-        IWorkTimeDayJobRepository repository,
-        IWorkTimeRepository workTimeRepository,
-        IHttpContextAccessor httpContextAccessor)
+      ICreateWorkTimeDayJobRequestValidator validator,
+      IAccessValidator accessValidator,
+      IDbWorkTimeDayJobMapper mapper,
+      IWorkTimeDayJobRepository repository,
+      IWorkTimeRepository workTimeRepository,
+      IHttpContextAccessor httpContextAccessor)
     {
       _validator = validator;
       _accessValidator = accessValidator;
