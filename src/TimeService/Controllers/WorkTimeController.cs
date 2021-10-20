@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class WorkTimeController : ControllerBase
   {
     [HttpGet("find")]
-    public async Task<FindResultResponse<WorkTimeResponse>> Find(
+    public async Task<FindResultResponse<WorkTimeResponse>> FindAsync(
       [FromServices] IFindWorkTimesCommand command,
       [FromQuery] FindWorkTimesFilter filter)
     {

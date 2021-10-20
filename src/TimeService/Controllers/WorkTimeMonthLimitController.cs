@@ -15,17 +15,15 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class WorkTimeMonthLimitController : ControllerBase
   {
     [HttpGet("find")]
-    public FindResultResponse<WorkTimeMonthLimitInfo> Find(
+    public async Task<FindResultResponse<WorkTimeMonthLimitInfo>> FindAsync(
       [FromServices] IFindWorkTimeMonthLimitCommand command,
-      [FromQuery] FindWorkTimeMonthLimitsFilter filter,
-      [FromQuery] int skipCount,
-      [FromQuery] int takeCount)
+      [FromQuery] FindWorkTimeMonthLimitsFilter filter)
     {
-      return command.Execute(filter, skipCount, takeCount);
+      return await command.ExecuteAsync(filter);
     }
 
     [HttpPatch("edit")]
-    public async Task<OperationResultResponse<bool>> Edit(
+    public async Task<OperationResultResponse<bool>> EditAsync(
       [FromServices] IEditWorkTimeMonthLimitCommand command,
       [FromQuery] Guid workTimeMonthLimitId,
       [FromBody] JsonPatchDocument<EditWorkTimeMonthLimitRequest> request)

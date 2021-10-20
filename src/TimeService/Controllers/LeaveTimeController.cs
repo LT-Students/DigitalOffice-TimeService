@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class LeaveTimeController : ControllerBase
   {
     [HttpPost("add")]
-    public async Task<OperationResultResponse<Guid>> Add(
+    public async Task<OperationResultResponse<Guid>> AddAsync(
       [FromBody] CreateLeaveTimeRequest leaveTime,
       [FromServices] ICreateLeaveTimeCommand command)
     {
@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
     }
 
     [HttpGet("find")]
-    public async Task<FindResultResponse<LeaveTimeResponse>> Find(
+    public async Task<FindResultResponse<LeaveTimeResponse>> FindAsync(
       [FromServices] IFindLeaveTimesCommand command,
       [FromQuery] FindLeaveTimesFilter filter)
     {
@@ -31,7 +31,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
     }
 
     [HttpPatch("edit")]
-    public async Task<OperationResultResponse<bool>> Edit(
+    public async Task<OperationResultResponse<bool>> EditAsync(
       [FromServices] IEditLeaveTimeCommand command,
       [FromQuery] Guid leaveTimeId,
       [FromBody] JsonPatchDocument<EditLeaveTimeRequest> request)

@@ -133,8 +133,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         Response<IOperationResult<IGetDepartmentUsersResponse>> result =
           await _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj
-            (departmentId, ByEntryDate: filterbyEntryDate));
+            IGetDepartmentUsersRequest.CreateObj(
+              departmentId,
+              ByEntryDate: filterbyEntryDate));
 
         if (result.Message.IsSuccess)
         {

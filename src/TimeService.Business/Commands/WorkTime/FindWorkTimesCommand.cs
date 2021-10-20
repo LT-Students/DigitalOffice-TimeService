@@ -223,7 +223,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       List<ProjectData> projects = await GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
       List<UserData> users = await GetUsersData(dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList(), errors);
 
-      List<DbWorkTimeMonthLimit> monthLimits = _monthLimitRepository.Find(
+      (List<DbWorkTimeMonthLimit> monthLimits, int _) = await _monthLimitRepository.FindAsync(
         new()
         {
           Month = filter.Month,

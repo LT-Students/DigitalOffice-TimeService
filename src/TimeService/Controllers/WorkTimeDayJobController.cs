@@ -13,7 +13,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class WorkTimeDayJobController : Controller
   {
     [HttpPost("create")]
-    public async Task<OperationResultResponse<Guid>> Create(
+    public async Task<OperationResultResponse<Guid>> CreateAsync(
       [FromServices] ICreateWorkTimeDayJobCommand command,
       [FromBody] CreateWorkTimeDayJobRequest request)
     {
@@ -21,7 +21,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
     }
 
     [HttpPatch("edit")]
-    public async Task<OperationResultResponse<bool>> Edit(
+    public async Task<OperationResultResponse<bool>> EditAsync(
       [FromServices] IEditWorkTimeDayJobCommand command,
       [FromQuery] Guid workTimeDayJobId,
       [FromBody] JsonPatchDocument<EditWorkTimeDayJobRequest> request)

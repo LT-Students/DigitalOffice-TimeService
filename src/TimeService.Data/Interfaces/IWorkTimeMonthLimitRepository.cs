@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
@@ -18,9 +19,9 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     List<DbWorkTimeMonthLimit> GetRange(int startYear, int startMonth, int endYear, int endMonth);
 
-    List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter, int skipCount, int takeCount, out int totalCount);
+    Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter);
 
-    List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter);
+    //List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter);
 
     bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
   }

@@ -12,7 +12,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class StatController : ControllerBase
   {
     [HttpGet("find")]
-    public async Task<FindResultResponse<StatInfo>> Find(
+    public async Task<FindResultResponse<StatInfo>> FindAsync(
       [FromServices] IFindStatCommand command,
       [FromQuery] FindStatFilter filter)
     {
