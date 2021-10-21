@@ -22,11 +22,9 @@ using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
-using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -59,7 +57,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     #region private methods
 
-    private List<ProjectData> GetProjects(List<Guid> projectIds, bool includeUsers, List<string> errors)
+    private async Task<List<ProjectData>> GetProjectsAsync(List<Guid> projectIds, bool includeUsers, List<string> errors)
     {
       string messageError = "Cannot get projects info. Please, try again later.";
       const string logError = "Cannot get projects info.";
@@ -71,17 +69,18 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       try
       {
-        IOperationResult<IGetProjectsResponse> result = _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
+        Response<IOperationResult<IGetProjectsResponse>> result =
+          await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
             IGetProjectsRequest.CreateObj(
               projectsIds: projectIds,
-              includeUsers: includeUsers)).Result.Message;
+              includeUsers: includeUsers));
 
-        if (result.IsSuccess)
+        if (result.Message.IsSuccess)
         {
-          return result.Body.Projects;
+          return result.Message.Body.Projects;
         }
 
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Errors));
+        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
       }
       catch (Exception exc)
       {
@@ -92,7 +91,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return null;
     }
 
-    private List<ProjectUserData> GetProjectsUsers(List<Guid> usersIds, List<string> errors)
+    private async Task<List<ProjectUserData>> GetProjectsUsersAsync(List<Guid> usersIds, List<string> errors)
     {
       string messageError = "Cannot get projects users info. Please, try again later.";
       const string logError = "Cannot get projects users info.";
@@ -104,16 +103,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       try
       {
-        IOperationResult<IGetProjectsUsersResponse> result = _rcGetProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
-          IGetProjectsUsersRequest.CreateObj(
-            usersIds: usersIds)).Result.Message;
+        Response<IOperationResult<IGetProjectsUsersResponse>> result =
+          await _rcGetProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
+            IGetProjectsUsersRequest.CreateObj(
+              usersIds: usersIds));
 
-        if (result.IsSuccess)
+        if (result.Message.IsSuccess)
         {
-          return result.Body.Users;
+          return result.Message.Body.Users;
         }
 
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Errors));
+        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
       }
       catch (Exception exc)
       {
@@ -124,22 +124,25 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return null;
     }
 
-    private List<Guid> FindDepartmentUsers(Guid departmentId, DateTime filterbyEntryDate, List<string> errors)
+    private async Task<List<Guid>> FindDepartmentUsersAsync(Guid departmentId, DateTime filterbyEntryDate, List<string> errors)
     {
       string messageError = "Cannot get department users info. Please, try again later.";
       const string logError = "Cannot get users of department with id: '{id}'.";
 
       try
       {
-        IOperationResult<IGetDepartmentUsersResponse> result = _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj(departmentId, ByEntryDate: filterbyEntryDate)).Result.Message;
+        Response<IOperationResult<IGetDepartmentUsersResponse>> result =
+          await _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
+            IGetDepartmentUsersRequest.CreateObj(
+              departmentId,
+              ByEntryDate: filterbyEntryDate));
 
-        if (result.IsSuccess)
+        if (result.Message.IsSuccess)
         {
-          return result.Body.UserIds;
+          return result.Message.Body.UserIds;
         }
 
-        _logger.LogWarning(logError + "Errors: {errors}.", departmentId, string.Join("\n", result.Errors));
+        _logger.LogWarning(logError + "Errors: {errors}.", departmentId, string.Join("\n", result.Message.Errors));
       }
       catch (Exception exc)
       {
@@ -151,7 +154,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return null;
     }
 
-    private async Task<List<UserData>> GetUsersData(List<Guid> usersIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
     {
       if (usersIds == null || !usersIds.Any())
       {
@@ -167,10 +170,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         return JsonConvert.DeserializeObject<List<UserData>>(valueFromCache.ToString());
       }
 
-      return await GetUsersDataFromBroker(usersIds, errors);
+      return await GetUsersDataFromBrokerAsync(usersIds, errors);
     }
 
-    private async Task<List<UserData>> GetUsersDataFromBroker(List<Guid> usersIds, List<string> errors)
+    private async Task<List<UserData>> GetUsersDataFromBrokerAsync(List<Guid> usersIds, List<string> errors)
     {
       if (usersIds == null || !usersIds.Any())
       {
@@ -219,7 +222,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       int requestedMonth = end.Month;
       List<DbWorkTimeMonthLimit> newLimits = new();
 
-      while(countNeededMonth > 0)
+      while (countNeededMonth > 0)
       {
         string holidays = _calendar.GetWorkCalendarByMonth(requestedMonth, requestedYear);
 
@@ -240,7 +243,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         countNeededMonth--;
         requestedMonth--;
-        if(requestedMonth == 0)
+        if (requestedMonth == 0)
         {
           requestedMonth = 12;
           requestedYear--;
@@ -541,9 +544,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       _calendar = new IsDayOffIntegration();
     }
 
-    public async Task<OperationResultResponse<byte[]>> Execute(ImportStatFilter filter)
+    public async Task<OperationResultResponse<byte[]>> ExecuteAsync(ImportStatFilter filter)
     {
-      if (!_accessValidator.IsAdmin())
+      if (!await _accessValidator.IsAdminAsync())
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
@@ -574,20 +577,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (filter.DepartmentId.HasValue)
       {
-        usersIds = FindDepartmentUsers(filter.DepartmentId.Value, new DateTime(filter.Year, filter.Month, 1), errors);
+        usersIds = await FindDepartmentUsersAsync(
+          filter.DepartmentId.Value,
+          new DateTime(filter.Year, filter.Month, 1), errors);
 
-        projectsUsers = GetProjectsUsers(usersIds, errors);
+        projectsUsers = await GetProjectsUsersAsync(usersIds, errors);
 
-        projects = GetProjects(projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
+        projects = await GetProjectsAsync(
+          projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
       }
       else
       {
-        projects = GetProjects(new() { filter.ProjectId.Value }, true, errors);
+        projects = await GetProjectsAsync(new() { filter.ProjectId.Value }, true, errors);
 
         usersIds = projects?.SelectMany(p => p.Users.Select(pu => pu.UserId)).OrderBy(id => id).Distinct().ToList();
       }
 
-      List<UserData> usersInfos = await GetUsersData(usersIds, errors);
+      List<UserData> usersInfos = await GetUsersDataAsync(usersIds, errors);
 
       if (usersInfos == null || projects == null)
       {

@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
@@ -111,7 +111,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _cache = cache;
     }
 
-    public async Task<FindResultResponse<LeaveTimeResponse>> Execute(FindLeaveTimesFilter filter)
+    public async Task<FindResultResponse<LeaveTimeResponse>> ExecuteAsync(FindLeaveTimesFilter filter)
     {
       if (filter == null)
       {
@@ -120,9 +120,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       var isAuthor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-      if (!isAuthor && !_accessValidator.IsAdmin())
+      if (!isAuthor && !await _accessValidator.IsAdminAsync())
       {
-        throw new ForbiddenException("Not enough rights.");
+        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+
+        return new()
+        {
+          Status = OperationResultStatusType.Failed
+        };
       }
 
       var dbLeaveTimes = _repository.Find(filter, out int totalCount);

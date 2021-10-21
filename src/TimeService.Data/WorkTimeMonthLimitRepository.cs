@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Linq;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -62,24 +64,14 @@ namespace LT.DigitalOffice.TimeService.Data
       return true;
     }
 
-    public List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter, int skipCount, int takeCount, out int totalCount)
+    public async Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter)
     {
       if (filter == null)
       {
-        throw new ArgumentNullException(nameof(filter));
+        return (null, default);
       }
 
-      if (skipCount < 0)
-      {
-        throw new BadRequestException("Skip count can't be less than 0.");
-      }
-
-      if (takeCount < 1)
-      {
-        throw new BadRequestException("Take count can't be less than 1.");
-      }
-
-      var dbWorkTimeMonthLimits = _provider.WorkTimeMonthLimits.AsQueryable();
+      IQueryable<DbWorkTimeMonthLimit> dbWorkTimeMonthLimits = _provider.WorkTimeMonthLimits.AsQueryable();
 
       if (filter.Month.HasValue)
       {
@@ -91,12 +83,17 @@ namespace LT.DigitalOffice.TimeService.Data
         dbWorkTimeMonthLimits = dbWorkTimeMonthLimits.Where(x => x.Year == filter.Year.Value);
       }
 
-      totalCount = dbWorkTimeMonthLimits.Count();
+      int totalCount = await dbWorkTimeMonthLimits.CountAsync();
 
-      return dbWorkTimeMonthLimits.Skip(skipCount).Take(takeCount).ToList();
+      if (filter.TakeCount != default)
+      {
+        dbWorkTimeMonthLimits = dbWorkTimeMonthLimits.Skip(filter.SkipCount).Take(filter.TakeCount);
+      }
+
+      return (await dbWorkTimeMonthLimits.ToListAsync(), totalCount);
     }
 
-    public List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter)
+    /*public async Task<List<DbWorkTimeMonthLimit>> FindAllAsync(FindWorkTimeMonthLimitsFilter filter)
     {
       if (filter == null)
       {
@@ -116,7 +113,7 @@ namespace LT.DigitalOffice.TimeService.Data
       }
 
       return dbWorkTimeMonthLimits.ToList();
-    }
+    }*/
 
     public DbWorkTimeMonthLimit Get(int year, int month)
     {

@@ -8,6 +8,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces
   [AutoInject]
   public interface IImportStatCommand
   {
-    Task<OperationResultResponse<byte[]>> Execute(ImportStatFilter filter);
+    Task<OperationResultResponse<byte[]>> ExecuteAsync(ImportStatFilter filter);
   }
 }

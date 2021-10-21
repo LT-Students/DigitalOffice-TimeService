@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Broker;
@@ -196,7 +197,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _cache = cache;
     }
 
-    public async Task<FindResultResponse<WorkTimeResponse>> Execute(FindWorkTimesFilter filter)
+    public async Task<FindResultResponse<WorkTimeResponse>> ExecuteAsync(FindWorkTimesFilter filter)
     {
       if (filter == null)
       {
@@ -205,9 +206,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       var isActhor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-      if (!isActhor && !_accessValidator.IsAdmin())
+      if (!isActhor && !await _accessValidator.IsAdminAsync())
       {
-        throw new ForbiddenException("Not enough rights.");
+        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+
+        return new()
+        {
+          Status = OperationResultStatusType.Failed
+        };
       }
 
       List<string> errors = new();
@@ -217,7 +223,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       List<ProjectData> projects = await GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
       List<UserData> users = await GetUsersData(dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList(), errors);
 
-      List<DbWorkTimeMonthLimit> monthLimits = _monthLimitRepository.Find(
+      (List<DbWorkTimeMonthLimit> monthLimits, int _) = await _monthLimitRepository.FindAsync(
         new()
         {
           Month = filter.Month,

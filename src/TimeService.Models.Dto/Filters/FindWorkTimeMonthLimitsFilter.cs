@@ -1,13 +1,14 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using LT.DigitalOffice.Kernel.Requests;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 {
-    public class FindWorkTimeMonthLimitsFilter
-    {
-        [FromQuery(Name = "year")]
-        public int? Year { get; set; }
+  public record FindWorkTimeMonthLimitsFilter : BaseFindFilter
+  {
+    [FromQuery(Name = "year")]
+    public int? Year { get; set; }
 
-        [FromQuery(Name = "month")]
-        public int? Month { get; set; }
-    }
+    [FromQuery(Name = "month")]
+    public int? Month { get; set; }
+  }
 }
