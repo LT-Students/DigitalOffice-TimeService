@@ -11,6 +11,7 @@ using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Patch.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -42,9 +43,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
     {
-      var oldDbWorkTime = _repository.Get(workTimeId);
+      DbWorkTime oldDbWorkTime = _repository.Get(workTimeId);
 
-      var isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.UserId;
+      bool isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.UserId;
       if (!isOwner && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
