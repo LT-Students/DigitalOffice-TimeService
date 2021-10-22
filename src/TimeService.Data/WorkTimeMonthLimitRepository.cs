@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.Entity;
 using System.Linq;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Exceptions.Models;
@@ -11,6 +10,7 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 
 namespace LT.DigitalOffice.TimeService.Data
 {
@@ -20,8 +20,8 @@ namespace LT.DigitalOffice.TimeService.Data
     private readonly IHttpContextAccessor _httpContextAccessor;
 
     public WorkTimeMonthLimitRepository(
-        IDataProvider provider,
-        IHttpContextAccessor httpContextAccessor)
+      IDataProvider provider,
+      IHttpContextAccessor httpContextAccessor)
     {
       _provider = provider;
       _httpContextAccessor = httpContextAccessor;
@@ -70,7 +70,6 @@ namespace LT.DigitalOffice.TimeService.Data
       {
         return (null, default);
       }
-
       IQueryable<DbWorkTimeMonthLimit> dbWorkTimeMonthLimits = _provider.WorkTimeMonthLimits.AsQueryable();
 
       if (filter.Month.HasValue)
@@ -92,28 +91,6 @@ namespace LT.DigitalOffice.TimeService.Data
 
       return (await dbWorkTimeMonthLimits.ToListAsync(), totalCount);
     }
-
-    /*public async Task<List<DbWorkTimeMonthLimit>> FindAllAsync(FindWorkTimeMonthLimitsFilter filter)
-    {
-      if (filter == null)
-      {
-        throw new ArgumentNullException(nameof(filter));
-      }
-
-      var dbWorkTimeMonthLimits = _provider.WorkTimeMonthLimits.AsQueryable();
-
-      if (filter.Month.HasValue)
-      {
-        dbWorkTimeMonthLimits = dbWorkTimeMonthLimits.Where(x => x.Month == filter.Month.Value);
-      }
-
-      if (filter.Year.HasValue)
-      {
-        dbWorkTimeMonthLimits = dbWorkTimeMonthLimits.Where(x => x.Year == filter.Year.Value);
-      }
-
-      return dbWorkTimeMonthLimits.ToList();
-    }*/
 
     public DbWorkTimeMonthLimit Get(int year, int month)
     {
