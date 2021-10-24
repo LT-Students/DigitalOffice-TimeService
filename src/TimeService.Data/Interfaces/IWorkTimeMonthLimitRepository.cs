@@ -21,8 +21,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter);
 
-    //List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter);
-
     bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
   }
 }
