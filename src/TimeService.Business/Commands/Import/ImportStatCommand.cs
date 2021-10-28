@@ -12,10 +12,10 @@ using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
+using LT.DigitalOffice.Models.Broker.Requests.Department;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Company;
+using LT.DigitalOffice.Models.Broker.Responses.Department;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
@@ -139,7 +139,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         if (result.Message.IsSuccess)
         {
-          return result.Message.Body.UserIds;
+          return result.Message.Body.UsersIds;
         }
 
         _logger.LogWarning(logError + "Errors: {errors}.", departmentId, string.Join("\n", result.Message.Errors));
@@ -378,7 +378,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           ws.Cell(row, 1).SetValue(number + 1);
           ws.Cell(row, 2).SetValue($"{usersInfos[number].FirstName} {usersInfos[number].LastName}");
-          ws.Cell(row, 3).SetValue(usersInfos[number].Rate);
+          ws.Cell(row, 3).SetValue("1");
           ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours);
           ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
             Style.Fill.SetBackgroundColor(FirstHeaderColor);
@@ -390,8 +390,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           CreateProjectsPartTableForDepartment(
             ws,
             column,
-            projects.Where(p => p.DepartmentId == filter.DepartmentId.Value).ToList(),
-            projects.Where(p => p.DepartmentId != filter.DepartmentId.Value).ToList(),
+            projects.Where(p => p.Id == filter.DepartmentId.Value).ToList(),
+            projects.Where(p => p.Id != filter.DepartmentId.Value).ToList(),
             usersInfos,
             workTimes);
         }

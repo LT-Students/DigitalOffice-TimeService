@@ -1,7 +1,7 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Models.Broker.Common;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
+using LT.DigitalOffice.Models.Broker.Requests.Department;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
 

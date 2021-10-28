@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.Models.Broker.Models;
+﻿using System;
+using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 
@@ -16,7 +17,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
             return new ProjectInfo
             {
                 Id = project.Id,
-                DepartmentId = project.DepartmentId,
                 Name = project.Name,
                 ShortDescription = project.ShortDescription,
                 ShortName = project.ShortName,

@@ -9,10 +9,10 @@ using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
+using LT.DigitalOffice.Models.Broker.Requests.Department;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Company;
+using LT.DigitalOffice.Models.Broker.Responses.Department;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.Stat.Interfaces;
@@ -156,7 +156,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         {
           totalCount = result.Body.TotalCount;
 
-          return result.Body.UserIds;
+          return result.Body.UsersIds;
         }
 
         _logger.LogWarning(logError + "Errors: {errors}.", departmentId, string.Join("\n", result.Errors));
