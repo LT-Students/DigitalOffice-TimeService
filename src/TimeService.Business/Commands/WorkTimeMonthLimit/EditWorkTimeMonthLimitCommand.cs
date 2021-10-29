@@ -62,7 +62,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
         };
       }
 
-      bool result = _repository.Edit(workTimeMonthLimitId, _mapper.Map(request));
+      bool result = await _repository.EditAsync(workTimeMonthLimitId, _mapper.Map(request));
 
       return new()
       {

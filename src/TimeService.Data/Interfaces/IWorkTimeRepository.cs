@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
@@ -14,18 +15,18 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
   [AutoInject]
   public interface IWorkTimeRepository
   {
-    Guid Create(DbWorkTime workTime);
+    Task<Guid?> CreateAsync(DbWorkTime workTime);
 
-    DbWorkTime Get(Guid id);
+    Task<DbWorkTime> GetAsync(Guid id);
 
-    bool Contains(Guid id);
+    Task<bool> DoesExistAsync(Guid id);
 
-    List<DbWorkTime> Find(FindWorkTimesFilter filter, out int totalCount);
+    Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter);
 
-    List<DbWorkTime> Find(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false);
+    Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false);
 
-    bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
+    Task<bool> EditAsync(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
 
-    DbWorkTime GetLast();
+    Task<DbWorkTime> GetLastAsync();
   }
 }

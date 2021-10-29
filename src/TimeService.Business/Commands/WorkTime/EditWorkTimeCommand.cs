@@ -43,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid workTimeId, JsonPatchDocument<EditWorkTimeRequest> request)
     {
-      DbWorkTime oldDbWorkTime = _repository.Get(workTimeId);
+      DbWorkTime oldDbWorkTime = await _repository.GetAsync(workTimeId);
 
       bool isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.UserId;
       if (!isOwner && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       return new OperationResultResponse<bool>
       {
-        Body = _repository.Edit(oldDbWorkTime, _mapper.Map(request)),
+        Body = await _repository.EditAsync(oldDbWorkTime, _mapper.Map(request)),
         Status = OperationResultStatusType.FullSuccess,
         Errors = new()
       };

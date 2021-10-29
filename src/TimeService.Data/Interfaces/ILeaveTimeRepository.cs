@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
@@ -14,23 +15,18 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
   [AutoInject]
   public interface ILeaveTimeRepository
   {
-    /// <summary>
-    /// Adds new leave time to the database. Returns the id of the added leave time.
-    /// </summary>
-    /// <param name="leaveTime">Leave time to add.</param>
-    /// <returns>Id of the added leave time.</returns>
-    Guid Add(DbLeaveTime leaveTime);
+    Task<Guid?> CreateAsync(DbLeaveTime leaveTime);
 
-    List<DbLeaveTime> Find(FindLeaveTimesFilter filter, out int totalCount);
+    Task<(List<DbLeaveTime>, int totalCount)> FindAsync(FindLeaveTimesFilter filter);
 
-    List<DbLeaveTime> Find(List<Guid> usersIds, int year, int month);
+    Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int month);
 
-    DbLeaveTime Get(Guid leaveTimeId);
+    Task<DbLeaveTime> GetAsync(Guid leaveTimeId);
 
-    bool Edit(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request);
+    Task<bool> EditAsync(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request);
 
-    bool HasOverlap(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd);
+    Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd);
 
-    bool HasOverlap(Guid userId, DateTime start, DateTime end);
+    Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end);
   }
 }

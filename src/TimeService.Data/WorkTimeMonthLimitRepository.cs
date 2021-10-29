@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
@@ -27,39 +26,43 @@ namespace LT.DigitalOffice.TimeService.Data
       _httpContextAccessor = httpContextAccessor;
     }
 
-    public Guid Add(DbWorkTimeMonthLimit workTimeMonthLimit)
+    public async Task<Guid?> CreateAsync(DbWorkTimeMonthLimit workTimeMonthLimit)
     {
       if (workTimeMonthLimit == null)
       {
-        throw new ArgumentNullException(nameof(workTimeMonthLimit));
+        return null;
       }
 
       _provider.WorkTimeMonthLimits.Add(workTimeMonthLimit);
-      _provider.Save();
+      await _provider.SaveAsync();
 
       return workTimeMonthLimit.Id;
     }
 
-    public void AddRange(List<DbWorkTimeMonthLimit> workTimeMonthsLimits)
+    public async Task CreateRangeAsync(List<DbWorkTimeMonthLimit> workTimeMonthsLimits)
     {
       if (workTimeMonthsLimits == null || workTimeMonthsLimits.Contains(null))
       {
-        throw new ArgumentNullException(nameof(workTimeMonthsLimits));
+        return;
       }
 
       _provider.WorkTimeMonthLimits.AddRange(workTimeMonthsLimits);
-      _provider.Save();
+      await _provider.SaveAsync();
     }
 
-    public bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request)
+    public async Task<bool> EditAsync(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request)
     {
-      DbWorkTimeMonthLimit dbWorkTimeMonthLimit = _provider.WorkTimeMonthLimits.FirstOrDefault(ml => ml.Id == workTimeMonthLimitId)
-          ?? throw new NotFoundException($"No worktime month limits with id {workTimeMonthLimitId}");
+      DbWorkTimeMonthLimit dbWorkTimeMonthLimit = _provider.WorkTimeMonthLimits.FirstOrDefault(ml => ml.Id == workTimeMonthLimitId);
+
+      if (dbWorkTimeMonthLimit == null)
+      {
+        return false;
+      }
 
       request.ApplyTo(dbWorkTimeMonthLimit);
       dbWorkTimeMonthLimit.ModifiedAtUtc = DateTime.UtcNow;
       dbWorkTimeMonthLimit.ModifiedBy = _httpContextAccessor.HttpContext.GetUserId();
-      _provider.Save();
+      await _provider.SaveAsync();
 
       return true;
     }
@@ -92,12 +95,17 @@ namespace LT.DigitalOffice.TimeService.Data
       return (await dbWorkTimeMonthLimits.ToListAsync(), totalCount);
     }
 
-    public DbWorkTimeMonthLimit Get(int year, int month)
+    public async Task<DbWorkTimeMonthLimit> GetAsync(int year, int month)
     {
-      return _provider.WorkTimeMonthLimits.FirstOrDefault(l => l.Year == year && l.Month == month);
+      return await _provider.WorkTimeMonthLimits.FirstOrDefaultAsync(l => l.Year == year && l.Month == month);
     }
 
-    public List<DbWorkTimeMonthLimit> GetRange(int startYear, int startMonth, int endYear, int endMonth)
+    public async Task<DbWorkTimeMonthLimit> GetLastAsync()
+    {
+      return await _provider.WorkTimeMonthLimits.OrderByDescending(l => l.Year).ThenByDescending(l => l.Month).FirstOrDefaultAsync();
+    }
+
+    public async Task<List<DbWorkTimeMonthLimit>> GetAsync(int startYear, int startMonth, int endYear, int endMonth)
     {
       int startCountMonths = startYear * 12 + startMonth;
       int endCountMonths = endYear * 12 + endMonth;
@@ -107,9 +115,9 @@ namespace LT.DigitalOffice.TimeService.Data
         return null;
       }
 
-      return _provider.WorkTimeMonthLimits
-        .Where(ml =>
-          ml.Year * 12 + ml.Month >= startCountMonths && ml.Year * 12 + ml.Month <= endCountMonths).ToList();
+      return await _provider.WorkTimeMonthLimits
+        .Where(ml => ml.Year * 12 + ml.Month >= startCountMonths && ml.Year * 12 + ml.Month <= endCountMonths)
+        .ToListAsync();
     }
   }
 }

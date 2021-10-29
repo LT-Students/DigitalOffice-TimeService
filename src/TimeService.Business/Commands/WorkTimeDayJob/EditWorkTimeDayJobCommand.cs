@@ -43,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid workTimeDayJobId, JsonPatchDocument<EditWorkTimeDayJobRequest> request)
     {
-      DbWorkTimeDayJob dayJob = _repository.Get(workTimeDayJobId, true);
+      DbWorkTimeDayJob dayJob = await _repository.GetAsync(workTimeDayJobId, true);
       Guid authorId = _httpContextAccessor.HttpContext.GetUserId();
 
       if (dayJob.WorkTime.UserId != authorId
@@ -71,7 +71,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
       return new OperationResultResponse<bool>
       {
         Status = OperationResultStatusType.FullSuccess,
-        Body = _repository.Edit(workTimeDayJobId, _mapper.Map(request)),
+        Body = await _repository.EditAsync(workTimeDayJobId, _mapper.Map(request)),
         Errors = new()
       };
     }

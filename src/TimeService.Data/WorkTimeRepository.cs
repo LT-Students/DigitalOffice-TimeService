@@ -1,4 +1,7 @@
-﻿using LT.DigitalOffice.Kernel.Exceptions.Models;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
@@ -7,118 +10,101 @@ using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace LT.DigitalOffice.TimeService.Data
 {
-    public class WorkTimeRepository : IWorkTimeRepository
+  public class WorkTimeRepository : IWorkTimeRepository
+  {
+    private readonly IDataProvider _provider;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public WorkTimeRepository(
+      IDataProvider provider,
+      IHttpContextAccessor httpContextAccessor)
     {
-        private readonly IDataProvider _provider;
-        private readonly IHttpContextAccessor _httpContextAccessor;
+      _provider = provider;
+      _httpContextAccessor = httpContextAccessor;
+    }
 
-        public WorkTimeRepository(
-            IDataProvider provider,
-            IHttpContextAccessor httpContextAccessor)
-        {
-            _provider = provider;
-            _httpContextAccessor = httpContextAccessor;
-        }
+    public async Task<Guid?> CreateAsync(DbWorkTime dbWorkTime)
+    {
+      if (dbWorkTime == null)
+      {
+        return null;
+      }
 
-        public Guid Create(DbWorkTime dbWorkTime)
-        {
-            _provider.WorkTimes.Add(dbWorkTime);
-            _provider.Save();
+      _provider.WorkTimes.Add(dbWorkTime);
+      await _provider.SaveAsync();
 
-            return dbWorkTime.Id;
-        }
+      return dbWorkTime.Id;
+    }
 
-        public DbWorkTime Get(Guid id)
-        {
-            var dbWorkTime = _provider.WorkTimes.FirstOrDefault(x => x.Id == id);
+    public async Task<DbWorkTime> GetAsync(Guid id)
+    {
+      return await _provider.WorkTimes.FirstOrDefaultAsync(x => x.Id == id);
+    }
 
-            if (dbWorkTime == null)
-            {
-                throw new NotFoundException($"WorkTime with id {id} was not found.");
-            }
+    public async Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter)
+    {
+      var dbWorkTimes = _provider.WorkTimes.AsQueryable();
 
-            return dbWorkTime;
-        }
+      if (filter.UserId.HasValue)
+      {
+        dbWorkTimes = dbWorkTimes.Where(x => x.UserId == filter.UserId.Value);
+      }
 
-        public List<DbWorkTime> Find(FindWorkTimesFilter filter, out int totalCount)
-        {
-            if (filter == null)
-            {
-                throw new ArgumentNullException(nameof(filter));
-            }
+      if (filter.ProjectId.HasValue)
+      {
+        dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
+      }
 
-            if (filter.SkipCount < 0)
-            {
-                throw new BadRequestException("Skip count can't be less than 0.");
-            }
+      if (filter.IncludeDayJobs.HasValue && filter.IncludeDayJobs.Value)
+      {
+        dbWorkTimes = dbWorkTimes.Include(wt => wt.WorkTimeDayJobs.Where(dj => dj.IsActive));
+      }
 
-            if (filter.TakeCount < 1)
-            {
-                throw new BadRequestException("Take count can't be less than 1.");
-            }
+      if (filter.Month.HasValue)
+      {
+        dbWorkTimes = dbWorkTimes.Where(x => x.Month == filter.Month.Value);
+      }
 
-            var dbWorkTimes = _provider.WorkTimes.AsQueryable();
+      if (filter.Year.HasValue)
+      {
+        dbWorkTimes = dbWorkTimes.Where(x => x.Year == filter.Year.Value);
+      }
 
-            if (filter.UserId.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.UserId == filter.UserId.Value);
-            }
+      return (await dbWorkTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), await dbWorkTimes.CountAsync());
+    }
 
-            if (filter.ProjectId.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.ProjectId == filter.ProjectId.Value);
-            }
+    public async Task<bool> EditAsync(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
+    {
+      if (dbWorkTime == null || jsonPatchDocument == null)
+      {
+        return false;
+      }
 
-            if (filter.IncludeDayJobs.HasValue && filter.IncludeDayJobs.Value)
-            {
-                dbWorkTimes = dbWorkTimes.Include(wt => wt.WorkTimeDayJobs.Where(dj => dj.IsActive));
-            }
+      jsonPatchDocument.ApplyTo(dbWorkTime);
+      dbWorkTime.ModifiedAtUtc = DateTime.UtcNow;
+      dbWorkTime.ModifiedBy = _httpContextAccessor.HttpContext.GetUserId();
+      await _provider.SaveAsync();
 
-            if (filter.Month.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.Month == filter.Month.Value);
-            }
+      return true;
+    }
 
-            if (filter.Year.HasValue)
-            {
-                dbWorkTimes = dbWorkTimes.Where(x => x.Year == filter.Year.Value);
-            }
+    public async Task<DbWorkTime> GetLastAsync()
+    {
+      return await _provider.WorkTimes
+        .OrderByDescending(wt => wt.Year)
+        .ThenByDescending(wt => wt.Month)
+        .FirstOrDefaultAsync();
+    }
 
-            totalCount = dbWorkTimes.Count();
+    public async Task<bool> DoesExistAsync(Guid id)
+    {
+      return await _provider.WorkTimes.AnyAsync(wt => wt.Id == id);
+    }
 
-            return dbWorkTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToList();
-        }
-
-        public bool Edit(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument)
-        {
-            jsonPatchDocument.ApplyTo(dbWorkTime);
-            dbWorkTime.ModifiedAtUtc = DateTime.UtcNow;
-            dbWorkTime.ModifiedBy = _httpContextAccessor.HttpContext.GetUserId();
-            _provider.Save();
-
-            return true;
-        }
-
-        public DbWorkTime GetLast()
-        {
-            return _provider.WorkTimes
-                .OrderByDescending(wt => wt.Year)
-                .ThenByDescending(wt => wt.Month)
-                .FirstOrDefault();
-        }
-
-        public bool Contains(Guid id)
-        {
-            return _provider.WorkTimes.Any(wt => wt.Id == id);
-        }
-
-    public List<DbWorkTime> Find(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false)
+    public async Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false)
     {
       if (usersIds == null)
       {
@@ -145,7 +131,7 @@ namespace LT.DigitalOffice.TimeService.Data
         workTimes = workTimes.Include(wt => wt.WorkTimeDayJobs);
       }
 
-      return workTimes.ToList();
+      return await workTimes.ToListAsync();
     }
   }
 }

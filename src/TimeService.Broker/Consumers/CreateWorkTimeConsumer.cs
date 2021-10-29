@@ -18,7 +18,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
 
             foreach(Guid userId in request.UserIds)
             {
-                _workTimeRepository.Create(
+                _workTimeRepository.CreateAsync(
                 new DbWorkTime
                 {
                     Id = Guid.NewGuid(),
