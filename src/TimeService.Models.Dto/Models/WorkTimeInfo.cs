@@ -12,6 +12,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
     public float? UserHours { get; set; }
     public float? ManagerHours { get; set; }
     public string Description { get; set; }
+    public string ManagerDescription { get; set; }
     public DateTime? ModifiedAtUtc { get; set; }
     public ProjectInfo Project { get; set; }
     public List<WorkTimeDayJobInfo> Jobs { get; set; }

@@ -1,11 +1,8 @@
-﻿using System;
-
-namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
+﻿namespace LT.DigitalOffice.TimeService.Models.Dto.Requests
 {
-    public record EditWorkTimeRequest
-    {
-        public float? UserHours { get; set; }
-        public float? ManagerHours { get; set; }
-        public string Description { get; set; }
-    }
+  public record EditWorkTimeRequest
+  {
+    public float? Hours { get; set; }
+    public string Description { get; set; }
+  }
 }

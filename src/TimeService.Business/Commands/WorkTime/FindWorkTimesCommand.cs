@@ -289,6 +289,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       (List<DbWorkTime> dbWorkTimes, int totalCount) = await _workTimeRepository.FindAsync(filter);
 
       List<Guid> usersIds = dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList();
+      usersIds.AddRange(dbWorkTimes.Where(wt => wt.ManagerWorkTime != null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).ToList());
 
       Task<List<ProjectData>> projectsTask = GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
       Task<List<UserData>> usersTask = GetUsersData(usersIds, errors);
@@ -321,6 +322,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
               _userInfoMapper.Map(
                 users?.FirstOrDefault(u => u.Id == wt.UserId),
                 positions?.FirstOrDefault(p => p.Users.Any(u => u.UserId == wt.UserId))?.Users.First(u => u.UserId == wt.UserId)),
+              _userInfoMapper.Map(
+                users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy),
+                null),
               project?.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
               _projectInfoMapper.Map(project));
           }).ToList(),
