@@ -135,7 +135,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         return null;
       }
 
-      string message = "Cannot get users data. Please try again later.";
       string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
 
       try
@@ -157,7 +156,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         _logger.LogError(exc, loggerMessage);
       }
 
-      errors.Add(message);
+      errors.Add("Cannot get users data. Please try again later.");
 
       return null;
     }
