@@ -79,7 +79,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       try
       {
-        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+        Response<IOperationResult<IGetUsersDataResponse>> response =
+          await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
             IGetUsersDataRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)

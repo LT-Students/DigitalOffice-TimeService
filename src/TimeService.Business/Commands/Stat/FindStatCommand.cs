@@ -135,12 +135,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         return null;
       }
 
-      string message = "Cannot get users data. Please try again later.";
       string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
 
       try
       {
-        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+        Response<IOperationResult<IGetUsersDataResponse>> response =
+          await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
             IGetUsersDataRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
@@ -157,7 +157,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         _logger.LogError(exc, loggerMessage);
       }
 
-      errors.Add(message);
+      errors.Add("Cannot get users data. Please try again later.");
 
       return null;
     }
