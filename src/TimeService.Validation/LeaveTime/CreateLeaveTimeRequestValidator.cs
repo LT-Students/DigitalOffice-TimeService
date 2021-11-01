@@ -18,7 +18,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
     private readonly IRequestClient<ICheckUsersExistence> _rcCheckUsersExistence;
     private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
 
-    private async Task<bool> CheckUserExistence(List<Guid> userIds)
+    private async Task<bool> CheckUserExistenceAsync(List<Guid> userIds)
     {
       string logMessage = "Cannot check existing users {userIds}";
 
@@ -26,6 +26,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       {
         IOperationResult<ICheckUsersExistence> response = (await _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
           ICheckUsersExistence.CreateObj(userIds))).Message;
+
         if (response.IsSuccess && response.Body.UserIds.Count == 1 && response.Body.UserIds[0] == userIds[0])
         {
           return true;
@@ -51,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
-        .MustAsync(async (userId, cancellation) => await CheckUserExistence(new List<Guid>() { userId }))
+        .MustAsync(async (userId, cancellation) => await CheckUserExistenceAsync(new List<Guid>() { userId }))
         .WithMessage("This user doesn't exist.");
 
       RuleFor(lt => lt.LeaveType)
@@ -96,7 +97,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
           return true;
         })
         .WithMessage("Incorrect interval for leave time.")
-        .Must(lt => !repository.HasOverlap(lt.UserId, lt.StartTime, lt.EndTime))
+        .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime, lt.EndTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
     }
   }

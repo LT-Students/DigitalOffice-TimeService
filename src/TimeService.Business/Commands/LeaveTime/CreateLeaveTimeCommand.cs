@@ -38,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<OperationResultResponse<Guid>> ExecuteAsync(CreateLeaveTimeRequest request)
+    public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateLeaveTimeRequest request)
     {
       var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
@@ -63,9 +63,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         };
       }
 
-      OperationResultResponse<Guid> response = new();
+      OperationResultResponse<Guid?> response = new();
 
-      response.Body = _repository.Add(_mapper.Map(request));
+      response.Body = await _repository.CreateAsync(_mapper.Map(request));
       response.Status = OperationResultStatusType.FullSuccess;
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;

@@ -11,16 +11,18 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
   [AutoInject]
   public interface IWorkTimeMonthLimitRepository
   {
-    Guid Add(DbWorkTimeMonthLimit workTimeMonthLimit);
+    Task<Guid?> CreateAsync(DbWorkTimeMonthLimit workTimeMonthLimit);
 
-    void AddRange(List<DbWorkTimeMonthLimit> workTimeMonthsLimits);
+    Task CreateRangeAsync(List<DbWorkTimeMonthLimit> workTimeMonthsLimits);
 
-    DbWorkTimeMonthLimit Get(int year, int month);
+    Task<DbWorkTimeMonthLimit> GetAsync(int year, int month);
 
-    List<DbWorkTimeMonthLimit> GetRange(int startYear, int startMonth, int endYear, int endMonth);
+    Task<List<DbWorkTimeMonthLimit>> GetAsync(int startYear, int startMonth, int endYear, int endMonth);
+
+    Task<DbWorkTimeMonthLimit> GetLastAsync();
 
     Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter);
 
-    bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
+    Task<bool> EditAsync(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
   }
 }

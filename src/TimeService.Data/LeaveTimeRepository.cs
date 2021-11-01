@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using LT.DigitalOffice.Kernel.Exceptions.Models;
+using System.Threading.Tasks;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.JsonPatch;
+using Microsoft.EntityFrameworkCore;
 
 namespace LT.DigitalOffice.TimeService.Data
 {
@@ -46,52 +47,40 @@ namespace LT.DigitalOffice.TimeService.Data
       _provider = provider;
     }
 
-    public Guid Add(DbLeaveTime dbLeaveTime)
+    public async Task<Guid?> CreateAsync(DbLeaveTime dbLeaveTime)
     {
+      if (dbLeaveTime == null)
+      {
+        return null;
+      }
+
       _provider.LeaveTimes.Add(dbLeaveTime);
-      _provider.Save();
+      await _provider.SaveAsync();
 
       return dbLeaveTime.Id;
     }
 
-    public bool Edit(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request)
+    public async Task<bool> EditAsync(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request)
     {
       if (leaveTime == null)
       {
-        throw new ArgumentNullException(nameof(leaveTime));
+        return false;
       }
 
       request.ApplyTo(leaveTime);
-      _provider.Save();
+      await _provider.SaveAsync();
 
       return true;
     }
 
-    public List<DbLeaveTime> Find(FindLeaveTimesFilter filter, out int totalCount)
+    public async Task<(List<DbLeaveTime>, int totalCount)> FindAsync(FindLeaveTimesFilter filter)
     {
-      if (filter.SkipCount < 0)
-      {
-        throw new BadRequestException("Skip count can't be less than 0.");
-      }
-
-      if (filter.TakeCount <= 0)
-      {
-        throw new BadRequestException("Take count can't be equal or less than 0.");
-      }
-
-      if (filter == null)
-      {
-        throw new ArgumentNullException(nameof(filter));
-      }
-
       IQueryable<DbLeaveTime> dbLeaveTimes = CreateQueryble(filter);
 
-      totalCount = dbLeaveTimes.Count();
-
-      return dbLeaveTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToList();
+      return (await dbLeaveTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), await dbLeaveTimes.CountAsync());
     }
 
-    public List<DbLeaveTime> Find(List<Guid> usersIds, int year, int month)
+    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int month)
     {
       if (usersIds == null)
       {
@@ -100,28 +89,27 @@ namespace LT.DigitalOffice.TimeService.Data
 
       int countMonths = year * 12 + month;
 
-      return _provider.LeaveTimes
+      return await _provider.LeaveTimes
         .Where(
           lt =>
             usersIds.Contains(lt.UserId)
             && lt.StartTime.Month + lt.StartTime.Year * 12 <= countMonths
-            && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths).ToList();
+            && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths).ToListAsync();
     }
 
-    public DbLeaveTime Get(Guid leaveTimeId)
+    public async Task<DbLeaveTime> GetAsync(Guid leaveTimeId)
     {
-      return _provider.LeaveTimes.FirstOrDefault(lt => lt.Id == leaveTimeId)
-        ?? throw new NotFoundException($"No leave time with id {leaveTimeId}.");
+      return await _provider.LeaveTimes.FirstOrDefaultAsync(lt => lt.Id == leaveTimeId);
     }
 
-    public bool HasOverlap(Guid userId, DateTime start, DateTime end)
+    public async Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end)
     {
-        return !_provider.LeaveTimes.All(oldLeaveTime => !oldLeaveTime.IsActive
-          || oldLeaveTime.UserId != userId
-          || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+      return !await _provider.LeaveTimes.AllAsync(oldLeaveTime => !oldLeaveTime.IsActive
+        || oldLeaveTime.UserId != userId
+        || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
     }
 
-    public bool HasOverlap(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd)
+    public async Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd)
     {
       if (!newStart.HasValue && !newEnd.HasValue)
       {
@@ -131,7 +119,7 @@ namespace LT.DigitalOffice.TimeService.Data
       DateTime start = newStart ?? leaveTime.StartTime;
       DateTime end = newEnd ?? leaveTime.EndTime;
 
-      return !_provider.LeaveTimes.All(oldLeaveTime => !oldLeaveTime.IsActive
+      return !await _provider.LeaveTimes.AllAsync(oldLeaveTime => !oldLeaveTime.IsActive
         || oldLeaveTime.UserId != leaveTime.UserId
         || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
     }

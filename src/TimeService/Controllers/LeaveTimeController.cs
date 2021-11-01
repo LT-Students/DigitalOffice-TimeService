@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class LeaveTimeController : ControllerBase
   {
     [HttpPost("add")]
-    public async Task<OperationResultResponse<Guid>> AddAsync(
+    public async Task<OperationResultResponse<Guid?>> AddAsync(
       [FromBody] CreateLeaveTimeRequest leaveTime,
       [FromServices] ICreateLeaveTimeCommand command)
     {

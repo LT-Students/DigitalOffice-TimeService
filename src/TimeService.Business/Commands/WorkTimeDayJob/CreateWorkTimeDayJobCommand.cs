@@ -43,11 +43,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
       _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<OperationResultResponse<Guid>> ExecuteAsync(CreateWorkTimeDayJobRequest request)
+    public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateWorkTimeDayJobRequest request)
     {
       Guid authorId = _httpContextAccessor.HttpContext.GetUserId();
 
-      DbWorkTime workTime = _workTimeRepository.Get(request.WorkTimeId);
+      DbWorkTime workTime = await _workTimeRepository.GetAsync(request.WorkTimeId);
 
       if (authorId != workTime.UserId
         && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
@@ -71,9 +71,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
         };
       }
 
-      OperationResultResponse<Guid> response = new();
+      OperationResultResponse<Guid?> response = new();
 
-      response.Body = _repository.Create(_mapper.Map(request));
+      response.Body = await _repository.CreateAsync(_mapper.Map(request));
       response.Status = OperationResultStatusType.FullSuccess;
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;

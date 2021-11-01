@@ -13,7 +13,7 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class WorkTimeDayJobController : Controller
   {
     [HttpPost("create")]
-    public async Task<OperationResultResponse<Guid>> CreateAsync(
+    public async Task<OperationResultResponse<Guid?>> CreateAsync(
       [FromServices] ICreateWorkTimeDayJobCommand command,
       [FromBody] CreateWorkTimeDayJobRequest request)
     {

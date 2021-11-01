@@ -61,7 +61,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 
             foreach (var user in projectsUsers)
             {
-                _workTimeRepository.Create(
+                _workTimeRepository.CreateAsync(
                     new DbWorkTime
                     {
                         Id = Guid.NewGuid(),

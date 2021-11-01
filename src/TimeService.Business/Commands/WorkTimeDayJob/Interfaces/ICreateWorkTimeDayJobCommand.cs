@@ -9,6 +9,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob.Interfac
   [AutoInject]
   public interface ICreateWorkTimeDayJobCommand
   {
-    Task<OperationResultResponse<Guid>> ExecuteAsync(CreateWorkTimeDayJobRequest request);
+    Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateWorkTimeDayJobRequest request);
   }
 }

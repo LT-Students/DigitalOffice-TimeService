@@ -9,6 +9,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces
   [AutoInject]
   public interface ICreateLeaveTimeCommand
   {
-    Task<OperationResultResponse<Guid>> ExecuteAsync(CreateLeaveTimeRequest request);
+    Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateLeaveTimeRequest request);
   }
 }
