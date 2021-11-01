@@ -161,24 +161,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       return null;
     }
 
-    private List<ProjectUserData> GetProjectsUsers(Guid projectId, int skipCount, int takeCount, out int totalCount, List<string> errors)
+    private async Task<(List<ProjectUserData>, int totalCount)> GetProjectsUsers(Guid projectId, int skipCount, int takeCount, List<string> errors)
     {
       string messageError = "Cannot get projects users info. Please, try again later.";
       const string logError = "Cannot get projects users info.";
 
       try
       {
-        IOperationResult<IGetProjectsUsersResponse> result = _rcGetProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
+        IOperationResult<IGetProjectsUsersResponse> result =
+          (await _rcGetProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
           IGetProjectsUsersRequest.CreateObj(
             projectsIds: new() { projectId },
             skipCount: skipCount,
-            takeCount: takeCount)).Result.Message;
+            takeCount: takeCount))).Message;
 
         if (result.IsSuccess)
         {
-          totalCount = result.Body.TotalCount;
-
-          return result.Body.Users;
+          return (result.Body.Users, result.Body.TotalCount);
         }
 
         _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Errors));
@@ -188,10 +187,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         _logger.LogError(exc, logError);
       }
 
-      totalCount = 0;
       errors.Add(messageError);
 
-      return null;
+      return (null, 0);
     }
 
     private async Task<(List<Guid>, int totalCount)> FindDepartmentUsers(
@@ -325,19 +323,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         int month,
         List<string> errors)
     {
-      List<Guid> userIds = GetProjectsUsers(
-        projectId,
-        skipCount,
-        takeCount,
-        out int totalCount,
-        errors).Select(pu => pu.UserId).ToList();
+      (List<ProjectUserData> users, int totalCount) = (await GetProjectsUsers(
+        projectId, skipCount, takeCount, errors));
 
-      List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(userIds, null, year, month, true);
-      List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(userIds, year, month);
+      List<Guid> usersIds = users.Select(pu => pu.UserId).ToList();
+
+      List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(usersIds, null, year, month, true);
+      List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, year, month);
 
       List<ProjectData> projectsDatas = await GetProjectsAsync(workTimes.Select(wt => wt.ProjectId).ToList(), errors);
 
-      return (userIds, projectsDatas, projectsDatas?.SelectMany(p => p.Users).ToList(), workTimes, leaveTimes, totalCount);
+      return (usersIds, projectsDatas, projectsDatas?.SelectMany(p => p.Users).ToList(), workTimes, leaveTimes, totalCount);
     }
 
     #endregion
