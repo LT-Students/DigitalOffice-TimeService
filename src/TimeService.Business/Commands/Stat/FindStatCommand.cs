@@ -26,10 +26,8 @@ using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
-using LT.DigitalOffice.TimeService.Validation.Import.Interfaces;
 using LT.DigitalOffice.TimeService.Validation.Stat.Interfaces;
 using MassTransit;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
@@ -139,7 +137,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       try
       {
-        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
+        Response<IOperationResult<IGetUsersDataResponse>> response =
+          await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
             IGetUsersDataRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
