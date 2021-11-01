@@ -1,4 +1,8 @@
-﻿using LT.DigitalOffice.Kernel.Broker;
+﻿using System;
+using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.Broker;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
@@ -6,114 +10,110 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using MassTransit;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 {
-    public class WorkTimeCreater
+  public class WorkTimeCreater
+  {
+    private readonly IWorkTimeRepository _workTimeRepository;
+    private readonly IRequestClient<IGetProjectsUsersRequest> _rcProjectsUsers;
+    private readonly ILogger<WorkTimeCreater> _logger;
+
+    private int _minutesToRestart;
+    private DateTime _lastSuccessfulAttempt;
+    private DateTime _previousAttempt;
+
+    private List<ProjectUserData> GetProjectsUsers()
     {
-        private readonly IWorkTimeRepository _workTimeRepository;
-        private readonly IRequestClient<IGetProjectsUsersRequest> _rcProjectsUsers;
-        private readonly ILogger<WorkTimeCreater> _logger;
+      const string logMessage = "Cannot get projects users.";
 
-        private int _minutesToRestart;
-        private DateTime _lastSuccessfulAttempt;
-        private DateTime _previousAttempt;
+      try
+      {
+        var response = _rcProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
+          IGetProjectsUsersRequest.CreateObj()).Result;
 
-        private List<ProjectUserData> GetProjectsUsers()
+        if (response.Message.IsSuccess)
         {
-            const string logMessage = "Cannot get projects users.";
-
-            try
-            {
-                var response = _rcProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
-                    IGetProjectsUsersRequest.CreateObj()).Result;
-
-                if (response.Message.IsSuccess)
-                {
-                    return response.Message.Body.Users;
-                }
-
-                _logger.LogWarning(logMessage);
-            }
-            catch(Exception exc)
-            {
-                _logger.LogError(exc, logMessage);
-            }
-
-            return null;
+          return response.Message.Body.Users;
         }
 
-        private bool Execute()
-        {
-            DateTime time = DateTime.UtcNow;
+        _logger.LogWarning(logMessage);
+      }
+      catch (Exception exc)
+      {
+        _logger.LogError(exc, logMessage);
+      }
 
-            List<ProjectUserData> projectsUsers = GetProjectsUsers();
-
-            if (projectsUsers == null)
-            {
-                _previousAttempt = DateTime.UtcNow;
-                return false;
-            }
-
-            foreach (var user in projectsUsers)
-            {
-                _workTimeRepository.CreateAsync(
-                    new DbWorkTime
-                    {
-                        Id = Guid.NewGuid(),
-                        Month = time.Month,
-                        Year = time.Year,
-                        ProjectId = user.ProjectId,
-                        UserId = user.UserId
-                    });
-            }
-
-            _previousAttempt = DateTime.UtcNow;
-            _lastSuccessfulAttempt = _previousAttempt;
-            return true;
-        }
-
-        public WorkTimeCreater(
-            IWorkTimeRepository workTimeRepository,
-            IRequestClient<IGetProjectsUsersRequest> rcProjectsUsers,
-            ILogger<WorkTimeCreater> logger)
-        {
-            _workTimeRepository = workTimeRepository;
-            _rcProjectsUsers = rcProjectsUsers;
-            _logger = logger;
-        }
-
-        public void Start(
-            int minutesToRestartAfterError,
-            DateTime lastSuccessfulAttempt)
-        {
-            _minutesToRestart = minutesToRestartAfterError;
-            _lastSuccessfulAttempt = lastSuccessfulAttempt;
-
-            Task.Run(() =>
-            {
-                while (true)
-                {
-                    if (_lastSuccessfulAttempt == default
-                    || DateTime.UtcNow.Month != _lastSuccessfulAttempt.Month)
-                    {
-                        Execute();
-                    }
-
-                    if (_lastSuccessfulAttempt != _previousAttempt)
-                    {
-                        Thread.Sleep(_minutesToRestart * 60000);
-                    }
-                    else
-                    {
-                        Thread.Sleep(3600000);
-                    }
-                }
-            });
-        }
+      return null;
     }
+
+    private async Task<bool> ExecuteAsync()
+    {
+      DateTime time = DateTime.UtcNow;
+
+      List<ProjectUserData> projectsUsers = GetProjectsUsers();
+
+      if (projectsUsers == null)
+      {
+        _previousAttempt = DateTime.UtcNow;
+        return false;
+      }
+
+      foreach (var user in projectsUsers)
+      {
+        await _workTimeRepository.CreateAsync(
+          new DbWorkTime
+          {
+            Id = Guid.NewGuid(),
+            Month = time.Month,
+            Year = time.Year,
+            ProjectId = user.ProjectId,
+            UserId = user.UserId
+          });
+      }
+
+      _previousAttempt = DateTime.UtcNow;
+      _lastSuccessfulAttempt = _previousAttempt;
+      return true;
+    }
+
+    public WorkTimeCreater(
+      IWorkTimeRepository workTimeRepository,
+      IRequestClient<IGetProjectsUsersRequest> rcProjectsUsers,
+      ILogger<WorkTimeCreater> logger)
+    {
+      _workTimeRepository = workTimeRepository;
+      _rcProjectsUsers = rcProjectsUsers;
+      _logger = logger;
+    }
+
+    public void Start(
+      int minutesToRestartAfterError,
+      DateTime lastSuccessfulAttempt)
+    {
+      _minutesToRestart = minutesToRestartAfterError;
+      _lastSuccessfulAttempt = lastSuccessfulAttempt;
+
+      Task.Run(async () =>
+      {
+        while (true)
+        {
+          if (_lastSuccessfulAttempt == default
+            || DateTime.UtcNow.Month != _lastSuccessfulAttempt.Month)
+          {
+            await ExecuteAsync();
+          }
+
+          if (_lastSuccessfulAttempt != _previousAttempt)
+          {
+            Thread.Sleep(_minutesToRestart * 60000);
+          }
+          else
+          {
+            Thread.Sleep(3600000);
+          }
+        }
+      });
+    }
+  }
 }
