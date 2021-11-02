@@ -213,7 +213,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       await Task.WhenAll(usersTask, positionsTask);
 
-      List<PositionUserData> positions = (await positionsTask).SelectMany(p => p.Users).ToList();
+      List<PositionUserData> positions = (await positionsTask)?.SelectMany(p => p.Users).ToList();
 
       List<UserInfo> users = (await usersTask)
         ?.Select(u => _userInfoMapper.Map(u, positions?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
@@ -222,7 +222,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       {
         Status = OperationResultStatusType.FullSuccess,
         TotalCount = totalCount,
-        Body = dbLeaveTimes.Select(lt => _leaveTimeResponseMapper.Map(lt, users.FirstOrDefault(u => u.Id == lt.UserId))).ToList(),
+        Body = dbLeaveTimes.Select(lt => _leaveTimeResponseMapper.Map(lt, users?.FirstOrDefault(u => u.Id == lt.UserId))).ToList(),
         Errors = errors
       };
     }
