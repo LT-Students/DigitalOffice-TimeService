@@ -25,5 +25,22 @@ namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef.Migrations
         table: DbWorkTime.TableName,
         nullable: true);
     }
+
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+      migrationBuilder.DropColumn(
+        name: "ParentId",
+        table: DbWorkTime.TableName);
+
+      migrationBuilder.RenameColumn(
+        name: "Hours",
+        newName: "UserHours",
+        table: DbWorkTime.TableName);
+
+      migrationBuilder.AddColumn<float>(
+        name: "ManagerHours",
+        table: DbWorkTime.TableName,
+        nullable: true);
+    }
   }
 }
