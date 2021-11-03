@@ -92,6 +92,9 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
       _minutesToRestart = minutesToRestartAfterError;
       _countNeededNextMonth = countNeededNextMonth;
 
+      // rework
+      Thread.Sleep(30000);
+
       Task.Run(async () =>
       {
         while (true)

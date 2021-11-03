@@ -206,15 +206,15 @@ namespace LT.DigitalOffice.TimeService
         x.UsingRabbitMq((context, cfg) =>
           {
             cfg.Host(_rabbitMqConfig.Host, "/", host =>
-                  {
-                host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
-                host.Password(_serviceInfoConfig.Id);
-              });
+            {
+              host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
+              host.Password(_serviceInfoConfig.Id);
+            });
 
             cfg.ReceiveEndpoint(_rabbitMqConfig.CreateWorkTimeEndpoint, ep =>
-                  {
-                ep.ConfigureConsumer<CreateWorkTimeConsumer>(context);
-              });
+            {
+              ep.ConfigureConsumer<CreateWorkTimeConsumer>(context);
+            });
           });
 
         x.AddRequestClients(_rabbitMqConfig);

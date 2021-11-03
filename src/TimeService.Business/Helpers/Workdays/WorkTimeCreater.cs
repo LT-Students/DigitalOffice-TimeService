@@ -23,14 +23,14 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
     private DateTime _lastSuccessfulAttempt;
     private DateTime _previousAttempt;
 
-    private List<ProjectUserData> GetProjectsUsers()
+    private async Task<List<ProjectUserData>> GetProjectsUsersAsync()
     {
       const string logMessage = "Cannot get projects users.";
 
       try
       {
-        var response = _rcProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
-          IGetProjectsUsersRequest.CreateObj()).Result;
+        var response = await _rcProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
+            IGetProjectsUsersRequest.CreateObj());
 
         if (response.Message.IsSuccess)
         {
@@ -51,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
     {
       DateTime time = DateTime.UtcNow;
 
-      List<ProjectUserData> projectsUsers = GetProjectsUsers();
+      List<ProjectUserData> projectsUsers = await GetProjectsUsersAsync();
 
       if (projectsUsers == null)
       {
