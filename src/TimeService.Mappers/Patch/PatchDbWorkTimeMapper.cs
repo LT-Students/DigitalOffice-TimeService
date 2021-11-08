@@ -3,7 +3,6 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
-using System;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Patch
 {
@@ -13,7 +12,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Patch
     {
       if (request == null)
       {
-        throw new ArgumentNullException(nameof(request));
+        return null;
       }
 
       JsonPatchDocument<DbWorkTime> dbRequest = new();

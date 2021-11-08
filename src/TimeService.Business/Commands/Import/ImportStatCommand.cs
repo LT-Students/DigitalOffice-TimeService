@@ -595,27 +595,21 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         foreach (var project in departmentProjects)
         {
-          var wt = workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id);
-
-          if (wt != null && (wt.ManagerHours.HasValue || wt.UserHours.HasValue))
-          {
-            ws.Cell(row, column).SetValue(wt.ManagerHours.HasValue ? wt.ManagerHours : wt.UserHours);
-          }
-
-          column++;
+          WriteProjectInfo(row, column++, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
         }
 
         foreach (var project in otherProjects)
         {
-          var wt = workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id);
-
-          if (wt != null && (wt.ManagerHours.HasValue || wt.UserHours.HasValue))
-          {
-            ws.Cell(row, column).SetValue(wt.ManagerHours.HasValue ? wt.ManagerHours : wt.UserHours);
-          }
-
-          column++;
+          WriteProjectInfo(row, column++, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
         }
+      }
+    }
+
+    private void WriteProjectInfo(int row, int column, DbWorkTime wt, IXLWorksheet ws)
+    {
+      if (wt != null && (wt.ManagerWorkTime?.Hours != null || wt.Hours.HasValue))
+      {
+        ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours != null ? wt.ManagerWorkTime.Hours : wt.Hours);
       }
     }
 
@@ -632,12 +626,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         int row = userNumber + 3;
 
-        var wt = workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id);
-
-        if (wt != null && (wt.ManagerHours.HasValue || wt.UserHours.HasValue))
-        {
-          ws.Cell(row, startColumn).SetValue(wt.ManagerHours.HasValue ? wt.ManagerHours : wt.UserHours);
-        }
+        WriteProjectInfo(row, startColumn, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
       }
     }
 

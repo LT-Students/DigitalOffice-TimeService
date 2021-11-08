@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
     private DateTime _lastSuccessfulAttempt;
     private DateTime _previousAttempt;
 
-    private async Task<List<ProjectUserData>> GetProjectsUsers()
+    private async Task<List<ProjectUserData>> GetProjectsUsersAsync()
     {
       const string logMessage = "Cannot get projects users.";
 
@@ -51,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
     {
       DateTime time = DateTime.UtcNow;
 
-      List<ProjectUserData> projectsUsers = await GetProjectsUsers();
+      List<ProjectUserData> projectsUsers = await GetProjectsUsersAsync();
 
       if (projectsUsers == null)
       {

@@ -20,43 +20,25 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       AddСorrectPaths(
         new()
         {
-          nameof(EditWorkTimeRequest.UserHours),
-          nameof(EditWorkTimeRequest.ManagerHours),
+          nameof(EditWorkTimeRequest.Hours),
           nameof(EditWorkTimeRequest.Description)
         });
 
-      AddСorrectOperations(nameof(EditWorkTimeRequest.UserHours), new List<OperationType> { OperationType.Replace });
-      AddСorrectOperations(nameof(EditWorkTimeRequest.ManagerHours), new List<OperationType> { OperationType.Replace });
+      AddСorrectOperations(nameof(EditWorkTimeRequest.Hours), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditWorkTimeRequest.Description), new List<OperationType> { OperationType.Replace });
       #endregion
 
       #region UserHours
 
       AddFailureForPropertyIf(
-        nameof(EditWorkTimeRequest.UserHours),
+        nameof(EditWorkTimeRequest.Hours),
         x => x == OperationType.Replace,
         new()
         {
           {
             x => x.value == null
               || float.TryParse(x.value.ToString(), out _),
-            "Incorrect format of UserHours."
-          }
-        });
-
-      #endregion
-
-      #region ManagerHours
-
-      AddFailureForPropertyIf(
-        nameof(EditWorkTimeRequest.ManagerHours),
-        x => x == OperationType.Replace,
-        new()
-        {
-          {
-            x => x.value == null
-              || float.TryParse(x.value.ToString(), out _),
-            "Incorrect format of ManagerHours."
+            "Incorrect format of Hours."
           }
         });
 

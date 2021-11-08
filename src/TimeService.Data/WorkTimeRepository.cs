@@ -41,12 +41,14 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<DbWorkTime> GetAsync(Guid id)
     {
-      return await _provider.WorkTimes.FirstOrDefaultAsync(x => x.Id == id);
+      return await _provider.WorkTimes
+        .Include(w => w.ManagerWorkTime)
+        .FirstOrDefaultAsync(x => x.Id == id);
     }
 
     public async Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter)
     {
-      var dbWorkTimes = _provider.WorkTimes.AsQueryable();
+      var dbWorkTimes = _provider.WorkTimes.Include(wt => wt.ManagerWorkTime).Where(wt => !wt.ParentId.HasValue).AsQueryable();
 
       if (filter.UserId.HasValue)
       {
@@ -112,6 +114,8 @@ namespace LT.DigitalOffice.TimeService.Data
       }
 
       IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
+        .Include(wt => wt.ManagerWorkTime)
+        .Where(wt => !wt.ParentId.HasValue)
         .Where(wt =>
           wt.Year == year
           && wt.Month == month);

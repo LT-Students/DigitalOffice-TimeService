@@ -192,7 +192,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
     public async Task<FindResultResponse<LeaveTimeResponse>> ExecuteAsync(FindLeaveTimesFilter filter)
     {
-      var isAuthor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
+      bool isAuthor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
       if (!isAuthor && !await _accessValidator.IsAdminAsync())
       {

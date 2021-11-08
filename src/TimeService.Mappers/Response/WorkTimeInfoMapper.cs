@@ -22,21 +22,23 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response
     }
 
     public WorkTimeResponse Map(
-        DbWorkTime dbWorkTime,
-        DbWorkTimeMonthLimit dbMonthLimit,
-        UserInfo userInfo,
-        ProjectUserData projectUser,
-        ProjectInfo project)
+      DbWorkTime dbWorkTime,
+      DbWorkTimeMonthLimit dbMonthLimit,
+      UserInfo userInfo,
+      UserInfo managerInfo,
+      ProjectUserData projectUser,
+      ProjectInfo project)
     {
       if (dbWorkTime == null)
       {
-        throw new ArgumentNullException(nameof(dbWorkTime));
+        return null;
       }
 
       return new WorkTimeResponse
       {
         WorkTime = _workTimeInfoMapper.Map(dbWorkTime, projectUser, project),
         User = userInfo ?? new UserInfo { Id = dbWorkTime.UserId },
+        Manager = managerInfo,
         LimitInfo = _workTimeMonthLimitInfoMapper.Map(dbMonthLimit)
       };
     }

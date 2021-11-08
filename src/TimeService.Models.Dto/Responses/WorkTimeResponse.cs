@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using LT.DigitalOffice.TimeService.Models.Dto.Models;
+﻿using LT.DigitalOffice.TimeService.Models.Dto.Models;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Responses
 {
@@ -7,6 +6,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Responses
   {
     public WorkTimeInfo WorkTime { get; set; }
     public UserInfo User { get; set; }
+    public UserInfo Manager { get; set; }
     public WorkTimeMonthLimitInfo LimitInfo { get; set; }
   }
 }

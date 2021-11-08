@@ -10,10 +10,11 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response.Interfaces
   public interface IWorkTimeResponseMapper
   {
     WorkTimeResponse Map(
-        DbWorkTime dbWorkTime,
-        DbWorkTimeMonthLimit dbMonthLimit,
-        UserInfo userInfo,
-        ProjectUserData projectUser,
-        ProjectInfo project);
+      DbWorkTime dbWorkTime,
+      DbWorkTimeMonthLimit dbMonthLimit,
+      UserInfo userInfo,
+      UserInfo managerInfo,
+      ProjectUserData projectUser,
+      ProjectInfo project);
   }
 }

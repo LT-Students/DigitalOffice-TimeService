@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -18,13 +17,13 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
     }
 
     public WorkTimeInfo Map(
-        DbWorkTime dbWorkTime,
-        ProjectUserData projectUser,
-        ProjectInfo project)
+      DbWorkTime dbWorkTime,
+      ProjectUserData projectUser,
+      ProjectInfo project)
     {
       if (dbWorkTime == null)
       {
-        throw new ArgumentNullException(nameof(dbWorkTime));
+        return null;
       }
 
       return new WorkTimeInfo
@@ -38,9 +37,10 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Year = dbWorkTime.Year,
         Month = dbWorkTime.Month,
         Day = projectUser?.CreatedAtUtc.Day,
-        UserHours = dbWorkTime.UserHours,
-        ManagerHours = dbWorkTime.ManagerHours,
+        UserHours = dbWorkTime.Hours,
+        ManagerHours = dbWorkTime.ManagerWorkTime?.Hours,
         Description = dbWorkTime.Description,
+        ManagerDescription = dbWorkTime.ManagerWorkTime?.Description,
         ModifiedAtUtc = dbWorkTime.ModifiedAtUtc,
         Jobs = dbWorkTime.WorkTimeDayJobs?.Select(_workTimeDayJobInfoMapper.Map).ToList()
       };
