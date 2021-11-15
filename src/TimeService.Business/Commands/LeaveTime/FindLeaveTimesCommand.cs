@@ -194,7 +194,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     {
       bool isAuthor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-      if (!isAuthor && !await _accessValidator.IsAdminAsync())
+      if (!isAuthor && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         return _responsCreator.CreateFailureFindResponse<LeaveTimeResponse>(HttpStatusCode.Forbidden);
       }

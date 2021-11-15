@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
@@ -42,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     {
       var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-      if (!isOwner && !await _accessValidator.IsAdminAsync())
+      if (!isOwner && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
