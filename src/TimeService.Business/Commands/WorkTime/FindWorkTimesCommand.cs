@@ -276,7 +276,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     {
       var isActhor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-      if (!isActhor && !await _accessValidator.IsAdminAsync())
+      if (!isActhor && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         return _responsCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.Forbidden);
       }

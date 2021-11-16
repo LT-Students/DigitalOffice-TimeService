@@ -669,7 +669,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     public async Task<OperationResultResponse<byte[]>> ExecuteAsync(ImportStatFilter filter)
     {
-      if (!await _accessValidator.IsAdminAsync())
+      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.Forbidden);
       }
