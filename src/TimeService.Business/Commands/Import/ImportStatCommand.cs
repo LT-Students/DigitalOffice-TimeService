@@ -512,14 +512,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         if (filter.DepartmentId.HasValue)
         {
           DepartmentData requestedDepartment = departments.FirstOrDefault(d => d.Id == filter.DepartmentId.Value);
-
-          CreateProjectsPartTableForDepartment(
-            ws,
-            column,
-            requestedDepartment is null ? null : projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-            requestedDepartment is null ? null : projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-            usersInfos,
-            workTimes);
+          
+          if (requestedDepartment is not null)
+          {
+            CreateProjectsPartTableForDepartment(
+              ws,
+              column,
+              projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
+              projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
+              usersInfos,
+              workTimes);
+          }
         }
         else
         {
