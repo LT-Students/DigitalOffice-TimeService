@@ -517,8 +517,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           CreateProjectsPartTableForDepartment(
             ws,
             column,
-            projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-            projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
+            requestedDepartment is null ? null : projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(), ///here
+            requestedDepartment is null ? null : projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
             usersInfos,
             workTimes);
         }
