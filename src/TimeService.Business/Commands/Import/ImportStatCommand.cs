@@ -33,7 +33,6 @@ using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Validation.Import.Interfaces;
 using MassTransit;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Import
@@ -517,7 +516,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           CreateProjectsPartTableForDepartment(
             ws,
             column,
-            requestedDepartment is null ? null : projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(), ///here
+            requestedDepartment is null ? null : projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
             requestedDepartment is null ? null : projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
             usersInfos,
             workTimes);
