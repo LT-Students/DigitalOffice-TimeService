@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
@@ -27,8 +29,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    private bool ValidateOverlapping(
-      DbLeaveTime oldLeaveTime, 
+    private async Task<bool> ValidateOverlappingAsync(
+      DbLeaveTime oldLeaveTime,
       JsonPatchDocument<EditLeaveTimeRequest> request,
       List<string> errors)
     {
@@ -53,7 +55,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return false;
       }
 
-      if (_repository.HasOverlap(oldLeaveTime, start, end))
+      if (await _repository.HasOverlapAsync(oldLeaveTime, start, end))
       {
         errors.Add("Incorrect time interval.");
 
@@ -77,12 +79,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _httpContextAccessor = httpContextAccessor;
     }
 
-    public OperationResultResponse<bool> Execute(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
+    public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
     {
-      DbLeaveTime oldLeaveTime = _repository.Get(leaveTimeId);
+      DbLeaveTime oldLeaveTime = await _repository.GetAsync(leaveTimeId);
 
-      if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId 
-        && !_accessValidator.IsAdmin())
+      if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId
+        && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
@@ -104,9 +106,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         };
       }
 
-      bool isSuccess = ValidateOverlapping(oldLeaveTime, request, errors);
-
-      if (!isSuccess)
+      if (!await ValidateOverlappingAsync(oldLeaveTime, request, errors))
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
 
@@ -119,7 +119,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       return new OperationResultResponse<bool>
       {
-        Body = _repository.Edit(oldLeaveTime, _mapper.Map(request)),
+        Body = await _repository.EditAsync(oldLeaveTime, _mapper.Map(request)),
         Status = OperationResultStatusType.FullSuccess,
         Errors = errors
       };

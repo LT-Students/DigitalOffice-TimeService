@@ -24,6 +24,9 @@ using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using Serilog;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.Helpers;
 
 namespace LT.DigitalOffice.TimeService
 {
@@ -42,18 +45,18 @@ namespace LT.DigitalOffice.TimeService
       Configuration = configuration;
 
       _rabbitMqConfig = Configuration
-          .GetSection(BaseRabbitMqConfig.SectionName)
-          .Get<RabbitMqConfig>();
+        .GetSection(BaseRabbitMqConfig.SectionName)
+        .Get<RabbitMqConfig>();
 
       _timeConfig = Configuration
-          .GetSection(TimeConfig.SectionName)
-          .Get<TimeConfig>();
+        .GetSection(TimeConfig.SectionName)
+        .Get<TimeConfig>();
 
       _serviceInfoConfig = Configuration
-          .GetSection(BaseServiceInfoConfig.SectionName)
-          .Get<BaseServiceInfoConfig>();
+        .GetSection(BaseServiceInfoConfig.SectionName)
+        .Get<BaseServiceInfoConfig>();
 
-      Version = "1.1.7.1";
+      Version = "1.1.7.2";
       Description = "TimeService is an API intended to work with the users time managment";
       StartTime = DateTime.UtcNow;
       ApiName = $"LT Digital Office - {_serviceInfoConfig.Name}";
@@ -83,12 +86,12 @@ namespace LT.DigitalOffice.TimeService
 
       services.AddHttpContextAccessor();
       services
-          .AddControllers()
-          .AddJsonOptions(options =>
-          {
-            options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-          })
-          .AddNewtonsoftJson();
+        .AddControllers()
+        .AddJsonOptions(options =>
+        {
+          options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        })
+        .AddNewtonsoftJson();
 
       string connStr = Environment.GetEnvironmentVariable("ConnectionString");
       if (string.IsNullOrEmpty(connStr))
@@ -135,11 +138,12 @@ namespace LT.DigitalOffice.TimeService
       services.AddMemoryCache();
       services.AddTransient<WorkTimeCreater>();
       services.AddTransient<WorkTimeLimitCreater>();
+      services.AddTransient<IRedisHelper, RedisHelper>();
 
       services
-          .AddHealthChecks()
-          .AddSqlServer(connStr)
-          .AddRabbitMqCheck();
+        .AddHealthChecks()
+        .AddSqlServer(connStr)
+        .AddRabbitMqCheck();
     }
 
     public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
@@ -148,7 +152,7 @@ namespace LT.DigitalOffice.TimeService
 
       app.UseForwardedHeaders();
 
-      CreateTime(app);
+      CreateTimeAsync(app).Wait();
 
       app.UseExceptionsHandler(loggerFactory);
 
@@ -185,32 +189,60 @@ namespace LT.DigitalOffice.TimeService
     private void UpdateDatabase(IApplicationBuilder app)
     {
       using var serviceScope = app.ApplicationServices
-          .GetRequiredService<IServiceScopeFactory>()
-          .CreateScope();
+        .GetRequiredService<IServiceScopeFactory>()
+        .CreateScope();
 
       using var context = serviceScope.ServiceProvider.GetService<TimeServiceDbContext>();
 
       context.Database.Migrate();
     }
 
+    private (string username, string password) GetRabbitMqCredentials()
+    {
+      static string GetString(string envVar, string formAppsettings, string generated, string fieldName)
+      {
+        string str = Environment.GetEnvironmentVariable(envVar);
+        if (string.IsNullOrEmpty(str))
+        {
+          str = formAppsettings ?? generated;
+
+          Log.Information(
+            formAppsettings == null
+              ? $"Default RabbitMq {fieldName} was used."
+              : $"RabbitMq {fieldName} from appsetings.json was used.");
+        }
+        else
+        {
+          Log.Information($"RabbitMq {fieldName} from environment was used.");
+        }
+
+        return str;
+      }
+
+      return (GetString("RabbitMqUsername", _rabbitMqConfig.Username, $"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}", "Username"),
+        GetString("RabbitMqPassword", _rabbitMqConfig.Password, _serviceInfoConfig.Id, "Password"));
+    }
+
     private void ConfigureMassTransit(IServiceCollection services)
     {
+      (string username, string password) = GetRabbitMqCredentials();
+
       services.AddMassTransit(x =>
       {
         x.AddConsumer<CreateWorkTimeConsumer>();
 
         x.UsingRabbitMq((context, cfg) =>
-              {
+          {
             cfg.Host(_rabbitMqConfig.Host, "/", host =>
-                  {
-                host.Username($"{_serviceInfoConfig.Name}_{_serviceInfoConfig.Id}");
-                host.Password(_serviceInfoConfig.Id);
-              });
+            {
+              host.Username(username);
+              host.Password(password);
+            });
 
             cfg.ReceiveEndpoint(_rabbitMqConfig.CreateWorkTimeEndpoint, ep =>
-                  {
-                ep.ConfigureConsumer<CreateWorkTimeConsumer>(context);
-              });
+            {
+              ep.ConfigureConsumer<CreateWorkTimeConsumer>(context);
+            });
           });
 
         x.AddRequestClients(_rabbitMqConfig);
@@ -219,25 +251,25 @@ namespace LT.DigitalOffice.TimeService
       services.AddMassTransitHostedService();
     }
 
-    private void CreateTime(IApplicationBuilder app)
+    private async Task CreateTimeAsync(IApplicationBuilder app)
     {
       var scope = app.ApplicationServices.CreateScope();
 
       var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreater>();
       var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreater>();
       var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
-      var limitRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeMonthLimitRepository>();
 
-      DbWorkTime lastWorkTime = workTimeRepository.GetLast();
+      DbWorkTime lastWorkTime = await workTimeRepository.GetLastAsync();
 
       workTimeCreater.Start(
-          _timeConfig.MinutesToRestart,
-          lastWorkTime != null
-              ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1)
-              : default);
+        _timeConfig.MinutesToRestart,
+        lastWorkTime != null
+          ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1)
+          : default);
 
       workTimeLimitCreater.Start(
-          _timeConfig.MinutesToRestart);
+        _timeConfig.MinutesToRestart,
+        _timeConfig.CountNeededNextMonth);
     }
 
     private string HidePassord(string line)

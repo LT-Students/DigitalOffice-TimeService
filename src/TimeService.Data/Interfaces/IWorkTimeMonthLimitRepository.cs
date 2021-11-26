@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
@@ -10,18 +11,18 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
   [AutoInject]
   public interface IWorkTimeMonthLimitRepository
   {
-    Guid Add(DbWorkTimeMonthLimit workTimeMonthLimit);
+    Task<Guid?> CreateAsync(DbWorkTimeMonthLimit workTimeMonthLimit);
 
-    void AddRange(List<DbWorkTimeMonthLimit> workTimeMonthsLimits);
+    Task CreateRangeAsync(List<DbWorkTimeMonthLimit> workTimeMonthsLimits);
 
-    DbWorkTimeMonthLimit Get(int year, int month);
+    Task<DbWorkTimeMonthLimit> GetAsync(int year, int month);
 
-    List<DbWorkTimeMonthLimit> GetRange(int startYear, int startMonth, int endYear, int endMonth);
+    Task<List<DbWorkTimeMonthLimit>> GetAsync(int startYear, int startMonth, int endYear, int endMonth);
 
-    List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter, int skipCount, int takeCount, out int totalCount);
+    Task<DbWorkTimeMonthLimit> GetLastAsync();
 
-    List<DbWorkTimeMonthLimit> Find(FindWorkTimeMonthLimitsFilter filter);
+    Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter);
 
-    bool Edit(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
+    Task<bool> EditAsync(Guid workTimeMonthLimitId, JsonPatchDocument<DbWorkTimeMonthLimit> request);
   }
 }

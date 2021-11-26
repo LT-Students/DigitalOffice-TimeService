@@ -1,65 +1,84 @@
-﻿using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+﻿using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Exceptions.Models;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
-using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
-using MassTransit;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 {
-    public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
+  public class CreateLeaveTimeCommand : ICreateLeaveTimeCommand
+  {
+    private readonly ICreateLeaveTimeRequestValidator _validator;
+    private readonly IDbLeaveTimeMapper _mapper;
+    private readonly ILeaveTimeRepository _repository;
+    private readonly IAccessValidator _accessValidator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public CreateLeaveTimeCommand(
+      ICreateLeaveTimeRequestValidator validator,
+      IDbLeaveTimeMapper mapper,
+      ILeaveTimeRepository repository,
+      IAccessValidator accessValidator,
+      IHttpContextAccessor httpContextAccessor)
     {
-        private readonly ICreateLeaveTimeRequestValidator _validator;
-        private readonly IDbLeaveTimeMapper _mapper;
-        private readonly ILeaveTimeRepository _repository;
-        private readonly IAccessValidator _accessValidator;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-
-        public CreateLeaveTimeCommand(
-            ICreateLeaveTimeRequestValidator validator,
-            IDbLeaveTimeMapper mapper,
-            ILeaveTimeRepository repository,
-            IAccessValidator accessValidator,
-            IHttpContextAccessor httpContextAccessor)
-        {
-            _validator = validator;
-            _mapper = mapper;
-            _repository = repository;
-            _accessValidator = accessValidator;
-            _httpContextAccessor = httpContextAccessor;
-        }
-
-        public OperationResultResponse<Guid> Execute(CreateLeaveTimeRequest request)
-        {
-            var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
-
-            if (!isOwner && !_accessValidator.IsAdmin())
-            {
-                throw new ForbiddenException("Not enough rights.");
-            }
-
-            _validator.ValidateAndThrowCustom(request);
-
-            var createdBy = _httpContextAccessor.HttpContext.GetUserId();
-            var dbLeaveTime = _mapper.Map(request, createdBy);
-
-            return new OperationResultResponse<Guid>
-            {
-                Body = _repository.Add(dbLeaveTime),
-                Status = OperationResultStatusType.FullSuccess
-            };
-        }
+      _validator = validator;
+      _mapper = mapper;
+      _repository = repository;
+      _accessValidator = accessValidator;
+      _httpContextAccessor = httpContextAccessor;
     }
+
+    public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateLeaveTimeRequest request)
+    {
+      var isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
+
+      if (!isOwner && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+      {
+        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+
+        return new()
+        {
+          Status = OperationResultStatusType.Failed
+        };
+      }
+
+      if (!_validator.ValidateCustom(request, out List<string> errors))
+      {
+        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+
+        return new()
+        {
+          Status = OperationResultStatusType.Failed,
+          Errors = errors
+        };
+      }
+
+      OperationResultResponse<Guid?> response = new();
+
+      response.Body = await _repository.CreateAsync(_mapper.Map(request));
+      response.Status = OperationResultStatusType.FullSuccess;
+
+      _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
+
+      if (response.Body == default)
+      {
+        response.Status = OperationResultStatusType.Failed;
+
+        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+      }
+
+      return response;
+    }
+  }
 }

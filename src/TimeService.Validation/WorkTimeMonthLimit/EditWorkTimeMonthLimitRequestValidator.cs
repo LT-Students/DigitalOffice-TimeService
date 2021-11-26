@@ -1,7 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.Validators;
+using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.Helper;
 using LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit.Interfaces;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Text.RegularExpressions;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit
 {
-    public class EditWorkTimeMonthLimitRequestValidator
+  public class EditWorkTimeMonthLimitRequestValidator
         : BaseEditRequestValidator<EditWorkTimeMonthLimitRequest>, IEditWorkTimeMonthLimitRequestValidator
     {
         private static Regex _holidayRegex = new("^[10]+$");

@@ -1,4 +1,4 @@
-using LT.DigitalOffice.TimeService.Mappers.Db;
+﻿using LT.DigitalOffice.TimeService.Mappers.Db;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
@@ -17,11 +17,11 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
         private DbLeaveTime _expectedDbLeaveTimeWithoutId;
         private Guid _createdBy;
 
-        [OneTimeSetUp]
+        /*[OneTimeSetUp]
         public void OneTimeSetUp()
         {
             _mapper = new DbLeaveTimeMapper();
-        }
+        }*/
 
         [SetUp]
         public void SetUp()

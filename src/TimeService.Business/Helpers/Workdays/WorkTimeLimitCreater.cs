@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using Microsoft.Extensions.Logging;
 
@@ -13,19 +15,20 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
   {
     private const int WorkingDayDuration = 8;
 
-    private readonly IWorkTimeMonthLimitRepository _limitRepository;
     private readonly ICalendar _calendar;
     private readonly ILogger<WorkTimeLimitCreater> _logger;
+    private readonly IDbWorkTimeMonthLimitMapper _mapper;
+    private readonly IWorkTimeMonthLimitRepository _limitRepository;
 
+    private int _countNeededNextMonth;
     private int _minutesToRestart;
-    private DateTime? _lastSuccessfulAttempt;
-    private DateTime? _previousAttempt;
+    private int _lastSuccessfullySavedMonth;
 
-    private string GetNonWorkingDays(DateTime time)
+    private async Task<string> GetNonWorkingDaysAsync(int month, int year)
     {
       try
       {
-        return _calendar.GetWorkCalendarByMonth(time.Month, time.Year);
+        return await _calendar.GetWorkCalendarByMonthAsync(month, year);
       }
       catch (Exception exc)
       {
@@ -35,68 +38,76 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
       }
     }
 
-    private bool Execute()
+    private async Task ExecuteAsync()
     {
-      DateTime time = DateTime.UtcNow;
+      DbWorkTimeMonthLimit last = await _limitRepository.GetLastAsync();
 
-      if (_limitRepository.Get(time.Year, time.Month) != null)
+      DateTime now = DateTime.UtcNow;
+
+      _lastSuccessfullySavedMonth = last == null
+        ? now.Year * 12 + now.Month - 1
+        : last.Year * 12 + last.Month;
+
+      int lastNeededMonth = now.Year * 12 + now.Month + _countNeededNextMonth;
+
+      List<DbWorkTimeMonthLimit> limits = new();
+
+      for (int month = _lastSuccessfullySavedMonth + 1; month <= lastNeededMonth; month++)
       {
-        _previousAttempt = DateTime.UtcNow;
-        _lastSuccessfulAttempt = _previousAttempt;
-        return true;
+        int requestYear = month % 12 == 0 ? month / 12 - 1 : month / 12;
+        int requestMonth = month - requestYear * 12;
+
+        string holidays = await GetNonWorkingDaysAsync(requestMonth, requestYear);
+
+        if (string.IsNullOrEmpty(holidays))
+        {
+          break;
+        }
+
+        limits.Add(_mapper.Map(requestYear, requestMonth, holidays, WorkingDayDuration));
+        _lastSuccessfullySavedMonth = month;
       }
 
-      string holidays = GetNonWorkingDays(time);
-
-      if (holidays == null)
+      if (limits.Any())
       {
-        _previousAttempt = DateTime.UtcNow;
-        return false;
+        await _limitRepository.CreateRangeAsync(limits);
       }
-
-      DbWorkTimeMonthLimit limit = new()
-      {
-        Id = Guid.NewGuid(),
-        ModifiedAtUtc = DateTime.UtcNow,
-        Holidays = holidays,
-        ModifiedBy = null,
-        Month = time.Month,
-        Year = time.Year,
-        NormHours = holidays.ToCharArray().Count(h => h == '0') * WorkingDayDuration
-      };
-
-      _limitRepository.Add(limit);
-
-      _previousAttempt = DateTime.UtcNow;
-      _lastSuccessfulAttempt = _previousAttempt;
-      return true;
     }
 
     public WorkTimeLimitCreater(
-        IWorkTimeMonthLimitRepository limitRepository,
-        ILogger<WorkTimeLimitCreater> logger)
+      IWorkTimeMonthLimitRepository limitRepository,
+      ILogger<WorkTimeLimitCreater> logger,
+      IDbWorkTimeMonthLimitMapper mapper)
     {
       _limitRepository = limitRepository;
       _calendar = new IsDayOffIntegration();
       _logger = logger;
+      _mapper = mapper;
     }
 
     public void Start(
-        int minutesToRestartAfterError)
+      int minutesToRestartAfterError,
+      int countNeededNextMonth)
     {
       _minutesToRestart = minutesToRestartAfterError;
+      _countNeededNextMonth = countNeededNextMonth;
 
-      Task.Run(() =>
+      // rework
+      Thread.Sleep(30000);
+
+      Task.Run(async () =>
       {
         while (true)
         {
-          if (_lastSuccessfulAttempt == null
-                || DateTime.UtcNow.Month != _lastSuccessfulAttempt?.Month)
+          int neededMonths = DateTime.UtcNow.Year * 12 + DateTime.UtcNow.Month + _countNeededNextMonth;
+
+          if (_lastSuccessfullySavedMonth == default
+            || _lastSuccessfullySavedMonth < neededMonths)
           {
-            Execute();
+            await ExecuteAsync();
           }
 
-          if (_lastSuccessfulAttempt != _previousAttempt)
+          if (_lastSuccessfullySavedMonth == neededMonths)
           {
             Thread.Sleep(_minutesToRestart * 60000);
           }

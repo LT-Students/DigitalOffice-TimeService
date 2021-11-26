@@ -4,9 +4,9 @@ using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
 {
-    [AutoInject]
-    public interface IDbWorkTimeDayJobMapper
-    {
-        DbWorkTimeDayJob Map(CreateWorkTimeDayJobRequest request);
-    }
+  [AutoInject]
+  public interface IDbWorkTimeDayJobMapper
+  {
+    DbWorkTimeDayJob Map(CreateWorkTimeDayJobRequest request);
+  }
 }

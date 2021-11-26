@@ -11,11 +11,11 @@ namespace LT.DigitalOffice.TimeService.Controllers
   public class ImportController : ControllerBase
   {
     [HttpGet("get")]
-    public async Task<OperationResultResponse<byte[]>> Get(
+    public async Task<OperationResultResponse<byte[]>> GetAsync(
       [FromServices] IImportStatCommand command,
       [FromQuery] ImportStatFilter filter)
     {
-      return await command.Execute(filter);
+      return await command.ExecuteAsync(filter);
     }
   }
 }
