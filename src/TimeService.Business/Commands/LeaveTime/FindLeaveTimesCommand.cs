@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
@@ -44,7 +47,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IRequestClient<IGetPositionsRequest> _rcGetPositions;
     private readonly ILogger<FindLeaveTimesCommand> _logger;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responsCreator;
+    private readonly IResponseCreator _responsCreator;
 
     #region private methods
 
@@ -175,7 +178,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IRequestClient<IGetPositionsRequest> rcGetPositions,
       ILogger<FindLeaveTimesCommand> logger,
       IRedisHelper redisHelper,
-      IResponseCreater responseCreator)
+      IResponseCreator responseCreator)
     {
       _validator = validator;
       _leaveTimeResponseMapper = leaveTimeResponseMapper;

@@ -20,7 +20,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         FirstName = userData.FirstName,
         MiddleName = userData.MiddleName,
         LastName = userData.LastName,
-        Rate = positionUserData?.Rate,
         IsActive = userData.IsActive
       };
     }

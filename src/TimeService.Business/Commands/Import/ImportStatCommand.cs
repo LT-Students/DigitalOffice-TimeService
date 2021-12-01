@@ -5,13 +5,15 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Department;
@@ -59,7 +61,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IAccessValidator _accessValidator;
     private readonly ICalendar _calendar;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responseCreator;
+    private readonly IResponseCreator _responseCreator;
     private readonly IImportStatFilterValidator _validator;
 
     #region private methods
@@ -502,13 +504,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           ws.Cell(row, 1).SetValue(number + 1);
           ws.Cell(row, 2).SetValue($"{usersInfos[number].FirstName} {usersInfos[number].LastName}");
-          ws.Cell(row, 3).SetValue(positions.FirstOrDefault(p => p.UserId == usersInfos[number].Id)?.Rate);
-          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours);
-          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
+          ws.Cell(row, 3).SetValue(thisMonthLimit.NormHours);
+          ws.Cell(row, 4).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
             Style.Fill.SetBackgroundColor(FirstHeaderColor);
         }
 
-        int column = 6;
+        int column = 5;
         if (filter.DepartmentId.HasValue)
         {
           DepartmentData requestedDepartment = departments.FirstOrDefault(d => d.Id == filter.DepartmentId.Value);
@@ -649,7 +650,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       ILogger<ImportStatCommand> logger,
       IAccessValidator accessValidator,
       IRedisHelper redisHelper,
-      IResponseCreater responseCreator,
+      IResponseCreator responseCreator,
       IImportStatFilterValidator validator)
     {
       _rcGetProjects = rcGetProjects;

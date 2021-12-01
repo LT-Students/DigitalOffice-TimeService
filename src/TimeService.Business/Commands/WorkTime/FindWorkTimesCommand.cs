@@ -3,13 +3,16 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
@@ -47,7 +50,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responsCreator;
+    private readonly IResponseCreator _responsCreator;
     private readonly ILogger<FindWorkTimesCommand> _logger;
 
     #region private methods
@@ -254,7 +257,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IProjectInfoMapper projectInfoMapper,
       IUserInfoMapper userInfoMapper,
       IRedisHelper redisHelper,
-      IResponseCreater responsCreator)
+      IResponseCreator responsCreator)
     {
       _validator = validator;
       _workTimeResponseMapper = workTimeResponseMapper;

@@ -3,12 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.Broker;
-using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Position;
@@ -47,7 +48,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
     private readonly ILogger<FindStatCommand> _logger;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responseCreator;
+    private readonly IResponseCreator _responseCreator;
     private readonly IFindStatFilterValidator _validator;
 
     #region private methods
@@ -351,7 +352,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
       ILogger<FindStatCommand> logger,
       IRedisHelper redisHelper,
-      IResponseCreater responseCreator,
+      IResponseCreator responseCreator,
       IFindStatFilterValidator validator)
     {
       _rcGetProjects = rcGetProjects;

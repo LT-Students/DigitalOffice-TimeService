@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
@@ -19,7 +18,6 @@ using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
-using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 {
@@ -31,7 +29,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IDbWorkTimeMapper _dbMapper;
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
-    private readonly IResponseCreater _responseCreator;
+    private readonly IResponseCreator _responseCreator;
 
     public EditWorkTimeCommand(
       IEditWorkTimeRequestValidator validator,
@@ -40,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IDbWorkTimeMapper dbMapper,
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
-      IResponseCreater responseCreator)
+      IResponseCreator responseCreator)
     {
       _validator = validator;
       _repository = repository;
