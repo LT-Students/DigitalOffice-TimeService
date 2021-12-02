@@ -12,13 +12,13 @@ using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Position;
+using LT.DigitalOffice.Models.Broker.Models.Company;
+using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Department;
-using LT.DigitalOffice.Models.Broker.Requests.Position;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
+using LT.DigitalOffice.Models.Broker.Responses.Company;
 using LT.DigitalOffice.Models.Broker.Responses.Department;
-using LT.DigitalOffice.Models.Broker.Responses.Position;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.Stat.Interfaces;
@@ -39,7 +39,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
     private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IRequestClient<IGetPositionsRequest> _rcGetPositions;
+    private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IStatInfoMapper _statInfoMapper;
@@ -225,7 +225,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       return (null, 0);
     }
 
-    private async Task<List<PositionData>> GetPositionsAsync(
+    private async Task<List<CompanyData>> GetCompaniesAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -234,19 +234,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         return null;
       }
 
-      List<PositionData> positions = await _redisHelper.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
-      if (positions != null)
+      if (companies != null)
       {
-        _logger.LogInformation("Positions for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
+        _logger.LogInformation("Companies for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-        return positions;
+        return companies;
       }
 
-      return await GetPositionsThroughBrokerAsync(usersIds, errors);
+      return await GetCompaniesThroughBrokerAsync(usersIds, errors);
     }
 
-    private async Task<List<PositionData>> GetPositionsThroughBrokerAsync(
+    private async Task<List<CompanyData>> GetCompaniesThroughBrokerAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -255,23 +255,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         return null;
       }
 
-      const string errorMessage = "Can not get positions info. Please try again later.";
+      const string errorMessage = "Can not get companies info. Please try again later.";
 
       try
       {
-        Response<IOperationResult<IGetPositionsResponse>> response = await _rcGetPositions
-          .GetResponse<IOperationResult<IGetPositionsResponse>>(
-            IGetPositionsRequest.CreateObj(usersIds));
+        Response<IOperationResult<IGetCompaniesResponse>> response = await _rcGetCompanies
+          .GetResponse<IOperationResult<IGetCompaniesResponse>>(
+            IGetCompaniesRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          _logger.LogInformation("Positions were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
+          _logger.LogInformation("Companies were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-          return response.Message.Body.Positions;
+          return response.Message.Body.Companies;
         }
         else
         {
-          _logger.LogWarning("Errors while getting positions info. Reason: {Errors}",
+          _logger.LogWarning("Errors while getting companies info. Reason: {Errors}",
             string.Join('\n', response.Message.Errors));
         }
       }
@@ -343,7 +343,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
       IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IRequestClient<IGetPositionsRequest> rcGetPositions,
+      IRequestClient<IGetCompaniesRequest> rcGetCompanies,
       IUserInfoMapper userInfoMapper,
       IProjectInfoMapper projectInfoMapper,
       IStatInfoMapper statInfoMapper,
@@ -359,7 +359,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _rcGetProjectsUsers = rcGetProjectsUsers;
       _rcGetDepartmentUsers = rcGetDepartmentUsers;
       _rcGetUsers = rcGetUsers;
-      _rcGetPositions = rcGetPositions;
+      _rcGetCompanies = rcGetCompanies;
       _userInfoMapper = userInfoMapper;
       _projectInfoMapper = projectInfoMapper;
       _statInfoMapper = statInfoMapper;
@@ -398,16 +398,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       }
 
       Task<List<UserData>> usersTask = GetUsersData(usersIds, errors);
-      Task<List<PositionData>> positionsTask = GetPositionsAsync(usersIds, errors);
+      Task<List<CompanyData>> companiesTask = GetCompaniesAsync(usersIds, errors);
       Task<DbWorkTimeMonthLimit> limitTask = _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
-      await Task.WhenAll(usersTask, positionsTask, limitTask);
+      await Task.WhenAll(usersTask, companiesTask, limitTask);
 
-      List<PositionUserData> positions = (await positionsTask)?.SelectMany(p => p.Users).ToList();
+      List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
       DbWorkTimeMonthLimit monthLimit = await limitTask;
 
       List<UserInfo> usersInfos = (await usersTask)
-        ?.Select(u => _userInfoMapper.Map(u, positions?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
+        ?.Select(u => _userInfoMapper.Map(u, companies?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
       List<ProjectInfo> projectInfos = projectsDatas?.Select(_projectInfoMapper.Map).ToList();
 
       DbWorkTimeMonthLimit limit = await limitTask;
