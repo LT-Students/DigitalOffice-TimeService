@@ -21,13 +21,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
     private readonly IBaseFindFilterValidator _baseFindValidator;
     private readonly IWorkTimeMonthLimitRepository _repository;
     private readonly IWorkTimeMonthLimitInfoMapper _mapper;
-    private readonly IResponseCreater _responseCreator;
+    private readonly IResponseCreator _responseCreator;
 
     public FindWorkTimeMonthLimitCommand(
       IBaseFindFilterValidator baseFindValidator,
       IWorkTimeMonthLimitRepository repository,
       IWorkTimeMonthLimitInfoMapper mapper,
-      IResponseCreater responseCreator)
+      IResponseCreator responseCreator)
     {
       _baseFindValidator = baseFindValidator;
       _repository = repository;

@@ -3,21 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Position;
-using LT.DigitalOffice.Models.Broker.Requests.Position;
+using LT.DigitalOffice.Models.Broker.Models.Company;
+using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Position;
+using LT.DigitalOffice.Models.Broker.Responses.Company;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
@@ -42,12 +45,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IRequestClient<IGetPositionsRequest> _rcGetPositions;
+    private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
     private readonly IWorkTimeResponseMapper _workTimeResponseMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responsCreator;
+    private readonly IResponseCreator _responsCreator;
     private readonly ILogger<FindWorkTimesCommand> _logger;
 
     #region private methods
@@ -178,7 +181,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       return null;
     }
 
-    private async Task<List<PositionData>> GetPositionsAsync(
+    private async Task<List<CompanyData>> GetCompaniesAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -187,19 +190,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return null;
       }
 
-      List<PositionData> positions = await _redisHelper.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
-      if (positions != null)
+      if (companies != null)
       {
-        _logger.LogInformation("Positions for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
+        _logger.LogInformation("Companies for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-        return positions;
+        return companies;
       }
 
-      return await GetPositionsThroughBrokerAsync(usersIds, errors);
+      return await GetCompaniesThroughBrokerAsync(usersIds, errors);
     }
 
-    private async Task<List<PositionData>> GetPositionsThroughBrokerAsync(
+    private async Task<List<CompanyData>> GetCompaniesThroughBrokerAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -208,23 +211,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return null;
       }
 
-      const string errorMessage = "Can not get positions info. Please try again later.";
+      const string errorMessage = "Can not get companies info. Please try again later.";
 
       try
       {
-        Response<IOperationResult<IGetPositionsResponse>> response = await _rcGetPositions
-          .GetResponse<IOperationResult<IGetPositionsResponse>>(
-            IGetPositionsRequest.CreateObj(usersIds));
+        Response<IOperationResult<IGetCompaniesResponse>> response = await _rcGetCompanies
+          .GetResponse<IOperationResult<IGetCompaniesResponse>>(
+            IGetCompaniesRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          _logger.LogInformation("Positions were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
+          _logger.LogInformation("Companies were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-          return response.Message.Body.Positions;
+          return response.Message.Body.Companies;
         }
         else
         {
-          _logger.LogWarning("Errors while getting positions info. Reason: {Errors}",
+          _logger.LogWarning("Errors while getting companies info. Reason: {Errors}",
             string.Join('\n', response.Message.Errors));
         }
       }
@@ -249,12 +252,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IHttpContextAccessor httpContextAccessor,
       IRequestClient<IGetProjectsRequest> rcGetProjects,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IRequestClient<IGetPositionsRequest> rcGetPositions,
+      IRequestClient<IGetCompaniesRequest> rcGetCompanies,
       ILogger<FindWorkTimesCommand> logger,
       IProjectInfoMapper projectInfoMapper,
       IUserInfoMapper userInfoMapper,
       IRedisHelper redisHelper,
-      IResponseCreater responsCreator)
+      IResponseCreator responsCreator)
     {
       _validator = validator;
       _workTimeResponseMapper = workTimeResponseMapper;
@@ -264,7 +267,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _httpContextAccessor = httpContextAccessor;
       _rcGetProjects = rcGetProjects;
       _rcGetUsers = rcGetUsers;
-      _rcGetPositions = rcGetPositions;
+      _rcGetCompanies = rcGetCompanies;
       _logger = logger;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
@@ -293,7 +296,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       Task<List<ProjectData>> projectsTask = GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
       Task<List<UserData>> usersTask = GetUsersData(usersIds, errors);
-      Task<List<PositionData>> positionsTask = GetPositionsAsync(usersIds, errors);
+      Task<List<CompanyData>> companiesTask = GetCompaniesAsync(usersIds, errors);
       Task<(List<DbWorkTimeMonthLimit>, int)> limitTask = _monthLimitRepository.FindAsync(
         new()
         {
@@ -301,9 +304,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
           Year = filter.Year
         });
 
-      await Task.WhenAll(projectsTask, usersTask, positionsTask, limitTask);
+      await Task.WhenAll(projectsTask, usersTask, companiesTask, limitTask);
 
-      List<PositionData> positions = await positionsTask;
+      List<CompanyData> companies = await companiesTask;
       List<ProjectData> projects = await projectsTask;
       List<UserData> users = await usersTask;
       (List<DbWorkTimeMonthLimit> monthLimits, int _) = await limitTask;
@@ -321,7 +324,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
               monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
               _userInfoMapper.Map(
                 users?.FirstOrDefault(u => u.Id == wt.UserId),
-                positions?.FirstOrDefault(p => p.Users.Any(u => u.UserId == wt.UserId))?.Users.First(u => u.UserId == wt.UserId)),
+                companies?.FirstOrDefault(p => p.Users.Any(u => u.UserId == wt.UserId))?.Users.First(u => u.UserId == wt.UserId)),
               _userInfoMapper.Map(
                 users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy),
                 null),
