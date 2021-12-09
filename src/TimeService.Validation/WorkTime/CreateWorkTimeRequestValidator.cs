@@ -39,7 +39,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       }
       catch (Exception exc)
       {
-        _logger.LogError(exc, "Cannot check existing users with Ids: { userIds}", usersIds);
+        _logger.LogError(exc, "Cannot check existing users with Ids: { usersIds}", usersIds);
       }
 
       return false;
