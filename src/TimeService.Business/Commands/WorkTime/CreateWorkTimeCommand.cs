@@ -4,9 +4,7 @@ using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
@@ -45,9 +43,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
     public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateWorkTimeRequest request)
     {
-      Guid userId = _httpContextAccessor.HttpContext.GetUserId();
-
-      ValidationResult result = await _requestValidator.ValidateAsync((request, userId));
+      ValidationResult result = await _requestValidator.ValidateAsync(request);
       if (!result.IsValid)
       {
         return _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.BadRequest,
@@ -56,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       OperationResultResponse<Guid?> response = new();
 
-      response.Body = await _workTimeRepository.CreateAsync(_dbWorkTimeMapper.Map(request, userId));
+      response.Body = await _workTimeRepository.CreateAsync(_dbWorkTimeMapper.Map(request));
       response.Status = response.Body is null
         ? OperationResultStatusType.Failed
         : OperationResultStatusType.FullSuccess;

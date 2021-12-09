@@ -4,20 +4,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using FluentValidation;
 using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
-  public class CreateWorkTimeRequestValidator : AbstractValidator<(CreateWorkTimeRequest request, Guid userId)>, ICreateWorkTimeRequestValidator
+  public class CreateWorkTimeRequestValidator : AbstractValidator<CreateWorkTimeRequest>, ICreateWorkTimeRequestValidator
   {
     private readonly IRequestClient<ICheckUsersExistence> _rcCheckUsersExistence;
     private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
+    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IWorkTimeRepository _workTimeRepository;
 
     private async Task<bool> CheckUserExistenceAsync(List<Guid> usersIds)
@@ -71,31 +74,24 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
     public CreateWorkTimeRequestValidator(
       IRequestClient<ICheckUsersExistence> rcCheckUsersExistence,
       ILogger<CreateLeaveTimeRequestValidator> logger,
+      IHttpContextAccessor httpContextAccessor,
       IWorkTimeRepository workTimeRepository)
     {
       _rcCheckUsersExistence = rcCheckUsersExistence;
       _logger = logger;
+      _httpContextAccessor = httpContextAccessor;
       _workTimeRepository = workTimeRepository;
 
-      RuleFor(tuple => tuple.userId)
-        .MustAsync(async (x, _) => await CheckUserExistenceAsync(new List<Guid> {x}))
-        .WithMessage("User with this Id doesn't exist.")
-        .MustAsync(async (x, _) => !await _workTimeRepository.DoesEmptyWorkTimeExistAsync(x, DateTime.UtcNow))
+      RuleFor(_ => _httpContextAccessor.HttpContext.GetUserId())
+        .MustAsync(async (x, _) => await CheckUserExistenceAsync(new List<Guid> { x }))
+        .WithMessage("User with this Id doesn't exist.");
+
+      RuleFor(request => request)
+        .Must(request => IsMonthValid(request.Month)).WithMessage("Month is not valid.")
+        .Must(request => IsYearValid(request.Year, request.Month)).WithMessage("Year is not valid.")
+        .MustAsync(async (x, _) =>
+          !await _workTimeRepository.DoesEmptyWorkTimeExistAsync(_httpContextAccessor.HttpContext.GetUserId(), x.Month, x.Year))
         .WithMessage("WorkTime for this month already exists.");
-
-      When(
-        tuple => tuple.request.Month is not null,
-        () =>
-          RuleFor(tuple => tuple.request.Month)
-          .Must(month => IsMonthValid(month.Value)).WithMessage("Month is not valid.")
-        );
-
-      When(
-        tuple => tuple.request.Year is not null,
-        () =>
-          RuleFor(tuple => tuple.request)
-          .Must(request => IsYearValid(request.Year.Value, request.Month.Value)).WithMessage("Year is not valid.")
-        );
     }
   }
 }

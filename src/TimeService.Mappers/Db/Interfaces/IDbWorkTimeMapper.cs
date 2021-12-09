@@ -10,6 +10,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
   {
     DbWorkTime Map(DbWorkTime parent, Guid managerId);
 
-    DbWorkTime Map(CreateWorkTimeRequest request, Guid userId);
+    DbWorkTime Map(CreateWorkTimeRequest request);
   }
 }

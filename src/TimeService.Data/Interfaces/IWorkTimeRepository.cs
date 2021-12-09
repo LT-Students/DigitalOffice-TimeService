@@ -21,7 +21,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<bool> DoesExistAsync(Guid id);
 
-    Task<bool> DoesEmptyWorkTimeExistAsync(Guid userId, DateTime dateTime);
+    Task<bool> DoesEmptyWorkTimeExistAsync(Guid userId, int month, int year);
 
     Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter);
 
