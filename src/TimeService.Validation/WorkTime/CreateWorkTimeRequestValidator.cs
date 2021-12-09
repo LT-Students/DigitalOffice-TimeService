@@ -49,7 +49,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
     {
       DateTime dateTimeNow = DateTime.UtcNow;
 
-      if(month == dateTimeNow.Month
+      if (month == dateTimeNow.Month
         || (dateTimeNow.Day <= 5 && dateTimeNow.AddMonths(1).Month == month))
       {
         return true;
