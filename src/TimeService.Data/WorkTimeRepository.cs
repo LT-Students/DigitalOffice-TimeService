@@ -106,6 +106,14 @@ namespace LT.DigitalOffice.TimeService.Data
       return await _provider.WorkTimes.AnyAsync(wt => wt.Id == id);
     }
 
+    public async Task<bool> DoesEmptyWorkTimeExistAsync(Guid userId, DateTime dateTime)
+    {
+      var b = await _provider.WorkTimes.AnyAsync(wt => wt.UserId == userId && wt.ProjectId == default
+        && wt.Month == dateTime.Month && wt.Year == dateTime.Year);
+
+      return b;
+    }
+
     public async Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false)
     {
       if (usersIds == null)

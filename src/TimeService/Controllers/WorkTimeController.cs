@@ -14,6 +14,14 @@ namespace LT.DigitalOffice.TimeService.Controllers
   [ApiController]
   public class WorkTimeController : ControllerBase
   {
+    [HttpPost("create")]
+    public async Task<OperationResultResponse<Guid?>> FindAsync(
+      [FromServices] ICreateWorkTimeCommand command,
+      [FromBody] CreateWorkTimeRequest request)
+    {
+      return await command.ExecuteAsync(request);
+    }
+
     [HttpGet("find")]
     public async Task<FindResultResponse<WorkTimeResponse>> FindAsync(
       [FromServices] IFindWorkTimesCommand command,
