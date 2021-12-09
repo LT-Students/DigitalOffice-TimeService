@@ -29,7 +29,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
       };
     }
 
-    public DbWorkTime Map(CreateWorkTimeRequest request)
+    public DbWorkTime Map(CreateWorkTimeRequest request, Guid userId)
     {
       if (request is null)
       {
@@ -41,10 +41,10 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
       return new DbWorkTime
       {
         Id = Guid.NewGuid(),
-        UserId = request.UserId,
+        UserId = userId,
         ProjectId = default,
-        Year = timeNow.Year,
-        Month = timeNow.Month,
+        Year = request.Year ?? timeNow.Year,
+        Month = request.Month ?? timeNow.Month,
         Hours = request.Hours,
         Description = request.Description
       };

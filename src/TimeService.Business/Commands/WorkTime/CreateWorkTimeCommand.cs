@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.FluentValidationExtensions;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
@@ -47,12 +45,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
     public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateWorkTimeRequest request)
     {
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
-      {
-        return _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.Forbidden);
-      }
+      Guid userId = _httpContextAccessor.HttpContext.GetUserId();
 
-      ValidationResult result = await _requestValidator.ValidateAsync(request);
+      ValidationResult result = await _requestValidator.ValidateAsync((request, userId));
       if (!result.IsValid)
       {
         return _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.BadRequest,
@@ -61,7 +56,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       OperationResultResponse<Guid?> response = new();
 
-      response.Body = await _workTimeRepository.CreateAsync(_dbWorkTimeMapper.Map(request));
+      response.Body = await _workTimeRepository.CreateAsync(_dbWorkTimeMapper.Map(request, userId));
       response.Status = response.Body is null
         ? OperationResultStatusType.Failed
         : OperationResultStatusType.FullSuccess;
