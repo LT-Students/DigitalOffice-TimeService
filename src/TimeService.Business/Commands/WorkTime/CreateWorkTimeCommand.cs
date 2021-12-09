@@ -3,7 +3,6 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using FluentValidation.Results;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
@@ -11,6 +10,7 @@ using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 {
@@ -20,17 +20,20 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ICreateWorkTimeRequestValidator _requestValidator;
     private readonly IResponseCreator _responseCreator;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public CreateWorkTimeCommand(
       IDbWorkTimeMapper dbWorkTimeMapper,
       IWorkTimeRepository workTimeRepository,
       ICreateWorkTimeRequestValidator requestValidator,
-      IResponseCreator responseCreator)
+      IResponseCreator responseCreator,
+      IHttpContextAccessor httpContextAccessor)
     {
       _dbWorkTimeMapper = dbWorkTimeMapper;
       _workTimeRepository = workTimeRepository;
       _requestValidator = requestValidator;
       _responseCreator = responseCreator;
+      _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateWorkTimeRequest request)
@@ -45,9 +48,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       OperationResultResponse<Guid?> response = new();
 
       response.Body = await _workTimeRepository.CreateAsync(_dbWorkTimeMapper.Map(request));
-      response.Status = response.Body is null
-        ? OperationResultStatusType.Failed
-        : OperationResultStatusType.FullSuccess;
+
+      _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
 
       return response;
     }
