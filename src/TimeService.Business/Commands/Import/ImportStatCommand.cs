@@ -5,23 +5,25 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
-using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
-using LT.DigitalOffice.Models.Broker.Models.Position;
+using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Department;
-using LT.DigitalOffice.Models.Broker.Requests.Position;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
+using LT.DigitalOffice.Models.Broker.Responses.Company;
 using LT.DigitalOffice.Models.Broker.Responses.Department;
-using LT.DigitalOffice.Models.Broker.Responses.Position;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
@@ -50,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
     private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IRequestClient<IGetPositionsRequest> _rcGetPositions;
+    private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
     private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ILeaveTimeRepository _leaveTimeRepository;
@@ -59,7 +61,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IAccessValidator _accessValidator;
     private readonly ICalendar _calendar;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responseCreator;
+    private readonly IResponseCreator _responseCreator;
     private readonly IImportStatFilterValidator _validator;
 
     #region private methods
@@ -319,7 +321,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return limits;
     }
 
-    private async Task<List<PositionData>> GetPositionsAsync(
+    private async Task<List<CompanyData>> GetCompaniesAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -328,19 +330,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         return null;
       }
 
-      List<PositionData> positions = await _redisHelper.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
-      if (positions != null)
+      if (companies != null)
       {
-        _logger.LogInformation("Positions for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
+        _logger.LogInformation("Companies for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-        return positions;
+        return companies;
       }
 
-      return await GetPositionsThroughBrokerAsync(usersIds, errors);
+      return await GetCompaniesThroughBrokerAsync(usersIds, errors);
     }
 
-    private async Task<List<PositionData>> GetPositionsThroughBrokerAsync(
+    private async Task<List<CompanyData>> GetCompaniesThroughBrokerAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -349,23 +351,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         return null;
       }
 
-      const string errorMessage = "Can not get positions info. Please try again later.";
+      const string errorMessage = "Can not get companies info. Please try again later.";
 
       try
       {
-        Response<IOperationResult<IGetPositionsResponse>> response = await _rcGetPositions
-          .GetResponse<IOperationResult<IGetPositionsResponse>>(
-            IGetPositionsRequest.CreateObj(usersIds));
+        Response<IOperationResult<IGetCompaniesResponse>> response = await _rcGetCompanies
+          .GetResponse<IOperationResult<IGetCompaniesResponse>>(
+            IGetCompaniesRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          _logger.LogInformation("Positions were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
+          _logger.LogInformation("Companies were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-          return response.Message.Body.Positions;
+          return response.Message.Body.Companies;
         }
         else
         {
-          _logger.LogWarning("Errors while getting positions info. Reason: {Errors}",
+          _logger.LogWarning("Errors while getting companies info. Reason: {Errors}",
             string.Join('\n', response.Message.Errors));
         }
       }
@@ -445,7 +447,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       ImportStatFilter filter,
       List<UserData> usersInfos,
       List<ProjectData> projects,
-      List<PositionUserData> positions,
+      List<CompanyUserData> companies,
       List<DepartmentData> departments,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
@@ -502,7 +504,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           ws.Cell(row, 1).SetValue(number + 1);
           ws.Cell(row, 2).SetValue($"{usersInfos[number].FirstName} {usersInfos[number].LastName}");
-          ws.Cell(row, 3).SetValue(positions.FirstOrDefault(p => p.UserId == usersInfos[number].Id)?.Rate);
+          ws.Cell(row, 3).SetValue(companies.FirstOrDefault(x => x.UserId == usersInfos[number].Id)?.Rate);
           ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours);
           ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
             Style.Fill.SetBackgroundColor(FirstHeaderColor);
@@ -641,7 +643,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
       IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IRequestClient<IGetPositionsRequest> rcGetPositions,
+      IRequestClient<IGetCompaniesRequest> rcGetCompanies,
       IRequestClient<IGetDepartmentsRequest> rcGetDepartments,
       IWorkTimeRepository workTimeRepository,
       ILeaveTimeRepository leaveTimeRepository,
@@ -649,14 +651,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       ILogger<ImportStatCommand> logger,
       IAccessValidator accessValidator,
       IRedisHelper redisHelper,
-      IResponseCreater responseCreator,
+      IResponseCreator responseCreator,
       IImportStatFilterValidator validator)
     {
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
       _rcGetDepartmentUsers = rcGetDepartmentUsers;
       _rcGetUsers = rcGetUsers;
-      _rcGetPositions = rcGetPositions;
+      _rcGetCompanies = rcGetCompanies;
       _rcGetDepartments = rcGetDepartments;
       _workTimeRepository = workTimeRepository;
       _leaveTimeRepository = leaveTimeRepository;
@@ -723,7 +725,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         };
       }
 
-      List<PositionUserData> positions = (await GetPositionsAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
+      List<CompanyUserData> companies = (await GetCompaniesAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
       List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(usersIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month);
       List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
       List<DbWorkTimeMonthLimit> monthsLimits;
@@ -754,7 +756,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return new()
       {
         Status = OperationResultStatusType.FullSuccess,
-        Body = CreateTable(filter, usersInfos, projects, positions, departments, workTimes, leaveTimes, monthsLimits)
+        Body = CreateTable(filter, usersInfos, projects, companies, departments, workTimes, leaveTimes, monthsLimits)
       };
     }
   }

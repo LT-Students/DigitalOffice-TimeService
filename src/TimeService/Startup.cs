@@ -1,11 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 using HealthChecks.UI.Client;
+using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
+using LT.DigitalOffice.Kernel.BrokerSupport.Extensions;
+using LT.DigitalOffice.Kernel.BrokerSupport.Middlewares.Token;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
-using LT.DigitalOffice.Kernel.Middlewares.Token;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.TimeService.Broker.Consumers;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -21,12 +27,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
-using StackExchange.Redis;
 using Serilog;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.Helpers.Interfaces;
-using LT.DigitalOffice.Kernel.Helpers;
+using StackExchange.Redis;
 
 namespace LT.DigitalOffice.TimeService
 {
@@ -56,7 +58,7 @@ namespace LT.DigitalOffice.TimeService
         .GetSection(BaseServiceInfoConfig.SectionName)
         .Get<BaseServiceInfoConfig>();
 
-      Version = "1.1.7.2";
+      Version = "1.1.7.3";
       Description = "TimeService is an API intended to work with the users time managment";
       StartTime = DateTime.UtcNow;
       ApiName = $"LT Digital Office - {_serviceInfoConfig.Name}";

@@ -1,6 +1,7 @@
 ﻿using System;
 using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
 {
@@ -8,5 +9,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
   public interface IDbWorkTimeMapper
   {
     DbWorkTime Map(DbWorkTime parent, Guid managerId);
+
+    DbWorkTime Map(CreateWorkTimeRequest request);
   }
 }

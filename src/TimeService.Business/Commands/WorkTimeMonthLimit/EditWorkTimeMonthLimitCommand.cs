@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;

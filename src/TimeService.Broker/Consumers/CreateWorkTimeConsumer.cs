@@ -1,14 +1,14 @@
-﻿using LT.DigitalOffice.Kernel.Broker;
+﻿using System;
+using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Models.Broker.Requests.Time;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using MassTransit;
-using System;
-using System.Threading.Tasks;
 
 namespace LT.DigitalOffice.TimeService.Broker.Consumers
 {
-    public class CreateWorkTimeConsumer : IConsumer<ICreateWorkTimeRequest>
+  public class CreateWorkTimeConsumer : IConsumer<ICreateWorkTimeRequest>
     {
         private readonly IWorkTimeRepository _workTimeRepository;
 

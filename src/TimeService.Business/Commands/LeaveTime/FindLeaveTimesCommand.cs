@@ -3,20 +3,23 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Broker;
+using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
+using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Position;
-using LT.DigitalOffice.Models.Broker.Requests.Position;
+using LT.DigitalOffice.Models.Broker.Models.Company;
+using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Position;
+using LT.DigitalOffice.Models.Broker.Responses.Company;
 using LT.DigitalOffice.Models.Broker.Responses.User;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -41,10 +44,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IRequestClient<IGetPositionsRequest> _rcGetPositions;
+    private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
     private readonly ILogger<FindLeaveTimesCommand> _logger;
     private readonly IRedisHelper _redisHelper;
-    private readonly IResponseCreater _responsCreator;
+    private readonly IResponseCreator _responsCreator;
 
     #region private methods
 
@@ -102,7 +105,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       return null;
     }
 
-    private async Task<List<PositionData>> GetPositionsAsync(
+    private async Task<List<CompanyData>> GetCompaniesAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -111,19 +114,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return null;
       }
 
-      List<PositionData> positions = await _redisHelper.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
-      if (positions != null)
+      if (companies != null)
       {
-        _logger.LogInformation("Positions for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
+        _logger.LogInformation("Companies for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-        return positions;
+        return companies;
       }
 
-      return await GetPositionsThroughBrokerAsync(usersIds, errors);
+      return await GetCompaniesThroughBrokerAsync(usersIds, errors);
     }
 
-    private async Task<List<PositionData>> GetPositionsThroughBrokerAsync(
+    private async Task<List<CompanyData>> GetCompaniesThroughBrokerAsync(
       List<Guid> usersIds,
       List<string> errors)
     {
@@ -132,23 +135,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return null;
       }
 
-      const string errorMessage = "Can not get positions info. Please try again later.";
+      const string errorMessage = "Can not get companies info. Please try again later.";
 
       try
       {
-        Response<IOperationResult<IGetPositionsResponse>> response = await _rcGetPositions
-          .GetResponse<IOperationResult<IGetPositionsResponse>>(
-            IGetPositionsRequest.CreateObj(usersIds));
+        Response<IOperationResult<IGetCompaniesResponse>> response = await _rcGetCompanies
+          .GetResponse<IOperationResult<IGetCompaniesResponse>>(
+            IGetCompaniesRequest.CreateObj(usersIds));
 
         if (response.Message.IsSuccess)
         {
-          _logger.LogInformation("Positions were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
+          _logger.LogInformation("Companies were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
 
-          return response.Message.Body.Positions;
+          return response.Message.Body.Companies;
         }
         else
         {
-          _logger.LogWarning("Errors while getting positions info. Reason: {Errors}",
+          _logger.LogWarning("Errors while getting companies info. Reason: {Errors}",
             string.Join('\n', response.Message.Errors));
         }
       }
@@ -172,10 +175,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IRequestClient<IGetPositionsRequest> rcGetPositions,
+      IRequestClient<IGetCompaniesRequest> rcGetCompanies,
       ILogger<FindLeaveTimesCommand> logger,
       IRedisHelper redisHelper,
-      IResponseCreater responseCreator)
+      IResponseCreator responseCreator)
     {
       _validator = validator;
       _leaveTimeResponseMapper = leaveTimeResponseMapper;
@@ -184,7 +187,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
       _rcGetUsers = rcGetUsers;
-      _rcGetPositions = rcGetPositions;
+      _rcGetCompanies = rcGetCompanies;
       _logger = logger;
       _redisHelper = redisHelper;
       _responsCreator = responseCreator;
@@ -209,14 +212,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       List<Guid> usersIds = dbLeaveTimes.Select(lt => lt.UserId).ToList();
 
       Task<List<UserData>> usersTask = GetUsersData(usersIds, errors);
-      Task<List<PositionData>> positionsTask = GetPositionsAsync(usersIds, errors);
+      Task<List<CompanyData>> companiesTask = GetCompaniesAsync(usersIds, errors);
 
-      await Task.WhenAll(usersTask, positionsTask);
+      await Task.WhenAll(usersTask, companiesTask);
 
-      List<PositionUserData> positions = (await positionsTask)?.SelectMany(p => p.Users).ToList();
+      List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
       List<UserInfo> users = (await usersTask)
-        ?.Select(u => _userInfoMapper.Map(u, positions?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
+        ?.Select(u => _userInfoMapper.Map(u, companies?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
 
       return new()
       {
