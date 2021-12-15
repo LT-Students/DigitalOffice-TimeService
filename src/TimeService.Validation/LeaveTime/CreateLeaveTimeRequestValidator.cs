@@ -42,6 +42,30 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       return false;
     }
 
+    private bool CheckLeaveTimeInterval(CreateLeaveTimeRequest lt)
+    {
+      DateTime timeNow = DateTime.UtcNow;
+
+      switch (lt.LeaveType)
+      {
+        case LeaveType.SickLeave:
+          if (lt.StartTime < timeNow.AddMonths(-1) || lt.EndTime > timeNow.AddMonths(1))
+          {
+            return false;
+          }
+          break;
+
+        default:
+          if (lt.StartTime < timeNow.AddMonths(-1) || (lt.StartTime.Month == timeNow.AddMonths(-1).Month && timeNow.Day > 5))
+          {
+            return false;
+          }
+          break;
+      }
+
+      return true;
+    }
+
     public CreateLeaveTimeRequestValidator(
       ILeaveTimeRepository repository,
       IRequestClient<ICheckUsersExistence> rcCheckUsersExistence,
@@ -71,31 +95,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .Cascade(CascadeMode.Stop)
         .Must(lt => lt.StartTime <= lt.EndTime)
         .WithMessage("Start time must be before end time.")
-        .Must(lt =>
-        {
-          DateTime timeNow = DateTime.UtcNow;
-
-          if (lt.EndTime >= timeNow && lt.StartTime <= timeNow)
-          {
-            return true;
-          }
-
-          int countMonthNow = timeNow.Month + timeNow.Year * 12;
-
-          if (lt.EndTime < timeNow)
-          {
-            return countMonthNow - (lt.EndTime.Month + lt.EndTime.Year * 12) < 2
-              && (lt.LeaveType == LeaveType.SickLeave || timeNow.Day < 6);
-          }
-
-          if (lt.StartTime > timeNow)
-          {
-            return lt.StartTime.Month + (lt.StartTime.Year * 12) - countMonthNow < 2
-              || lt.LeaveType != LeaveType.SickLeave;
-          }
-
-          return true;
-        })
+        .Must(lt => CheckLeaveTimeInterval(lt))
         .WithMessage("Incorrect interval for leave time.")
         .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime, lt.EndTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
