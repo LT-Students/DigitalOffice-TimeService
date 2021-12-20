@@ -119,9 +119,14 @@ namespace LT.DigitalOffice.TimeService.Data
       DateTime start = newStart ?? leaveTime.StartTime;
       DateTime end = newEnd ?? leaveTime.EndTime;
 
-      return !await _provider.LeaveTimes.AllAsync(oldLeaveTime => !oldLeaveTime.IsActive
-        || oldLeaveTime.UserId != leaveTime.UserId
-        || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+      return await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
+        dbLeaveTime.IsActive
+        && dbLeaveTime.UserId == leaveTime.UserId
+        && dbLeaveTime.Id != leaveTime.Id
+        &&
+        ((dbLeaveTime.StartTime <= start && dbLeaveTime.EndTime >= end)
+        || (dbLeaveTime.StartTime >= start && dbLeaveTime.StartTime <= end)
+        || (dbLeaveTime.EndTime >= start && dbLeaveTime.EndTime <= end)));
     }
   }
 }

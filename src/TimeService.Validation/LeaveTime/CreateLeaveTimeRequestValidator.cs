@@ -99,6 +99,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .WithMessage("Incorrect interval for leave time.")
         .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime, lt.EndTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
+
+      RuleFor(lt => lt.Comment)
+        .MaximumLength(500).WithMessage("Comment is too long.");
     }
   }
 }
