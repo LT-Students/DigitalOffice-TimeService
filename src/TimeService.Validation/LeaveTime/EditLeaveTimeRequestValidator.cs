@@ -100,6 +100,18 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         });
 
       #endregion
+
+      #region Comment
+
+      AddFailureForPropertyIf(
+        nameof(EditLeaveTimeRequest.Comment),
+        x => x == OperationType.Replace,
+        new()
+        {
+          { x => x.value?.ToString().Length <= 500 , "Comment is too long." },
+        });
+
+      #endregion
     }
 
     public EditLeaveTimeRequestValidator(ILeaveTimeRepository repository)

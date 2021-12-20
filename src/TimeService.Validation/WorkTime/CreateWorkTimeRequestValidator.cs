@@ -86,6 +86,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         .MustAsync(async (x, _) => await CheckUserExistenceAsync(new List<Guid> { x }))
         .WithMessage("User with this Id doesn't exist.");
 
+      RuleFor(x => x.Description)
+        .MaximumLength(500).WithMessage("Description is too long.");
+
       RuleFor(request => request)
         .Must(request => IsMonthValid(request.Month)).WithMessage("Month is not valid.")
         .Must(request => IsYearValid(request.Year, request.Month)).WithMessage("Year is not valid.")
