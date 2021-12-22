@@ -104,21 +104,16 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end)
     {
-      return !await _provider.LeaveTimes.AllAsync(oldLeaveTime => !oldLeaveTime.IsActive
-        || oldLeaveTime.UserId != userId
-        || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+      return !await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
+        dbLeaveTime.IsActive
+        && dbLeaveTime.UserId == userId
+        && ((dbLeaveTime.StartTime <= start && dbLeaveTime.EndTime >= end)
+        || (dbLeaveTime.StartTime >= start && dbLeaveTime.StartTime <= end)
+        || (dbLeaveTime.EndTime >= start && dbLeaveTime.EndTime <= end)));
     }
 
-    public async Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd)
+    public async Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end)
     {
-      if (!newStart.HasValue && !newEnd.HasValue)
-      {
-        return false;
-      }
-
-      DateTime start = newStart ?? leaveTime.StartTime;
-      DateTime end = newEnd ?? leaveTime.EndTime;
-
       return await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
         dbLeaveTime.IsActive
         && dbLeaveTime.UserId == leaveTime.UserId

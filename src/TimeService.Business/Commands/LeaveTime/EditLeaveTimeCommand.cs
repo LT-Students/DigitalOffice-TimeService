@@ -13,6 +13,7 @@ using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Patch.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -44,11 +45,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return true;
       }
 
-      DateTime? start = startTimeOperation == null ? null : DateTime.Parse(startTimeOperation.value.ToString());
-      DateTime? end = endTimeOperation == null ? null : DateTime.Parse(endTimeOperation.value.ToString());
+      DateTime start = startTimeOperation == null ? oldLeaveTime.StartTime : DateTime.Parse(startTimeOperation.value.ToString());
+      DateTime end = endTimeOperation == null ? oldLeaveTime.EndTime : DateTime.Parse(endTimeOperation.value.ToString());
 
-      if (start.HasValue && !end.HasValue && oldLeaveTime.EndTime <= start
-        || !start.HasValue && end.HasValue && oldLeaveTime.StartTime >= end)
+      if (start >= end)
       {
         errors.Add("Start time must be less than end time.");
 
@@ -60,6 +60,28 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         errors.Add("Incorrect time interval.");
 
         return false;
+      }
+
+      switch (oldLeaveTime.LeaveType)
+      {
+        case (int)LeaveType.SickLeave:
+          if (start < oldLeaveTime.CreatedAt.AddMonths(-1) || end > oldLeaveTime.CreatedAt.AddMonths(1))
+          {
+            errors.Add("Incorrect interval for leave time.");
+
+            return false;
+          }
+          break;
+
+        default:
+          if (start < oldLeaveTime.CreatedAt.AddMonths(-1)
+            || (start.Month == oldLeaveTime.CreatedAt.AddMonths(-1).Month && oldLeaveTime.CreatedAt.Day > 5))
+          {
+            errors.Add("Incorrect interval for leave time.");
+
+            return false;
+          }
+          break;
       }
 
       return true;
