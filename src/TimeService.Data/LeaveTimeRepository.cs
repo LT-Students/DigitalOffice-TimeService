@@ -104,7 +104,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end)
     {
-      return !await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
+      return await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
         dbLeaveTime.IsActive
         && dbLeaveTime.UserId == userId
         && ((dbLeaveTime.StartTime <= start && dbLeaveTime.EndTime >= end)
