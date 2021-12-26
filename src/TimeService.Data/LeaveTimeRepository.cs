@@ -107,9 +107,10 @@ namespace LT.DigitalOffice.TimeService.Data
       return await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
         dbLeaveTime.IsActive
         && dbLeaveTime.UserId == userId
-        && ((dbLeaveTime.StartTime <= start && dbLeaveTime.EndTime >= end)
-        || (dbLeaveTime.StartTime >= start && dbLeaveTime.StartTime <= end)
-        || (dbLeaveTime.EndTime >= start && dbLeaveTime.EndTime <= end)));
+        &&
+        ((start >= dbLeaveTime.StartTime && start <= dbLeaveTime.EndTime)
+        || (end >= dbLeaveTime.StartTime && end <= dbLeaveTime.EndTime)
+        || (start <= dbLeaveTime.StartTime && end >= dbLeaveTime.EndTime)));
     }
 
     public async Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end)
@@ -119,9 +120,9 @@ namespace LT.DigitalOffice.TimeService.Data
         && dbLeaveTime.UserId == leaveTime.UserId
         && dbLeaveTime.Id != leaveTime.Id
         &&
-        ((dbLeaveTime.StartTime <= start && dbLeaveTime.EndTime >= end)
-        || (dbLeaveTime.StartTime >= start && dbLeaveTime.StartTime <= end)
-        || (dbLeaveTime.EndTime >= start && dbLeaveTime.EndTime <= end)));
+        ((start >= dbLeaveTime.StartTime && start <= dbLeaveTime.EndTime)
+        || (end >= dbLeaveTime.StartTime && end <= dbLeaveTime.EndTime)
+        || (start <= dbLeaveTime.StartTime && end >= dbLeaveTime.EndTime)));
     }
   }
 }
