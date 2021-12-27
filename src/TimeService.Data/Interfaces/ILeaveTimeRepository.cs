@@ -25,7 +25,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<bool> EditAsync(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request);
 
-    Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd);
+    Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end);
 
     Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end);
   }
