@@ -51,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => x.value is null || x.value?.ToString().Length <= 500, "Description is too long."}
+          { x => x.value is null || x.value.ToString().Length <= 500, "Description is too long."}
         });
 
       #endregion
