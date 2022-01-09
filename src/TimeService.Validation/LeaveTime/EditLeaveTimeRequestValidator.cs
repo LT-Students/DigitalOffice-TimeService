@@ -48,7 +48,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => DateTime.TryParse(x.value.ToString(), out _), "Incorrect format of StartTime." },
+          { x => DateTimeOffset.TryParse(x.value.ToString(), out _), "Incorrect format of StartTime." },
         });
 
       #endregion
@@ -60,7 +60,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => DateTime.TryParse(x.value.ToString(), out _), "Incorrect format of EndTime." },
+          { x => DateTimeOffset.TryParse(x.value.ToString(), out _), "Incorrect format of EndTime." },
         });
 
       #endregion
@@ -126,19 +126,19 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
               RuleFor(x => x)
                 .Must(x =>
                 {
-                  DateTime start = DateTime.Parse(x.Operations
+                  DateTimeOffset start = DateTimeOffset.Parse(x.Operations
                     .FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
                     .value
                     .ToString());
 
-                  DateTime end = DateTime.Parse(x.Operations
+                  DateTimeOffset end = DateTimeOffset.Parse(x.Operations
                     .FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase))
                     .value
                     .ToString());
 
-                  return start <= end;
+                  return (start <= end && start.Offset.Equals(end.Offset));
                 })
-                .WithMessage("Start time must be earlier than end time.");
+                .WithMessage("Start time must be earlier than end time, offsets must be same.");
             });
     }
   }

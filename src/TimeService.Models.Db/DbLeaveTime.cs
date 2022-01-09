@@ -12,9 +12,9 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public Guid UserId { get; set; }
         public Guid CreatedBy { get; set; }
         public int Minutes { get; set; }
-        public DateTime StartTime { get; set; }
-        public DateTime EndTime { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime StartTimeUtc { get; set; }
+        public DateTime EndTimeUtc { get; set; }
+        public DateTime CreatedAtUtc { get; set; }
         public int LeaveType { get; set; }
         public string Comment { get; set; }
         public bool IsActive { get; set; }

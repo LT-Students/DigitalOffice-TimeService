@@ -44,7 +44,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
     private bool CheckLeaveTimeInterval(CreateLeaveTimeRequest lt)
     {
-      DateTime timeNow = DateTime.UtcNow;
+      DateTime timeNow = DateTime.UtcNow.Add(lt.StartTime.Offset);
 
       switch (lt.LeaveType)
       {
@@ -83,21 +83,23 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .IsInEnum();
 
       RuleFor(lt => lt.StartTime)
-        .NotEqual(new DateTime());
+        .NotEqual(new DateTimeOffset());
 
       RuleFor(lt => lt.EndTime)
-        .NotEqual(new DateTime());
+        .NotEqual(new DateTimeOffset());
 
       RuleFor(lt => lt.Minutes)
         .GreaterThan(0);
 
       RuleFor(lt => lt)
         .Cascade(CascadeMode.Stop)
+        .Must(lt => lt.StartTime.Offset.Equals(lt.EndTime.Offset))
+        .WithMessage("Start time and end time offsets must be same.")
         .Must(lt => lt.StartTime <= lt.EndTime)
         .WithMessage("Start time must be before end time.")
         .Must(lt => CheckLeaveTimeInterval(lt))
         .WithMessage("Incorrect interval for leave time.")
-        .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime, lt.EndTime))
+        .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime.UtcDateTime, lt.EndTime.UtcDateTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
 
       RuleFor(lt => lt.Comment)

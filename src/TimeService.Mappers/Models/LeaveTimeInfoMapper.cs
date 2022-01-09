@@ -20,9 +20,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Id = dbLeaveTime.Id,
         CreatedBy = dbLeaveTime.CreatedBy,
         Minutes = dbLeaveTime.Minutes,
-        StartTime = dbLeaveTime.StartTime,
-        EndTime = dbLeaveTime.EndTime,
-        CreatedAt = dbLeaveTime.CreatedAt,
+        StartTime = dbLeaveTime.StartTimeUtc,
+        EndTime = dbLeaveTime.EndTimeUtc,
+        CreatedAt = dbLeaveTime.CreatedAtUtc,
         Comment = dbLeaveTime.Comment,
         LeaveType = (LeaveType)dbLeaveTime.LeaveType,
         IsActive = dbLeaveTime.IsActive

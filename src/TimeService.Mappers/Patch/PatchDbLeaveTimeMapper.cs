@@ -28,6 +28,20 @@ namespace LT.DigitalOffice.TimeService.Mappers.Patch
           continue;
         }
 
+        if (item.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
+        {
+          dbRequest.Operations.Add(new Operation<DbLeaveTime>(
+              item.op, item.path, item.from, (int)Enum.Parse(typeof(LeaveType), item.value.ToString())));
+          continue;
+        }
+
+        if (item.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase))
+        {
+          dbRequest.Operations.Add(new Operation<DbLeaveTime>(
+              item.op, item.path, item.from, (int)Enum.Parse(typeof(LeaveType), item.value.ToString())));
+          continue;
+        }
+
         dbRequest.Operations.Add(new Operation<DbLeaveTime>(item.op, item.path, item.from, item.value));
       }
 
