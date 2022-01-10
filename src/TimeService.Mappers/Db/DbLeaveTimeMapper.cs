@@ -30,8 +30,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
         CreatedBy = _httpContextAccessor.HttpContext.GetUserId(),
         LeaveType = (int)request.LeaveType,
         Minutes = request.Minutes,
-        StartTimeUtc = request.StartTime.UtcDateTime,
-        EndTimeUtc = request.EndTime.UtcDateTime,
+        StartTime = request.StartTime.UtcDateTime,
+        EndTime = request.EndTime.UtcDateTime,
         CreatedAtUtc = DateTime.UtcNow,
         Comment = !string.IsNullOrEmpty(request.Comment?.Trim()) ? request.Comment.Trim() : null,
         IsActive = true

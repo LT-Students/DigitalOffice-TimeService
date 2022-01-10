@@ -31,14 +31,14 @@ namespace LT.DigitalOffice.TimeService.Mappers.Patch
         if (item.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
         {
           dbRequest.Operations.Add(new Operation<DbLeaveTime>(
-              item.op, item.path, item.from, (int)Enum.Parse(typeof(LeaveType), item.value.ToString())));
+              item.op, item.path, item.from, DateTimeOffset.Parse(item.value.ToString()).UtcDateTime));
           continue;
         }
 
         if (item.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase))
         {
           dbRequest.Operations.Add(new Operation<DbLeaveTime>(
-              item.op, item.path, item.from, (int)Enum.Parse(typeof(LeaveType), item.value.ToString())));
+              item.op, item.path, item.from, DateTimeOffset.Parse(item.value.ToString()).UtcDateTime));
           continue;
         }
 

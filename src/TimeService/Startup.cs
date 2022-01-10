@@ -93,7 +93,10 @@ namespace LT.DigitalOffice.TimeService
         {
           options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         })
-        .AddNewtonsoftJson();
+        .AddNewtonsoftJson(options =>
+        {
+          options.SerializerSettings.DateParseHandling = Newtonsoft.Json.DateParseHandling.None;
+        });
 
       string connStr = Environment.GetEnvironmentVariable("ConnectionString");
       if (string.IsNullOrEmpty(connStr))
