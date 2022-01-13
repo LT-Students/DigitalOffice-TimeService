@@ -45,8 +45,21 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return true;
       }
 
-      DateTime start = startTimeOperation == null ? oldLeaveTime.StartTime : DateTime.Parse(startTimeOperation.value.ToString());
-      DateTime end = endTimeOperation == null ? oldLeaveTime.EndTime : DateTime.Parse(endTimeOperation.value.ToString());
+      DateTimeOffset start;
+      DateTimeOffset end;
+
+      if (startTimeOperation is null)
+      {
+        end = DateTimeOffset.Parse(endTimeOperation.value.ToString());
+        start = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified), end.Offset);
+      }
+      else
+      {
+        start = DateTimeOffset.Parse(startTimeOperation.value.ToString());
+        end = endTimeOperation is null
+          ? new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified), start.Offset)
+          : DateTimeOffset.Parse(endTimeOperation.value.ToString());
+      }
 
       if (start >= end)
       {
@@ -55,17 +68,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return false;
       }
 
-      if (await _repository.HasOverlapAsync(oldLeaveTime, start, end))
+      if (await _repository.HasOverlapAsync(oldLeaveTime, start.UtcDateTime, end.UtcDateTime))
       {
         errors.Add("Incorrect time interval.");
 
         return false;
       }
 
+      DateTime createdAt = oldLeaveTime.CreatedAtUtc.Add(start.Offset);
+
       switch (oldLeaveTime.LeaveType)
       {
         case (int)LeaveType.SickLeave:
-          if (start < oldLeaveTime.CreatedAt.AddMonths(-1) || end > oldLeaveTime.CreatedAt.AddMonths(1))
+          if (start.DateTime < createdAt.AddMonths(-1) || end.DateTime > createdAt.AddMonths(1))
           {
             errors.Add("Incorrect interval for leave time.");
 
@@ -74,8 +89,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
           break;
 
         default:
-          if (start < oldLeaveTime.CreatedAt.AddMonths(-1)
-            || (start.Month == oldLeaveTime.CreatedAt.AddMonths(-1).Month && oldLeaveTime.CreatedAt.Day > 5))
+          if (start.DateTime < createdAt.AddMonths(-1)
+            || (start.Month == createdAt.AddMonths(-1).Month && createdAt.Day > 5))
           {
             errors.Add("Incorrect interval for leave time.");
 

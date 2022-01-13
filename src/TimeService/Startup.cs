@@ -58,7 +58,7 @@ namespace LT.DigitalOffice.TimeService
         .GetSection(BaseServiceInfoConfig.SectionName)
         .Get<BaseServiceInfoConfig>();
 
-      Version = "1.1.7.3";
+      Version = "1.1.7.4";
       Description = "TimeService is an API intended to work with the users time managment";
       StartTime = DateTime.UtcNow;
       ApiName = $"LT Digital Office - {_serviceInfoConfig.Name}";
@@ -93,7 +93,10 @@ namespace LT.DigitalOffice.TimeService
         {
           options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         })
-        .AddNewtonsoftJson();
+        .AddNewtonsoftJson(options =>
+        {
+          options.SerializerSettings.DateParseHandling = Newtonsoft.Json.DateParseHandling.None;
+        });
 
       string connStr = Environment.GetEnvironmentVariable("ConnectionString");
       if (string.IsNullOrEmpty(connStr))

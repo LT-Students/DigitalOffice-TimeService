@@ -14,7 +14,7 @@ namespace LT.DigitalOffice.TimeService.Models.Db
         public int Minutes { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
-        public DateTime CreatedAt { get; set; }
+        public DateTime CreatedAtUtc { get; set; }
         public int LeaveType { get; set; }
         public string Comment { get; set; }
         public bool IsActive { get; set; }

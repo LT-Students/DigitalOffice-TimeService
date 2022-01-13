@@ -42,8 +42,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 CreatedBy = _createdBy,
                 LeaveType = (int)_request.LeaveType,
                 Comment = _request.Comment,
-                StartTime = _request.StartTime,
-                EndTime = _request.EndTime,
+                StartTime = _request.StartTime.UtcDateTime,
+                EndTime = _request.EndTime.UtcDateTime,
                 UserId = _request.UserId,
                 IsActive = true
             };

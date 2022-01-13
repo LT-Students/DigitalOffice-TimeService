@@ -45,9 +45,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       return false;
     }
 
-    private bool IsMonthValid(int month)
+    private bool IsMonthValid(int month, sbyte offset)
     {
-      DateTime dateTimeNow = DateTime.UtcNow;
+      DateTime dateTimeNow = DateTime.UtcNow.AddHours(offset);
 
       if (month == dateTimeNow.Month
         || (dateTimeNow.Day <= 5 && dateTimeNow.AddMonths(1).Month == month))
@@ -58,9 +58,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       return false;
     }
 
-    private bool IsYearValid(int year, int month)
+    private bool IsYearValid(int year, int month, sbyte offset)
     {
-      DateTime dateTimeNow = DateTime.UtcNow;
+      DateTime dateTimeNow = DateTime.UtcNow.AddHours(offset);
 
       if (dateTimeNow.Year == year
         || dateTimeNow.AddMonths(-1).Year == year && month == 1)
@@ -90,8 +90,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         .MaximumLength(500).WithMessage("Description is too long.");
 
       RuleFor(request => request)
-        .Must(request => IsMonthValid(request.Month)).WithMessage("Month is not valid.")
-        .Must(request => IsYearValid(request.Year, request.Month)).WithMessage("Year is not valid.")
+        .Must(request => request.Offset >= -12 && request.Offset <= 12).WithMessage("Incorrect offset value.")
+        .Must(request => IsMonthValid(request.Month, request.Offset)).WithMessage("Month is not valid.")
+        .Must(request => IsYearValid(request.Year, request.Month, request.Offset)).WithMessage("Year is not valid.")
         .MustAsync(async (x, _) =>
           !await _workTimeRepository.DoesEmptyWorkTimeExistAsync(_httpContextAccessor.HttpContext.GetUserId(), x.Month, x.Year))
         .WithMessage("WorkTime for this month already exists.");
