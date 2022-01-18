@@ -1,4 +1,4 @@
-using System.Reflection;
+﻿using System.Reflection;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Database;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -15,6 +15,7 @@ namespace LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef
     public DbSet<DbWorkTime> WorkTimes { get; set; }
     public DbSet<DbWorkTimeDayJob> WorkTimeDayJobs { get; set; }
     public DbSet<DbWorkTimeMonthLimit> WorkTimeMonthLimits { get; set; }
+    public DbSet<DbModuleSetting> ModuleSettings { get; set; }
 
     public TimeServiceDbContext(DbContextOptions<TimeServiceDbContext> options) : base(options)
     {

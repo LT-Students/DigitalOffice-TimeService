@@ -13,5 +13,6 @@ namespace LT.DigitalOffice.TimeService.Data.Provider
         DbSet<DbWorkTime> WorkTimes { get; set; }
         DbSet<DbWorkTimeDayJob> WorkTimeDayJobs { get; set; }
         DbSet<DbWorkTimeMonthLimit> WorkTimeMonthLimits { get; set; }
+        DbSet<DbModuleSetting> ModuleSettings { get; set; }
     }
 }
