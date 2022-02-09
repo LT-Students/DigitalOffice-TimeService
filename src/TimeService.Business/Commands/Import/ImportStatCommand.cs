@@ -498,13 +498,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           ws.Cell(2, i).SetFormulaR1C1($"=SUM({ws.Cell(3, i).Address}:{ws.Cell(2 + usersInfos.Count(), i).Address})");
         }
 
-        for (int number = 0; number < usersInfos.Count; number++)
+        for (int userNumber = 0; userNumber < usersInfos.Count; userNumber++)
         {
-          int row = number + 3;
+          int row = userNumber + 3;
 
-          ws.Cell(row, 1).SetValue(number + 1);
-          ws.Cell(row, 2).SetValue($"{usersInfos[number].FirstName} {usersInfos[number].LastName}");
-          ws.Cell(row, 3).SetValue(companies.FirstOrDefault(x => x.UserId == usersInfos[number].Id)?.Rate);
+          ws.Cell(row, 1).SetValue(userNumber + 1);
+          ws.Cell(row, 2).SetValue($"{usersInfos[userNumber].FirstName} {usersInfos[userNumber].LastName}");
+          ws.Cell(row, 3).SetValue(companies.FirstOrDefault(x => x.UserId == usersInfos[userNumber].Id)?.Rate);
           ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours);
           ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
             Style.Fill.SetBackgroundColor(FirstHeaderColor);
