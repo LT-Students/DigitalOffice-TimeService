@@ -112,26 +112,24 @@ namespace LT.DigitalOffice.TimeService.Data
         && wt.Month == month && wt.Year == year);
     }
 
-    public async Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false)
+    public async Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int? month, bool includeJobs = false)
     {
-      if (usersIds == null)
+      if (usersIds is null)
       {
         return null;
       }
 
       IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
         .Include(wt => wt.ManagerWorkTime)
-        .Where(wt => !wt.ParentId.HasValue)
-        .Where(wt =>
-          wt.Year == year
-          && wt.Month == month);
+        .Where(wt => usersIds.Contains(wt.UserId) && !wt.ParentId.HasValue)
+        .Where(wt => wt.Year == year);
 
-      if (usersIds != null)
+      if (month is not null)
       {
-        workTimes = workTimes.Where(wt => usersIds.Contains(wt.UserId));
+        workTimes = workTimes.Where(wt => wt.Month == month.Value);
       }
 
-      if (projectsIds != null)
+      if (projectsIds is not null)
       {
         workTimes = workTimes.Where(wt => projectsIds.Contains(wt.ProjectId));
       }

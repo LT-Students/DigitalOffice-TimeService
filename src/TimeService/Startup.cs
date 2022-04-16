@@ -141,8 +141,8 @@ namespace LT.DigitalOffice.TimeService
       ConfigureMassTransit(services);
 
       services.AddMemoryCache();
-      services.AddTransient<WorkTimeCreater>();
-      services.AddTransient<WorkTimeLimitCreater>();
+      services.AddTransient<WorkTimeCreator>();
+      services.AddTransient<WorkTimeLimitCreator>();
       services.AddTransient<IRedisHelper, RedisHelper>();
 
       services
@@ -260,8 +260,8 @@ namespace LT.DigitalOffice.TimeService
     {
       var scope = app.ApplicationServices.CreateScope();
 
-      var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreater>();
-      var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreater>();
+      var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreator>();
+      var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreator>();
       var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
 
       DbWorkTime lastWorkTime = await workTimeRepository.GetLastAsync();

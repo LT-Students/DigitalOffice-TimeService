@@ -25,7 +25,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter);
 
-    Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int month, bool includeJobs = false);
+    Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int? month, bool includeJobs = false);
 
     Task<bool> EditAsync(DbWorkTime dbWorkTime, JsonPatchDocument<DbWorkTime> jsonPatchDocument);
 
