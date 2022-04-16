@@ -50,7 +50,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IWorkTimeResponseMapper _workTimeResponseMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
-    private readonly IRedisHelper _redisHelper;
+    private readonly IGlobalCacheRepository _globalCache;
     private readonly IResponseCreator _responsCreator;
     private readonly ILogger<FindWorkTimesCommand> _logger;
 
@@ -81,7 +81,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       }
 
       (List<ProjectData> projectsFromCache, int _) =
-        await _redisHelper.GetAsync<(List<ProjectData>, int)>(Cache.Projects, CreateProjectCacheKey(projectsIds, userId));
+        await _globalCache.GetAsync<(List<ProjectData>, int)>(Cache.Projects, CreateProjectCacheKey(projectsIds, userId));
 
       if (projectsFromCache != null)
       {
@@ -136,7 +136,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return null;
       }
 
-      List<UserData> usersFromCache = await _redisHelper.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
+      List<UserData> usersFromCache = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
 
       if (usersFromCache != null)
       {
@@ -191,7 +191,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return null;
       }
 
-      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
       if (companies != null)
       {
@@ -257,7 +257,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       ILogger<FindWorkTimesCommand> logger,
       IProjectInfoMapper projectInfoMapper,
       IUserInfoMapper userInfoMapper,
-      IRedisHelper redisHelper,
+      IGlobalCacheRepository globalCache,
       IResponseCreator responsCreator)
     {
       _validator = validator;
@@ -272,7 +272,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _logger = logger;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
-      _redisHelper = redisHelper;
+      _globalCache = globalCache;
       _responsCreator = responsCreator;
     }
 

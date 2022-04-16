@@ -46,7 +46,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
     private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
     private readonly ILogger<FindLeaveTimesCommand> _logger;
-    private readonly IRedisHelper _redisHelper;
+    private readonly IGlobalCacheRepository _globalCache;
     private readonly IResponseCreator _responsCreator;
 
     #region private methods
@@ -58,7 +58,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return null;
       }
 
-      List<UserData> usersFromCache = await _redisHelper.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
+      List<UserData> usersFromCache = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
 
       if (usersFromCache != null)
       {
@@ -114,7 +114,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return null;
       }
 
-      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
       if (companies != null)
       {
@@ -177,7 +177,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IRequestClient<IGetUsersDataRequest> rcGetUsers,
       IRequestClient<IGetCompaniesRequest> rcGetCompanies,
       ILogger<FindLeaveTimesCommand> logger,
-      IRedisHelper redisHelper,
+      IGlobalCacheRepository globalCache,
       IResponseCreator responseCreator)
     {
       _validator = validator;
@@ -189,7 +189,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _rcGetUsers = rcGetUsers;
       _rcGetCompanies = rcGetCompanies;
       _logger = logger;
-      _redisHelper = redisHelper;
+      _globalCache = globalCache;
       _responsCreator = responseCreator;
     }
 

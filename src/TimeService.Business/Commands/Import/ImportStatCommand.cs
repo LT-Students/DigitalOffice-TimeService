@@ -58,10 +58,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ILeaveTimeRepository _leaveTimeRepository;
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
+    private readonly IGlobalCacheRepository _globalCache;
     private readonly ILogger<ImportStatCommand> _logger;
     private readonly IAccessValidator _accessValidator;
     private readonly ICalendar _calendar;
-    private readonly IRedisHelper _redisHelper;
     private readonly IResponseCreator _responseCreator;
     private readonly IImportStatFilterValidator _validator;
 
@@ -171,7 +171,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         return null;
       }
 
-      List<UserData> usersFromCache = await _redisHelper.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
+      List<UserData> usersFromCache = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
 
       if (usersFromCache != null)
       {
@@ -224,7 +224,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         return null;
       }
 
-      List<DepartmentData> departmentsFromCache = await _redisHelper.GetAsync<List<DepartmentData>>(
+      List<DepartmentData> departmentsFromCache = await _globalCache.GetAsync<List<DepartmentData>>(
         Cache.Departments, projectsIds.GetRedisCacheHashCode());
 
       if (departmentsFromCache != null)
@@ -331,7 +331,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         return null;
       }
 
-      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
+      List<CompanyData> companies = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
 
       if (companies != null)
       {
@@ -649,9 +649,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       IWorkTimeRepository workTimeRepository,
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
+      IGlobalCacheRepository globalCache,
       ILogger<ImportStatCommand> logger,
       IAccessValidator accessValidator,
-      IRedisHelper redisHelper,
       IResponseCreator responseCreator,
       IImportStatFilterValidator validator)
     {
@@ -664,9 +664,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       _workTimeRepository = workTimeRepository;
       _leaveTimeRepository = leaveTimeRepository;
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
+      _globalCache = globalCache;
       _logger = logger;
       _accessValidator = accessValidator;
-      _redisHelper = redisHelper;
       _responseCreator = responseCreator;
       _validator = validator;
       _calendar = new IsDayOffIntegration();
