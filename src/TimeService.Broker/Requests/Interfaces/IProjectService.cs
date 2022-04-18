@@ -9,7 +9,17 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
   [AutoInject]
   public interface IProjectService
   {
-    Task<List<ProjectData>> GetProjectsDataAsync(List<Guid> projectsIds, List<string> errors);
-    Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(Guid projectId, int skipCount, int takeCount, List<string> errors);
+    Task<List<ProjectData>> GetProjectsDataAsync(
+      List<string> errors,
+      List<Guid> projectsIds = null,
+      Guid? departmentId = null,
+      Guid? userId = null,
+      bool includeUsers = false);
+    Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(
+      List<string> errors,
+      List<Guid> projectsIds = null,
+      List<Guid> usersIds = null,
+      int? skipCount = null,
+      int? takeCount = null);
   }
 }

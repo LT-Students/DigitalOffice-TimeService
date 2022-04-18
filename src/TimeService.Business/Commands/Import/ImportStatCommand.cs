@@ -6,27 +6,16 @@ using System.Net;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
-using LT.DigitalOffice.Kernel.RedisSupport.Constants;
-using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
-using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
 using LT.DigitalOffice.Models.Broker.Models.Project;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
-using LT.DigitalOffice.Models.Broker.Requests.Department;
-using LT.DigitalOffice.Models.Broker.Requests.Project;
-using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Company;
-using LT.DigitalOffice.Models.Broker.Responses.Department;
-using LT.DigitalOffice.Models.Broker.Responses.Project;
-using LT.DigitalOffice.Models.Broker.Responses.User;
+using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
@@ -35,8 +24,6 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Validation.Import.Interfaces;
-using MassTransit;
-using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
@@ -49,17 +36,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private XLColor LeaveTypesColor => XLColor.CarrotOrange;
     private XLColor TimesColor => XLColor.LightGreen;
 
-    private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
-    private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
-    private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
-    private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
-    private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
+    private readonly IProjectService _projectService;
+    private readonly IDepartmentService _departmentService;
+    private readonly IUserService _userService;
+    private readonly ICompanyService _companyService;
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ILeaveTimeRepository _leaveTimeRepository;
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
-    private readonly IGlobalCacheRepository _globalCache;
-    private readonly ILogger<ImportStatCommand> _logger;
     private readonly IAccessValidator _accessValidator;
     private readonly ICalendar _calendar;
     private readonly IResponseCreator _responseCreator;
@@ -69,207 +52,59 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private async Task<List<ProjectData>> GetProjectsAsync(List<Guid> projectIds, bool includeUsers, List<string> errors)
     {
-      string messageError = "Cannot get projects info. Please, try again later.";
-      const string logError = "Cannot get projects info.";
-
-      if (projectIds == null || !projectIds.Any())
+      if (projectIds is null || !projectIds.Any())
       {
         return null;
       }
 
-      try
-      {
-        Response<IOperationResult<IGetProjectsResponse>> result =
-          await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
-            IGetProjectsRequest.CreateObj(
-              projectsIds: projectIds,
-              includeUsers: includeUsers));
-
-        if (result.Message.IsSuccess)
-        {
-          return result.Message.Body.Projects;
-        }
-
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logError);
-      }
-
-      errors.Add(messageError);
-      return null;
+      return await _projectService.GetProjectsDataAsync(errors, projectsIds: projectIds, includeUsers: includeUsers);
     }
 
     private async Task<List<ProjectUserData>> GetProjectsUsersAsync(List<Guid> usersIds, List<string> errors)
     {
-      string messageError = "Cannot get projects users info. Please, try again later.";
-      const string logError = "Cannot get projects users info.";
-
-      if (usersIds == null || !usersIds.Any())
+      if (usersIds is null || !usersIds.Any())
       {
         return null;
       }
 
-      try
-      {
-        Response<IOperationResult<IGetProjectsUsersResponse>> result =
-          await _rcGetProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
-            IGetProjectsUsersRequest.CreateObj(
-              usersIds: usersIds));
-
-        if (result.Message.IsSuccess)
-        {
-          return result.Message.Body.Users;
-        }
-
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logError);
-      }
-
-      errors.Add(messageError);
-      return null;
+      return (await _projectService.GetProjectUsersAsync(errors, usersIds: usersIds)).projectUsersData;
     }
 
     private async Task<List<Guid>> FindDepartmentUsersAsync(Guid departmentId, DateTime filterbyEntryDate, List<string> errors)
     {
-      string messageError = "Cannot get department users info. Please, try again later.";
-      const string logError = "Cannot get users of department with id: '{id}'.";
-
-      try
-      {
-        Response<IOperationResult<IGetDepartmentUsersResponse>> result =
-          await _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj(
-              departmentId,
-              ByEntryDate: filterbyEntryDate));
-
-        if (result.Message.IsSuccess)
-        {
-          return result.Message.Body.UsersIds;
-        }
-
-        _logger.LogWarning(logError + "Errors: {errors}.", departmentId, string.Join("\n", result.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logError, departmentId);
-      }
-
-      errors.Add(messageError);
-
-      return null;
+      return (await _departmentService.GetDepartmentUsersAsync(departmentId, errors, byEntryDate: filterbyEntryDate)).usersIds;
     }
 
     private async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
     {
-      if (usersIds == null || !usersIds.Any())
+      if (usersIds is null || !usersIds.Any())
       {
         return null;
       }
 
-      List<UserData> usersFromCache = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
-
-      if (usersFromCache != null)
-      {
-        _logger.LogInformation("UserDatas were taken from the cache. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-        return usersFromCache;
-      }
-
-      return await GetUsersDataFromBrokerAsync(usersIds, errors);
-    }
-
-    private async Task<List<UserData>> GetUsersDataFromBrokerAsync(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      string message = "Cannot get users data. Please try again later.";
-      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
-
-      try
-      {
-        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(usersIds));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("UserDatas were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-          return response.Message.Body.UsersData;
-        }
-
-        _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, loggerMessage);
-      }
-
-      errors.Add(message);
-
-      return null;
+      return await _userService.GetUsersDataAsync(usersIds, errors);
     }
 
     private async Task<List<DepartmentData>> GetDapartmentsAsync(List<Guid> projectsIds, List<string> errors)
     {
-      if (projectsIds == null || !projectsIds.Any())
+      if (projectsIds is null || !projectsIds.Any())
       {
         return null;
       }
 
-      List<DepartmentData> departmentsFromCache = await _globalCache.GetAsync<List<DepartmentData>>(
-        Cache.Departments, projectsIds.GetRedisCacheHashCode());
-
-      if (departmentsFromCache != null)
-      {
-        _logger.LogInformation("Departments were taken from the cache. Projects ids: {ids}", string.Join(", ", projectsIds));
-
-        return departmentsFromCache;
-      }
-
-      return await GetDepartmentsFromBrokerAsync(projectsIds, errors);
+      return await _departmentService.GetDepartmentsDataAsync(errors, projectsIds: projectsIds);
     }
 
-    private async Task<List<DepartmentData>> GetDepartmentsFromBrokerAsync(List<Guid> projectsIds, List<string> errors)
+    private async Task<List<CompanyData>> GetCompaniesAsync(
+      List<Guid> usersIds,
+      List<string> errors)
     {
-      if (projectsIds == null || !projectsIds.Any())
+      if (usersIds is null || !usersIds.Any())
       {
         return null;
       }
 
-      string message = "Cannot get departments data. Please try again later.";
-      string loggerMessage = $"Cannot get departments data for specific projects ids:'{string.Join(",", projectsIds)}'.";
-
-      try
-      {
-        Response<IOperationResult<IGetDepartmentsResponse>> response =
-          await _rcGetDepartments.GetResponse<IOperationResult<IGetDepartmentsResponse>>(
-            IGetDepartmentsRequest.CreateObj(projectsIds: projectsIds));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("Departments were taken from the service. Project ids: {ids}", string.Join(", ", projectsIds));
-
-          return response.Message.Body.Departments;
-        }
-
-        _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, loggerMessage);
-      }
-
-      errors.Add(message);
-
-      return null;
+      return await _companyService.GetCompaniesDataAsync(usersIds, errors);
     }
 
     private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(int year, int month, DateTime start, DateTime end)
@@ -320,66 +155,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       limits.AddRange(newLimits);
 
       return limits;
-    }
-
-    private async Task<List<CompanyData>> GetCompaniesAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      List<CompanyData> companies = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
-
-      if (companies != null)
-      {
-        _logger.LogInformation("Companies for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-        return companies;
-      }
-
-      return await GetCompaniesThroughBrokerAsync(usersIds, errors);
-    }
-
-    private async Task<List<CompanyData>> GetCompaniesThroughBrokerAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      const string errorMessage = "Can not get companies info. Please try again later.";
-
-      try
-      {
-        Response<IOperationResult<IGetCompaniesResponse>> response = await _rcGetCompanies
-          .GetResponse<IOperationResult<IGetCompaniesResponse>>(
-            IGetCompaniesRequest.CreateObj(usersIds));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("Companies were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-          return response.Message.Body.Companies;
-        }
-        else
-        {
-          _logger.LogWarning("Errors while getting companies info. Reason: {Errors}",
-            string.Join('\n', response.Message.Errors));
-        }
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, errorMessage);
-      }
-
-      errors.Add(errorMessage);
-
-      return null;
     }
 
     #region Create table
@@ -640,32 +415,24 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     #endregion
 
     public ImportStatCommand(
-      IRequestClient<IGetProjectsRequest> rcGetProjects,
-      IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
-      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
-      IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IRequestClient<IGetCompaniesRequest> rcGetCompanies,
-      IRequestClient<IGetDepartmentsRequest> rcGetDepartments,
+      IProjectService projectService,
+      IDepartmentService departmentService,
+      IUserService userService,
+      ICompanyService companyService,
       IWorkTimeRepository workTimeRepository,
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
-      IGlobalCacheRepository globalCache,
-      ILogger<ImportStatCommand> logger,
       IAccessValidator accessValidator,
       IResponseCreator responseCreator,
       IImportStatFilterValidator validator)
     {
-      _rcGetProjects = rcGetProjects;
-      _rcGetProjectsUsers = rcGetProjectsUsers;
-      _rcGetDepartmentUsers = rcGetDepartmentUsers;
-      _rcGetUsers = rcGetUsers;
-      _rcGetCompanies = rcGetCompanies;
-      _rcGetDepartments = rcGetDepartments;
+      _projectService = projectService;
+      _departmentService = departmentService;
+      _userService = userService;
+      _companyService = companyService;
       _workTimeRepository = workTimeRepository;
       _leaveTimeRepository = leaveTimeRepository;
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
-      _globalCache = globalCache;
-      _logger = logger;
       _accessValidator = accessValidator;
       _responseCreator = responseCreator;
       _validator = validator;

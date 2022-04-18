@@ -4,12 +4,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 {
   public record StatInfo
   {
-    public UserInfo User { get; set; }
-
-    public List<LeaveTimeInfo> LeaveTimes { get; set; }
-
-    public List<WorkTimeInfo> WorkTimes { get; set; }
-
-    public WorkTimeMonthLimitInfo LimitInfo { get; set; }
+    public DepartmentInfo DepartmentInfo { get; set; }
+    public List<UserStatInfo> UsersStats { get; set; }
   }
 }

@@ -51,11 +51,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
           ?.Companies;
       }
 
-      if (companiesData is null)
-      {
-        errors.Add("Can not get company users data.");
-      }
-
       return companiesData;
     }
   }

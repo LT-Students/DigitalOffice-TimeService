@@ -22,6 +22,32 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
 
+    private string CreateGetProjectCacheKey(
+      List<Guid> projectIds = null,
+      Guid? userId = null,
+      Guid? departmentId = null,
+      bool includeUsers = false)
+    {
+      List<Guid> ids = new();
+
+      if (projectIds is not null && projectIds.Any())
+      {
+        ids.AddRange(projectIds);
+      }
+
+      if (userId.HasValue)
+      {
+        ids.Add(userId.Value);
+      }
+
+      if (departmentId.HasValue)
+      {
+        ids.Add(departmentId.Value);
+      }
+
+      return ids.GetRedisCacheHashCode(includeUsers);
+    }
+
     public ProjectService(
       ILogger<ProjectService> logger,
       IGlobalCacheRepository globalCache,
@@ -34,7 +60,12 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       _rcGetProjectsUsers = rcGetProjectsUsers;
     }
 
-    public async Task<List<ProjectData>> GetProjectsDataAsync(List<Guid> projectsIds, List<string> errors)
+    public async Task<List<ProjectData>> GetProjectsDataAsync(
+      List<string> errors,
+      List<Guid> projectsIds = null,
+      Guid? departmentId = null,
+      Guid? userId = null,
+      bool includeUsers = false)
     {
       if (projectsIds is null || !projectsIds.Any())
       {
@@ -43,34 +74,40 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       List<ProjectData> projectsData;
 
-      (projectsData, int _) = await _globalCache.GetAsync<(List<ProjectData>, int)>(Cache.Projects, projectsIds.GetRedisCacheHashCode(true));
+      (projectsData, int _) = await _globalCache.GetAsync<(List<ProjectData>, int)>(
+        Cache.Projects, CreateGetProjectCacheKey(projectsIds, userId, departmentId, includeUsers));
 
       if (projectsData is null)
       {
         projectsData =
           (await RequestHandler.ProcessRequest<IGetProjectsRequest, IGetProjectsResponse>(
             _rcGetProjects,
-            IGetProjectsRequest.CreateObj(projectsIds, includeUsers: true),
+            IGetProjectsRequest.CreateObj(
+              projectsIds: projectsIds,
+              userId: userId,
+              departmentId: departmentId,
+              includeUsers: includeUsers),
             errors,
             _logger))
           ?.Projects;
       }
 
-      if (projectsData is null)
-      {
-        errors.Add("Can not get projects data.");
-      }
-
       return projectsData;
     }
 
-    public async Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(Guid projectId, int skipCount, int takeCount, List<string> errors)
+    public async Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(
+      List<string> errors,
+      List<Guid> projectsIds = null,
+      List<Guid> usersIds = null,
+      int? skipCount = null,
+      int? takeCount = null)
     {
       IGetProjectsUsersResponse response =
           (await RequestHandler.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
             _rcGetProjectsUsers,
             IGetProjectsUsersRequest.CreateObj(
-              projectsIds: new() { projectId },
+              projectsIds: projectsIds,
+              usersIds: usersIds,
               skipCount: skipCount,
               takeCount: takeCount),
             errors,
@@ -78,8 +115,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       if (response is null)
       {
-        errors.Add("Can not get project users data.");
-
         return default;
       }
 

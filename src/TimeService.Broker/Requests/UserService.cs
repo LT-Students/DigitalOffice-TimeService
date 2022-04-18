@@ -31,6 +31,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       _rcGetUsersData = rcGetUsersData;
     }
 
+    //todo - add skipcount takecount
     public async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
     {
       if (usersIds is null || !usersIds.Any())
@@ -49,11 +50,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             errors,
             _logger))
           ?.UsersData;
-      }
-
-      if (usersData is null)
-      {
-        errors.Add("Can not get users data.");
       }
 
       return usersData;
