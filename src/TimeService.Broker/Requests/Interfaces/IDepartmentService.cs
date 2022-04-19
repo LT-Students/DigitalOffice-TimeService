@@ -15,11 +15,13 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
       int? skipCount = null,
       int? takeCount = null,
       DateTime? byEntryDate = null);
+
     Task<List<DepartmentData>> GetDepartmentsDataAsync(
       List<string> errors,
       List<Guid> departmentsIds = null,
       List<Guid> usersIds = null,
       List<Guid> projectsIds = null);
+
     Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors);
   }
 }

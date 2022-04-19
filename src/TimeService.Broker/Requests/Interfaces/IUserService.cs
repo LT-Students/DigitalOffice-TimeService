@@ -10,5 +10,12 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
   public interface IUserService
   {
     Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors);
+
+    Task<(List<UserData> usersData, int totalCount)> GetFilteredUsersDataAsync(
+      List<Guid> usersIds,
+      int skipcount,
+      int takecount,
+      List<string> errors,
+      bool? ascendingSort = null);
   }
 }

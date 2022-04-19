@@ -49,12 +49,14 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       ILogger<DepartmentService> logger,
       IGlobalCacheRepository globalCache,
       IRequestClient<IFilterDepartmentsRequest> rcFilterDepartments,
-      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers)
+      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
+      IRequestClient<IGetDepartmentsRequest> rcGetDepartments)
     {
       _logger = logger;
       _globalCache = globalCache;
       _rcFilterDepartments = rcFilterDepartments;
       _rcGetDepartmentUsers = rcGetDepartmentUsers;
+      _rcGetDepartments = rcGetDepartments;
     }
 
     public async Task<(List<Guid> usersIds, int totalCount)> GetDepartmentUsersAsync(
