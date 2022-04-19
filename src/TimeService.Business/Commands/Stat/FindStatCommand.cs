@@ -133,15 +133,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         ? await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month.Value)
         : null;
 
-      Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
+      Task<(List<UserData>, int)> usersTask = _userService.GetFilteredUsersDataAsync(usersIds, filter.SkipCount, filter.TakeCount, filter.AscendingSort, errors);
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
 
       await Task.WhenAll(usersTask, companiesTask);
 
       List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
-      //todo - add takecount skipcount
-      List<UserInfo> usersInfos = (await usersTask)
+      (List<UserData> usersData, totalCount) = await usersTask;
+
+      List<UserInfo> usersInfos = usersData
         ?.Select(u => _userInfoMapper.Map(u, companies?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
 
       List<ProjectInfo> projectInfos = projectsData?.Select(_projectInfoMapper.Map).ToList();

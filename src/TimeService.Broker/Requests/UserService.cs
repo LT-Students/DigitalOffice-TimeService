@@ -20,15 +20,28 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly ILogger<UserService> _logger;
     private readonly IGlobalCacheRepository _globalCache;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsersData;
+    private readonly IRequestClient<IFilteredUsersDataRequest> _rcGetFilteredUsersData;
+
+    private string CreateFilterUsersCacheKey(List<Guid> usersIds, int skipCount, int takeCount, bool? ascendingSort)
+    {
+      if (ascendingSort is null)
+      {
+        return usersIds.GetRedisCacheHashCode(skipCount, takeCount);
+      }
+      
+      return usersIds.GetRedisCacheHashCode(skipCount, takeCount, ascendingSort);
+    }
 
     public UserService(
       ILogger<UserService> logger,
       IGlobalCacheRepository globalCache,
-      IRequestClient<IGetUsersDataRequest> rcGetUsersData)
+      IRequestClient<IGetUsersDataRequest> rcGetUsersData,
+      IRequestClient<IFilteredUsersDataRequest> rcGetFilteredUsersData)
     {
       _logger = logger;
       _globalCache = globalCache;
       _rcGetUsersData = rcGetUsersData;
+      _rcGetFilteredUsersData = rcGetFilteredUsersData;
     }
 
     public async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
@@ -56,17 +69,38 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
     public async Task<(List<UserData> usersData, int totalCount)> GetFilteredUsersDataAsync(
       List<Guid> usersIds,
-      int skipcount,
-      int takecount,
-      List<string> errors,
-      bool? ascendingSort = null)
+      int skipCount,
+      int takeCount,
+      bool? ascendingSort,
+      List<string> errors)
     {
       if (usersIds is null || !usersIds.Any())
       {
         return default;
       }
 
-      return default; // fix in next commit
+      (List<UserData> usersData, int totalCount) = await _globalCache.GetAsync<(List<UserData>, int)>(
+        Cache.Users,
+        CreateFilterUsersCacheKey(usersIds, skipCount, takeCount, ascendingSort));
+
+      if (usersData is null)
+      {
+        IFilteredUsersDataResponse response =
+          await RequestHandler.ProcessRequest<IFilteredUsersDataRequest, IFilteredUsersDataResponse>(
+            _rcGetFilteredUsersData,
+            IFilteredUsersDataRequest.CreateObj(
+              usersIds,
+              skipCount: skipCount,
+              takeCount: takeCount,
+              ascendingSort: ascendingSort),
+            errors,
+            _logger);
+
+        usersData = response?.UsersData;
+        totalCount = response?.TotalCount ?? default;
+      }
+
+      return (usersData, totalCount);
     }
   }
 }
