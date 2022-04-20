@@ -33,6 +33,9 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(IGetUsersDataRequest))]
     public string GetUsersDataEndpoint { get; set; }
 
+    [AutoInjectRequest(typeof(IFilteredUsersDataRequest))]
+    public string FilterUsersDataEndpoint { get; set; }
+
     // department
 
     [AutoInjectRequest(typeof(IGetDepartmentUsersRequest))]
@@ -40,5 +43,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
 
     [AutoInjectRequest(typeof(IGetDepartmentsRequest))]
     public string GetDepartmentsEndpoint { get; set; }
+
+    [AutoInjectRequest(typeof(IFilterDepartmentsRequest))]
+    public string FilterDepartmentUsersEndpoint { get; set; }
   }
 }

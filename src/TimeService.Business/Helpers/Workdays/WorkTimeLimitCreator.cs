@@ -11,12 +11,12 @@ using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 {
-  public class WorkTimeLimitCreater
+  public class WorkTimeLimitCreator
   {
     private const int WorkingDayDuration = 8;
 
     private readonly ICalendar _calendar;
-    private readonly ILogger<WorkTimeLimitCreater> _logger;
+    private readonly ILogger<WorkTimeLimitCreator> _logger;
     private readonly IDbWorkTimeMonthLimitMapper _mapper;
     private readonly IWorkTimeMonthLimitRepository _limitRepository;
 
@@ -74,9 +74,9 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
       }
     }
 
-    public WorkTimeLimitCreater(
+    public WorkTimeLimitCreator(
       IWorkTimeMonthLimitRepository limitRepository,
-      ILogger<WorkTimeLimitCreater> logger,
+      ILogger<WorkTimeLimitCreator> logger,
       IDbWorkTimeMonthLimitMapper mapper)
     {
       _limitRepository = limitRepository;

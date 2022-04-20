@@ -80,21 +80,32 @@ namespace LT.DigitalOffice.TimeService.Data
       return (await dbLeaveTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), await dbLeaveTimes.CountAsync());
     }
 
-    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int month)
+    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month)
     {
       if (usersIds == null)
       {
         return null;
       }
 
-      int countMonths = year * 12 + month;
+      IQueryable<DbLeaveTime> dbLeaveTimes = _provider.LeaveTimes.Where(lt => usersIds.Contains(lt.UserId));
 
-      return await _provider.LeaveTimes
-        .Where(
-          lt =>
-            usersIds.Contains(lt.UserId)
-            && lt.StartTime.Month + lt.StartTime.Year * 12 <= countMonths
-            && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths).ToListAsync();
+      if (month is not null)
+      {
+        int countMonths = year * 12 + month.Value;
+
+        dbLeaveTimes = dbLeaveTimes.Where(lt =>
+          usersIds.Contains(lt.UserId)
+          && lt.StartTime.Month + lt.StartTime.Year * 12 <= countMonths
+          && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths);
+      }
+      else
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(lt =>
+          lt.StartTime.Year <= year
+          && lt.EndTime.Year >= year);
+      }
+
+      return await dbLeaveTimes.ToListAsync();
     }
 
     public async Task<DbLeaveTime> GetAsync(Guid leaveTimeId)

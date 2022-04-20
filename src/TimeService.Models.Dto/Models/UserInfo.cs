@@ -9,6 +9,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
     public string MiddleName { get; set; }
     public string LastName { get; set; }
     public double? Rate { get; set; }
+    public DateTime? StartWorkingAt { get; set; }
     public bool IsActive { get; set; }
   }
 }

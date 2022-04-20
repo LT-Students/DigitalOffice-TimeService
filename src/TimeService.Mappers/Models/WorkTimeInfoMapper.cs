@@ -1,5 +1,5 @@
 ﻿using System.Linq;
-using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;

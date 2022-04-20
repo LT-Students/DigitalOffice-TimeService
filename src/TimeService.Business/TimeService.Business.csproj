@@ -7,6 +7,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\TimeService.Broker\TimeService.Broker.csproj" />
     <ProjectReference Include="..\TimeService.Mappers\TimeService.Mappers.csproj" />
     <ProjectReference Include="..\TimeService.Models.Db\TimeService.Models.Db.csproj" />
     <ProjectReference Include="..\TimeService.Models.Dto\TimeService.Models.Dto.csproj" />

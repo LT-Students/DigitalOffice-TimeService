@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
-using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -13,11 +13,11 @@ using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
 {
-  public class WorkTimeCreater
+  public class WorkTimeCreator
   {
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcProjectsUsers;
-    private readonly ILogger<WorkTimeCreater> _logger;
+    private readonly ILogger<WorkTimeCreator> _logger;
 
     private int _minutesToRestart;
     private DateTime _lastSuccessfulAttempt;
@@ -77,10 +77,10 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
       return true;
     }
 
-    public WorkTimeCreater(
+    public WorkTimeCreator(
       IWorkTimeRepository workTimeRepository,
       IRequestClient<IGetProjectsUsersRequest> rcProjectsUsers,
-      ILogger<WorkTimeCreater> logger)
+      ILogger<WorkTimeCreator> logger)
     {
       _workTimeRepository = workTimeRepository;
       _rcProjectsUsers = rcProjectsUsers;

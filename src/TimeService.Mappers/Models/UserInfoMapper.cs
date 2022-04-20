@@ -21,6 +21,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         MiddleName = userData.MiddleName,
         LastName = userData.LastName,
         Rate = companyUserData?.Rate,
+        StartWorkingAt = companyUserData?.StartWorkingAt,
         IsActive = userData.IsActive
       };
     }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using LT.DigitalOffice.Kernel.Attributes;
-using LT.DigitalOffice.Models.Broker.Models.Department;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
@@ -9,13 +8,12 @@ using LT.DigitalOffice.TimeService.Models.Dto.Models;
 namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
 {
   [AutoInject]
-  public interface IStatInfoMapper
+  public interface IUserStatInfoMapper
   {
-    List<StatInfo> Map(
-      List<DepartmentData> departmentsInfos,
-      List<Guid> usersIds,
-      List<UserInfo> usersInfos,
-      List<ProjectUserData> projectUsers,
+    UserStatInfo Map(
+      Guid userId,
+      UserInfo user,
+      ProjectUserData projectUser,
       DbWorkTimeMonthLimit monthLimit,
       List<DbWorkTime> workTimes,
       List<ProjectInfo> projects,
