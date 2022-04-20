@@ -38,32 +38,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly ICompanyService _companyService;
     private readonly IResponseCreator _responsCreator;
 
-    #region private methods
-
-    private async Task<List<UserData>> GetUsersData(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return await _userService.GetUsersDataAsync(usersIds, errors);
-    }
-
-    private async Task<List<CompanyData>> GetCompaniesAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return await _companyService.GetCompaniesDataAsync(usersIds, errors);
-    }
-
-    #endregion
-
     public FindLeaveTimesCommand(
       IBaseFindFilterValidator validator,
       ILeaveTimeResponseMapper leaveTimeResponseMapper,
@@ -104,8 +78,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       List<Guid> usersIds = dbLeaveTimes.Select(lt => lt.UserId).ToList();
 
-      Task<List<UserData>> usersTask = GetUsersData(usersIds, errors);
-      Task<List<CompanyData>> companiesTask = GetCompaniesAsync(usersIds, errors);
+      Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
+      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
 
       await Task.WhenAll(usersTask, companiesTask);
 

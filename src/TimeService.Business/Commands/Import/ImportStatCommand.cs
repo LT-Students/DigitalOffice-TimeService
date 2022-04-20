@@ -50,63 +50,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     #region private methods
 
-    private async Task<List<ProjectData>> GetProjectsAsync(List<Guid> projectIds, bool includeUsers, List<string> errors)
-    {
-      if (projectIds is null || !projectIds.Any())
-      {
-        return null;
-      }
-
-      return await _projectService.GetProjectsDataAsync(errors, projectsIds: projectIds, includeUsers: includeUsers);
-    }
-
-    private async Task<List<ProjectUserData>> GetProjectsUsersAsync(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return (await _projectService.GetProjectUsersAsync(errors, usersIds: usersIds)).projectUsersData;
-    }
-
-    private async Task<List<Guid>> FindDepartmentUsersAsync(Guid departmentId, DateTime filterbyEntryDate, List<string> errors)
-    {
-      return (await _departmentService.GetDepartmentUsersAsync(departmentId, errors, byEntryDate: filterbyEntryDate)).usersIds;
-    }
-
-    private async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return await _userService.GetUsersDataAsync(usersIds, errors);
-    }
-
-    private async Task<List<DepartmentData>> GetDapartmentsAsync(List<Guid> projectsIds, List<string> errors)
-    {
-      if (projectsIds is null || !projectsIds.Any())
-      {
-        return null;
-      }
-
-      return await _departmentService.GetDepartmentsDataAsync(errors, projectsIds: projectsIds);
-    }
-
-    private async Task<List<CompanyData>> GetCompaniesAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return await _companyService.GetCompaniesDataAsync(usersIds, errors);
-    }
-
     private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(int year, int month, DateTime start, DateTime end)
     {
       List<DbWorkTimeMonthLimit> limits = await _workTimeMonthLimitRepository.GetAsync(start.Year, start.Month, end.Year, end.Month);
@@ -459,16 +402,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (filter.DepartmentId.HasValue)
       {
-        usersIds = await FindDepartmentUsersAsync(
+        usersIds = (await _departmentService.GetDepartmentUsersAsync(
           filter.DepartmentId.Value,
-          new DateTime(filter.Year, filter.Month, 1), errors);
+          errors,
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1))).usersIds;
 
-        projectsUsers = await GetProjectsUsersAsync(usersIds, errors);
+        projectsUsers = (await _projectService.GetProjectUsersAsync(errors, usersIds: usersIds)).projectUsersData;
 
-        projects = await GetProjectsAsync(
-          projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
+        projects = await _projectService.GetProjectsDataAsync(
+          errors,
+          projectsIds: projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(),
+          includeUsers: false);
 
-        departments = await GetDapartmentsAsync(projects.Select(p => p.Id).ToList(), errors);
+        departments = await _departmentService.GetDepartmentsDataAsync(errors, projectsIds: projects.Select(p => p.Id).ToList());
 
         if (projectsUsers == null || projects == null || departments == null)
         {
@@ -477,12 +423,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
       else
       {
-        projects = await GetProjectsAsync(new() { filter.ProjectId.Value }, true, errors);
+        projects = await _projectService.GetProjectsDataAsync(
+          errors,
+          projectsIds: new() { filter.ProjectId.Value },
+          includeUsers: true);
 
         usersIds = projects?.SelectMany(p => p.Users.Select(pu => pu.UserId)).OrderBy(id => id).Distinct().ToList();
       }
 
-      List<UserData> usersInfos = await GetUsersDataAsync(usersIds, errors);
+      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds, errors);
 
       if (usersInfos == null || projects == null)
       {
@@ -493,7 +442,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         };
       }
 
-      List<CompanyUserData> companies = (await GetCompaniesAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
+      List<CompanyUserData> companies = (await _companyService.GetCompaniesDataAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
       List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(usersIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month);
       List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
       List<DbWorkTimeMonthLimit> monthsLimits;

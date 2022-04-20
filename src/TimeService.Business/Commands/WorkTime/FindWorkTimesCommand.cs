@@ -41,45 +41,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IWorkTimeResponseMapper _workTimeResponseMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
-    private readonly IGlobalCacheRepository _globalCache;
     private readonly IResponseCreator _responsCreator;
-    private readonly ILogger<FindWorkTimesCommand> _logger;
-
-    #region private methods
-
-    private async Task<List<ProjectData>> GetProjects(List<Guid> projectsIds, Guid? userId, List<string> errors)
-    {
-      if (projectsIds is null || !projectsIds.Any())
-      {
-        return null;
-      }
-
-      return await _projectService.GetProjectsDataAsync(errors, projectsIds: projectsIds, userId: userId, includeUsers: true);
-    }
-
-    private async Task<List<UserData>> GetUsersData(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return await _userService.GetUsersDataAsync(usersIds: usersIds, errors: errors);
-    }
-
-    private async Task<List<CompanyData>> GetCompaniesAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds is null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      return await _companyService.GetCompaniesDataAsync(usersIds: usersIds, errors: errors);
-    }
-
-    #endregion
 
     public FindWorkTimesCommand(
       IBaseFindFilterValidator validator,
@@ -91,10 +53,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IProjectService projectService,
       IUserService userService,
       ICompanyService companyService,
-      ILogger<FindWorkTimesCommand> logger,
       IProjectInfoMapper projectInfoMapper,
       IUserInfoMapper userInfoMapper,
-      IGlobalCacheRepository globalCache,
       IResponseCreator responsCreator)
     {
       _validator = validator;
@@ -106,10 +66,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _projectService = projectService;
       _userService = userService;
       _companyService = companyService;
-      _logger = logger;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
-      _globalCache = globalCache;
       _responsCreator = responsCreator;
     }
 
@@ -132,9 +90,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       List<Guid> usersIds = dbWorkTimes.Select(wt => wt.UserId).Distinct().ToList();
       usersIds.AddRange(dbWorkTimes.Where(wt => wt.ManagerWorkTime != null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).ToList());
 
-      Task<List<ProjectData>> projectsTask = GetProjects(dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(), filter.UserId, errors);
-      Task<List<UserData>> usersTask = GetUsersData(usersIds, errors);
-      Task<List<CompanyData>> companiesTask = GetCompaniesAsync(usersIds, errors);
+      Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
+        errors,
+        projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(),
+        userId: filter.UserId);
+      Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
+      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
       Task<(List<DbWorkTimeMonthLimit>, int)> limitTask = _monthLimitRepository.FindAsync(
         new()
         {
