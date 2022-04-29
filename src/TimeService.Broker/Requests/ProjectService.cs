@@ -85,7 +85,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             IGetProjectsRequest.CreateObj(
               projectsIds: projectsIds,
               userId: userId,
-              departmentId: departmentId,
               includeUsers: includeUsers),
             errors,
             _logger))
