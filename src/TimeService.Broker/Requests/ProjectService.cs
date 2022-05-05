@@ -25,7 +25,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private string CreateGetProjectCacheKey(
       List<Guid> projectIds = null,
       Guid? userId = null,
-      Guid? departmentId = null,
       bool includeUsers = false)
     {
       List<Guid> ids = new();
@@ -40,10 +39,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         ids.Add(userId.Value);
       }
 
-      if (departmentId.HasValue)
-      {
-        ids.Add(departmentId.Value);
-      }
 
       return ids.GetRedisCacheHashCode(includeUsers);
     }
@@ -63,7 +58,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     public async Task<List<ProjectData>> GetProjectsDataAsync(
       List<string> errors,
       List<Guid> projectsIds = null,
-      Guid? departmentId = null,
       Guid? userId = null,
       bool includeUsers = false)
     {
@@ -75,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       List<ProjectData> projectsData;
 
       (projectsData, int _) = await _globalCache.GetAsync<(List<ProjectData>, int)>(
-        Cache.Projects, CreateGetProjectCacheKey(projectsIds, userId, departmentId, includeUsers));
+        Cache.Projects, CreateGetProjectCacheKey(projectsIds, userId, includeUsers));
 
       if (projectsData is null)
       {
@@ -85,7 +79,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             IGetProjectsRequest.CreateObj(
               projectsIds: projectsIds,
               userId: userId,
-              departmentId: departmentId,
               includeUsers: includeUsers),
             errors,
             _logger))
