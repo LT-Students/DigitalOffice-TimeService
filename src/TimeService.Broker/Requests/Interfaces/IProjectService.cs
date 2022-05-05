@@ -12,7 +12,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
     Task<List<ProjectData>> GetProjectsDataAsync(
       List<string> errors,
       List<Guid> projectsIds = null,
-      Guid? departmentId = null,
       Guid? userId = null,
       bool includeUsers = false);
 
