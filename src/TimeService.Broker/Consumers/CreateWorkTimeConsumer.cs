@@ -12,13 +12,13 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
     {
         private readonly IWorkTimeRepository _workTimeRepository;
 
-        private bool CreateWorkTime(ICreateWorkTimeRequest request)
+        private async Task<bool> CreateWorkTime(ICreateWorkTimeRequest request)
         {
             DateTime timeNow = DateTime.UtcNow;
 
             foreach(Guid userId in request.UserIds)
             {
-                _workTimeRepository.CreateAsync(
+                await _workTimeRepository.CreateAsync(
                 new DbWorkTime
                 {
                     Id = Guid.NewGuid(),
