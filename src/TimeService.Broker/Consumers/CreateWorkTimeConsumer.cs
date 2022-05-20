@@ -1,9 +1,6 @@
-﻿using System;
-using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
+﻿using System.Threading.Tasks;
 using LT.DigitalOffice.Models.Broker.Publishing.Subscriber.Time;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Models.Db;
 using MassTransit;
 
 namespace LT.DigitalOffice.TimeService.Broker.Consumers
@@ -12,24 +9,9 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
   {
     private readonly IWorkTimeRepository _workTimeRepository;
 
-    private async Task<bool> CreateWorkTime(ICreateWorkTimePublish publish)
+    private async Task CreateWorkTime(ICreateWorkTimePublish publish)
     {
-      DateTime timeNow = DateTime.UtcNow;
-
-      foreach (Guid userId in publish.UserIds)
-      {
-        await _workTimeRepository.CreateAsync(
-          new DbWorkTime
-          {
-            Id = Guid.NewGuid(),
-            ProjectId = publish.ProjectId,
-            UserId = userId,
-            Month = timeNow.Month,
-            Year = timeNow.Year
-          });
-      }
-
-      return true;
+      await _workTimeRepository.CreateAsync(publish.UserIds, publish.ProjectId);
     }
 
     public CreateWorkTimeConsumer(IWorkTimeRepository workTimeRepository)
@@ -39,9 +21,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
 
     public async Task Consume(ConsumeContext<ICreateWorkTimePublish> context)
     {
-      object result = OperationResultWrapper.CreateResponse(CreateWorkTime, context.Message);
-
-      await context.RespondAsync<IOperationResult<bool>>(result);
+      await CreateWorkTime(context.Message);
     }
   }
 }

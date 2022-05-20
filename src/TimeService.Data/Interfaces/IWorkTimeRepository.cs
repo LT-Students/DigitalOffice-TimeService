@@ -17,6 +17,8 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
   {
     Task<Guid?> CreateAsync(DbWorkTime workTime);
 
+    Task CreateAsync(List<Guid> userIds, Guid projectId);
+
     Task<DbWorkTime> GetAsync(Guid id);
 
     Task<bool> DoesExistAsync(Guid id);
