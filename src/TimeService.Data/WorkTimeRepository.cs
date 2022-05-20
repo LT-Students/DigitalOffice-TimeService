@@ -39,22 +39,14 @@ namespace LT.DigitalOffice.TimeService.Data
       return dbWorkTime.Id;
     }
 
-    public async Task CreateAsync(List<Guid> userIds, Guid projectId)
+    public async Task CreateAsync(List<DbWorkTime> workTimes)
     {
-      if (userIds == null)
+      if (workTimes == null)
       {
         return;
       }
 
-      DateTime timeNow = DateTime.Now;
-      _provider.WorkTimes.AddRange(userIds.Select(u => new DbWorkTime
-      {
-        Id = Guid.NewGuid(),
-        ProjectId = projectId,
-        UserId = u,
-        Month = timeNow.Month,
-        Year = timeNow.Year
-      }));
+      _provider.WorkTimes.AddRange(workTimes);
       await _provider.SaveAsync();
     }
 
