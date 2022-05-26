@@ -46,8 +46,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
         return null;
       }
 
-      DateTime timeNow = DateTime.UtcNow;
-
       return new DbWorkTime
       {
         Id = Guid.NewGuid(),
@@ -57,6 +55,19 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
         Month = request.Month,
         Hours = request.Hours,
         Description = request.Description
+      };
+    }
+
+    public DbWorkTime Map(Guid userId, Guid projectId)
+    {
+      DateTime timeNow = DateTime.Now;
+      return new DbWorkTime
+      {
+        Id = Guid.NewGuid(),
+        UserId = userId,
+        ProjectId = projectId,
+        Month = timeNow.Month,
+        Year = timeNow.Year
       };
     }
   }

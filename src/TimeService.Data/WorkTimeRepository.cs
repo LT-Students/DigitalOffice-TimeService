@@ -39,6 +39,17 @@ namespace LT.DigitalOffice.TimeService.Data
       return dbWorkTime.Id;
     }
 
+    public async Task CreateAsync(List<DbWorkTime> workTimes)
+    {
+      if (workTimes == null)
+      {
+        return;
+      }
+
+      _provider.WorkTimes.AddRange(workTimes);
+      await _provider.SaveAsync();
+    }
+
     public async Task<DbWorkTime> GetAsync(Guid id)
     {
       return await _provider.WorkTimes

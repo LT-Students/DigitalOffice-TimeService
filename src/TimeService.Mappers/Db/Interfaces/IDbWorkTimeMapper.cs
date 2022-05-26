@@ -11,5 +11,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
     DbWorkTime Map(DbWorkTime parent, Guid managerId);
 
     DbWorkTime Map(CreateWorkTimeRequest request);
+
+    DbWorkTime Map(Guid userId, Guid projectId);
   }
 }
