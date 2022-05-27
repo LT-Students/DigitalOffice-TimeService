@@ -99,7 +99,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         (projectUsersData, totalCount) = await _projectService.GetProjectUsersAsync(errors, new List<Guid>() { filter.ProjectId.Value });
 
         if (projectUsersData.FirstOrDefault(x => x.UserId == senderId)?.ProjectUserRole != ProjectUserRoleType.Manager
-          || !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
         {
           return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
         }
@@ -111,8 +111,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         departmentsData = await _departmentService.GetDepartmentsDataAsync(errors, departmentsIds: filter.DepartmentsIds);
 
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
-          || !(filter.DepartmentsIds?.Count() == 1
-            && await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
+          &&
+            !(filter.DepartmentsIds?.Count() == 1
             && departmentsData?.FirstOrDefault(x => x.UsersIds.Contains(senderId))?.DirectorUserId == senderId))
         {
           return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
