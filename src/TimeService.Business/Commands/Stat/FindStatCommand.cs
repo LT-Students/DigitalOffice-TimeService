@@ -110,6 +110,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       {
         departmentsData = await _departmentService.GetDepartmentsDataAsync(errors, departmentsIds: filter.DepartmentsIds);
 
+        //TODO add departmentManager check
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           &&
             !(filter.DepartmentsIds?.Count() == 1
