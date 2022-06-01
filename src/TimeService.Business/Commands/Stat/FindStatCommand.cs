@@ -111,9 +111,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         departmentsData = await _departmentService.GetDepartmentsDataAsync(errors, departmentsIds: filter.DepartmentsIds);
 
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
-          &&
-            !(filter.DepartmentsIds?.Count() == 1
-            && departmentsData?.FirstOrDefault(x => x.Users.Contains(new DepartmentUserData(senderId, DepartmentUserRole.Manager))) != null))
+          && !(filter.DepartmentsIds?.Count() == 1
+            && departmentsData?.FirstOrDefault(x => x.Users.FirstOrDefault(user => user.UserId == senderId && user.Role == DepartmentUserRole.Manager) != null) != null))
         {
           return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
         }
