@@ -56,14 +56,14 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       return departmentsInfos.Select(departmentInfo => new StatInfo
       {
         DepartmentInfo = _departmentInfoMapper.Map(departmentInfo),
-        UsersStats = departmentInfo.UsersIds.Select(userId => _userStatInfoMapper.Map(
-          userId,
-          usersInfos?.FirstOrDefault(x => x.Id == userId),
-          projectUsers?.FirstOrDefault(x => x.UserId == userId),
+        UsersStats = departmentInfo.Users.Select(user => _userStatInfoMapper.Map(
+          user.UserId,
+          usersInfos?.FirstOrDefault(x => x.Id == user.UserId),
+          projectUsers?.FirstOrDefault(x => x.UserId == user.UserId),
           monthLimit,
-          workTimes?.Where(wt => wt.UserId == userId).ToList(),
+          workTimes?.Where(wt => wt.UserId == user.UserId).ToList(),
           projects,
-          leaveTimes.Where(lt => lt.UserId == userId).ToList()))
+          leaveTimes.Where(lt => lt.UserId == user.UserId).ToList()))
         .ToList()
       }).ToList();
     }
