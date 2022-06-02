@@ -112,7 +112,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           && !(filter.DepartmentsIds?.Count() == 1
-            && departmentsData?.FirstOrDefault(x => x.Users.FirstOrDefault(user => user.UserId == senderId && user.Role == DepartmentUserRole.Manager) != null) != null))
+            && departmentsData?.FirstOrDefault().Users.FirstOrDefault(user => user.UserId == senderId)?.Role == DepartmentUserRole.Manager))
         {
           return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
         }
