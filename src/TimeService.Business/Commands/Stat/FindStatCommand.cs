@@ -110,16 +110,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       {
         departmentsData = await _departmentService.GetDepartmentsDataAsync(errors, departmentsIds: filter.DepartmentsIds);
 
-        //TODO add departmentManager check
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
-          &&
-            !(filter.DepartmentsIds?.Count() == 1
-            && departmentsData?.FirstOrDefault(x => x.UsersIds.Contains(senderId))?.DirectorUserId == senderId))
+          && !(filter.DepartmentsIds?.Count() == 1
+            && departmentsData?.FirstOrDefault().Users.FirstOrDefault(user => user.UserId == senderId)?.Role == DepartmentUserRole.Manager))
         {
           return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
         }
 
-        departmentsData?.ForEach(x => usersIds.AddRange(x.UsersIds));
+        departmentsData?.ForEach(x => usersIds.AddRange(x.Users.Select(user => user.UserId)));
       }
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
