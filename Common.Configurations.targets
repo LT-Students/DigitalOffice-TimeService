@@ -29,7 +29,7 @@
     <PackageReference Include="LT.DigitalOffice.Kernel" Version="1.1.62" />
     <PackageReference Include="LT.DigitalOffice.Kernel.RedisSupport" Version="1.0.5" />
     <PackageReference Include="LT.DigitalOffice.Kernel.BrokerSupport" Version="1.0.6" />
-    <PackageReference Include="LT.DigitalOffice.Models" Version="1.0.87" />
+    <PackageReference Include="LT.DigitalOffice.Models" Version="1.0.91" />
     <PackageReference Include="LT.DigitalOffice.Kernel.EFSupport" Version="1.0.1" />
   </ItemGroup>
 
