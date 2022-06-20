@@ -83,7 +83,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.BadRequest, errors);
       }
 
-      int totalCount = 0;
+      int totalCount;
 
       List<DbWorkTime> dbWorkTimes;
       List<DbLeaveTime> dbLeaveTimes;
@@ -97,6 +97,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       if (filter.ProjectId is not null)
       {
         (projectUsersData, totalCount) = await _projectService.GetProjectUsersAsync(errors, new List<Guid>() { filter.ProjectId.Value });
+
+        if (projectUsersData is null)
+        {
+          return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.NotFound);
+        }
 
         if (projectUsersData.FirstOrDefault(x => x.UserId == senderId)?.ProjectUserRole != ProjectUserRoleType.Manager
           && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))

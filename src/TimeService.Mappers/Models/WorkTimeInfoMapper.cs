@@ -36,7 +36,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
           },
         Year = dbWorkTime.Year,
         Month = dbWorkTime.Month,
-        Day = projectUser?.CreatedAtUtc.Day,
         UserHours = dbWorkTime.Hours,
         ManagerHours = dbWorkTime.ManagerWorkTime?.Hours,
         Description = dbWorkTime.Description,
