@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
@@ -47,10 +46,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
-        return new()
-        {
-          Status = OperationResultStatusType.Failed
-        };
+        return new();
       }
 
       if (!_validator.ValidateCustom(request, out List<string> errors))
@@ -59,7 +55,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
         return new()
         {
-          Status = OperationResultStatusType.Failed,
           Errors = errors
         };
       }
@@ -67,14 +62,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       OperationResultResponse<Guid?> response = new();
 
       response.Body = await _repository.CreateAsync(_mapper.Map(request));
-      response.Status = OperationResultStatusType.FullSuccess;
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
 
       if (response.Body == default)
       {
-        response.Status = OperationResultStatusType.Failed;
-
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
       }
 

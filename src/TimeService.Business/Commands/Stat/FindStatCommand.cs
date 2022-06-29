@@ -5,7 +5,6 @@ using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
@@ -163,8 +162,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           dbWorkTimes,
           projectInfos,
           dbLeaveTimes),
-        Errors = errors,
-        Status = errors.Any() ? OperationResultStatusType.PartialSuccess : OperationResultStatusType.FullSuccess
+        Errors = errors
       };
     }
   }

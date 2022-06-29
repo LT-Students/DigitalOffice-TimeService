@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit.Interfaces;
@@ -45,10 +44,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
-        return new()
-        {
-          Status = OperationResultStatusType.Failed
-        };
+        return new();
       }
 
       if (!_validator.ValidateCustom(request, out List<string> errors))
@@ -57,7 +53,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
 
         return new()
         {
-          Status = OperationResultStatusType.Failed,
           Errors = errors
         };
       }
@@ -66,7 +61,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
 
       return new()
       {
-        Status = result ? OperationResultStatusType.FullSuccess : OperationResultStatusType.Failed,
         Body = result,
         Errors = new()
       };

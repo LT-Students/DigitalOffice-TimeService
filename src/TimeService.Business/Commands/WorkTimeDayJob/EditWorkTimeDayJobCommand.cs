@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Responses;
@@ -51,10 +50,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
       {
         _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
 
-        return new()
-        {
-          Status = OperationResultStatusType.Failed
-        };
+        return new();
       }
 
       if (!_validator.ValidateCustom(request, out List<string> errors))
@@ -63,14 +59,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
 
         return new()
         {
-          Status = OperationResultStatusType.Failed,
           Errors = errors
         };
       }
 
       return new OperationResultResponse<bool>
       {
-        Status = OperationResultStatusType.FullSuccess,
         Body = await _repository.EditAsync(workTimeDayJobId, _mapper.Map(request)),
         Errors = new()
       };
