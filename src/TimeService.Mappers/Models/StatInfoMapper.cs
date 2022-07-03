@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
+using LT.DigitalOffice.Models.Broker.Models.Position;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -30,7 +32,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       DbWorkTimeMonthLimit monthLimit,
       List<DbWorkTime> workTimes,
       List<ProjectInfo> projects,
-      List<DbLeaveTime> leaveTimes)
+      List<DbLeaveTime> leaveTimes,
+      List<PositionData> positions,
+      List<CompanyUserData> companyUsers)
     {
       if (departmentsInfos is null || !departmentsInfos.Any())
       {
@@ -47,7 +51,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
               monthLimit,
               workTimes?.Where(wt => wt.UserId == userId).ToList(),
               projects,
-              leaveTimes.Where(lt => lt.UserId == userId).ToList()))
+              leaveTimes.Where(lt => lt.UserId == userId).ToList(),
+              positions.FirstOrDefault(p => p.UsersIds.Contains(userId)),
+              companyUsers?.FirstOrDefault(cu => cu.UserId == userId)))
             .ToList()
           }
         };
@@ -63,7 +69,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
           monthLimit,
           workTimes?.Where(wt => wt.UserId == user.UserId).ToList(),
           projects,
-          leaveTimes.Where(lt => lt.UserId == user.UserId).ToList()))
+          leaveTimes.Where(lt => lt.UserId == user.UserId).ToList(),
+          positions.FirstOrDefault(p => p.UsersIds.Contains(user.UserId)),
+          companyUsers.FirstOrDefault(cu => cu.UserId == user.UserId)))
         .ToList()
       }).ToList();
     }
