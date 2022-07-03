@@ -13,6 +13,8 @@ using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
+using LT.DigitalOffice.Models.Broker.Models.Image;
+using LT.DigitalOffice.Models.Broker.Models.Position;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.Stat.Interfaces;
@@ -32,6 +34,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IUserService _userService;
     private readonly ICompanyService _companyService;
     private readonly IProjectService _projectService;
+    private readonly IImageService _imageService;
+    private readonly IPositionService _positionService;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IStatInfoMapper _statInfoMapper;
@@ -48,6 +52,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IUserService userService,
       ICompanyService companyService,
       IProjectService projectService,
+      IImageService imageService,
+      IPositionService positionService,
       IUserInfoMapper userInfoMapper,
       IProjectInfoMapper projectInfoMapper,
       IStatInfoMapper statInfoMapper,
@@ -63,6 +69,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _userService = userService;
       _companyService = companyService;
       _projectService = projectService;
+      _imageService = imageService;
+      _positionService = positionService;
       _userInfoMapper = userInfoMapper;
       _projectInfoMapper = projectInfoMapper;
       _statInfoMapper = statInfoMapper;
@@ -95,7 +103,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (filter.ProjectId is not null)
       {
-        (projectUsersData, totalCount) = await _projectService.GetProjectUsersAsync(errors, new List<Guid>() { filter.ProjectId.Value });
+        (projectUsersData, _) = await _projectService.GetProjectUsersAsync(errors, new List<Guid> { filter.ProjectId.Value });
 
         if (projectUsersData is null)
         {
@@ -115,8 +123,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         departmentsData = await _departmentService.GetDepartmentsDataAsync(errors, departmentsIds: filter.DepartmentsIds);
 
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
-          && !(filter.DepartmentsIds?.Count() == 1
-            && departmentsData?.FirstOrDefault().Users.FirstOrDefault(user => user.UserId == senderId)?.Role == DepartmentUserRole.Manager))
+          && !(filter.DepartmentsIds?.Count == 1
+            && departmentsData?.FirstOrDefault()?.Users.FirstOrDefault(user => user.UserId == senderId)?.Role == DepartmentUserRole.Manager))
         {
           return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
         }
@@ -136,19 +144,33 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         ? await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month.Value)
         : null;
 
-      Task<(List<UserData>, int)> usersTask = _userService.GetFilteredUsersDataAsync(usersIds, filter.SkipCount, filter.TakeCount, filter.AscendingSort, errors);
-      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
+      (List<UserData> usersData, totalCount) = await _userService.GetFilteredUsersDataAsync(
+        usersIds,
+        filter.SkipCount,
+        filter.TakeCount,
+        filter.AscendingSort,
+        errors);
 
-      await Task.WhenAll(usersTask, companiesTask);
+      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
+        usersData.Select(ud => ud.Id).ToList(),
+        errors);
+      Task<List<ImageData>> imagesTask = _imageService.GetImagesAsync(usersIds, errors);
+      Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersIds, errors);
+
+      await Task.WhenAll(
+        companiesTask,
+        imagesTask,
+        positionsTask);
 
       List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
-      (List<UserData> usersData, totalCount) = await usersTask;
-
       List<UserInfo> usersInfos = usersData
-        ?.Select(u => _userInfoMapper.Map(u, companies?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
+        .Select(u => _userInfoMapper.Map(
+          u, 
+          companies?.FirstOrDefault(p => p.UserId == u.Id), 
+          imagesTask.Result.FirstOrDefault(i => i.ParentId == u.Id))).ToList();
 
-      List<ProjectInfo> projectInfos = projectsData?.Select(_projectInfoMapper.Map).ToList();
+      List<ProjectInfo> projectInfos = projectsData?.Select(p => _projectInfoMapper.Map(p)).ToList();
 
       return new FindResultResponse<StatInfo>
       {
@@ -161,7 +183,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           monthLimit,
           dbWorkTimes,
           projectInfos,
-          dbLeaveTimes),
+          dbLeaveTimes,
+          positionsTask.Result,
+          companies),
         Errors = errors
       };
     }

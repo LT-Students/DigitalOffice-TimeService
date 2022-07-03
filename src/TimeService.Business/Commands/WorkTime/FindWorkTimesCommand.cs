@@ -38,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IWorkTimeResponseMapper _workTimeResponseMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
-    private readonly IResponseCreator _responsCreator;
+    private readonly IResponseCreator _responseCreator;
 
     public FindWorkTimesCommand(
       IBaseFindFilterValidator validator,
@@ -52,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       ICompanyService companyService,
       IProjectInfoMapper projectInfoMapper,
       IUserInfoMapper userInfoMapper,
-      IResponseCreator responsCreator)
+      IResponseCreator responseCreator)
     {
       _validator = validator;
       _workTimeResponseMapper = workTimeResponseMapper;
@@ -65,7 +65,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _companyService = companyService;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
-      _responsCreator = responsCreator;
+      _responseCreator = responseCreator;
     }
 
     public async Task<FindResultResponse<WorkTimeResponse>> ExecuteAsync(FindWorkTimesFilter filter)
@@ -74,12 +74,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       if (!isActhor && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
-        return _responsCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.Forbidden);
       }
 
       if (!_validator.ValidateCustom(filter, out List<string> errors))
       {
-        return _responsCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.BadRequest, errors);
       }
 
       (List<DbWorkTime> dbWorkTimes, int totalCount) = await _workTimeRepository.FindAsync(filter);
