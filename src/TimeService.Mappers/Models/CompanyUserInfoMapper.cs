@@ -4,7 +4,7 @@ using LT.DigitalOffice.TimeService.Models.Dto.Models;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
-  internal class CompanyUserInfoMapper : ICompanyUserInfoMapper
+  public class CompanyUserInfoMapper : ICompanyUserInfoMapper
   {
     public CompanyUserInfo Map(CompanyUserData companyUserData)
     {
