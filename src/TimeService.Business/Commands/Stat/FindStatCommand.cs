@@ -90,8 +90,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.BadRequest, errors);
       }
 
-      int totalCount;
-
       List<DbWorkTime> dbWorkTimes;
       List<DbLeaveTime> dbLeaveTimes;
       List<ProjectData> projectsData;
@@ -144,7 +142,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         ? await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month.Value)
         : null;
 
-      (List<UserData> usersData, totalCount) = await _userService.GetFilteredUsersDataAsync(
+      (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
         usersIds,
         filter.SkipCount,
         filter.TakeCount,
