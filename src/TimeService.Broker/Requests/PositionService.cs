@@ -38,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return null;
       }
 
-      var positionsData = await _globalCache.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
+      List<PositionData> positionsData = await _globalCache.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
 
       if (positionsData is null)
       {
