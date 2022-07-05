@@ -11,7 +11,6 @@ using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -78,14 +77,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       List<Guid> usersIds = dbLeaveTimes.Select(lt => lt.UserId).ToList();
 
       Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
-      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
-
-      await Task.WhenAll(usersTask, companiesTask);
-
-      List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
       List<UserInfo> users = (await usersTask)
-        ?.Select(u => _userInfoMapper.Map(u, companies?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
+        ?.Select(u => _userInfoMapper.Map(u, null)).ToList();
 
       return new()
       {

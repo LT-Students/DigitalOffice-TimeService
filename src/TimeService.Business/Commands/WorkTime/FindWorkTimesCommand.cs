@@ -11,7 +11,6 @@ using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
@@ -92,7 +91,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(),
         userId: filter.UserId);
       Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
-      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
       Task<(List<DbWorkTimeMonthLimit>, int)> limitTask = _monthLimitRepository.FindAsync(
         new()
         {
@@ -100,9 +98,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
           Year = filter.Year
         });
 
-      await Task.WhenAll(projectsTask, usersTask, companiesTask, limitTask);
+      await Task.WhenAll(projectsTask, usersTask, limitTask);
 
-      List<CompanyData> companies = await companiesTask;
       List<ProjectData> projects = await projectsTask;
       List<UserData> users = await usersTask;
       (List<DbWorkTimeMonthLimit> monthLimits, int _) = await limitTask;
@@ -119,7 +116,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
               monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
               _userInfoMapper.Map(
                 users?.FirstOrDefault(u => u.Id == wt.UserId),
-                companies?.FirstOrDefault(p => p.Users.Any(u => u.UserId == wt.UserId))?.Users.First(u => u.UserId == wt.UserId)),
+                null),
               _userInfoMapper.Map(
                 users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy),
                 null),
