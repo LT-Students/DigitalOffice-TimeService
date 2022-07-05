@@ -14,7 +14,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       _imageMapper = imageMapper;
     }
 
-    public UserInfo Map(UserData userData, ImageData imageData)
+    public UserInfo Map(UserData userData, ImageData imageData = null)
     {
       if (userData == null)
       {

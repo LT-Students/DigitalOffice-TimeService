@@ -33,7 +33,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IProjectService _projectService;
     private readonly IUserService _userService;
-    private readonly ICompanyService _companyService;
     private readonly IWorkTimeResponseMapper _workTimeResponseMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
     private readonly IUserInfoMapper _userInfoMapper;
@@ -48,7 +47,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IHttpContextAccessor httpContextAccessor,
       IProjectService projectService,
       IUserService userService,
-      ICompanyService companyService,
       IProjectInfoMapper projectInfoMapper,
       IUserInfoMapper userInfoMapper,
       IResponseCreator responseCreator)
@@ -61,7 +59,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _httpContextAccessor = httpContextAccessor;
       _projectService = projectService;
       _userService = userService;
-      _companyService = companyService;
       _projectInfoMapper = projectInfoMapper;
       _userInfoMapper = userInfoMapper;
       _responseCreator = responseCreator;
@@ -115,11 +112,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
               wt,
               monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
               _userInfoMapper.Map(
-                users?.FirstOrDefault(u => u.Id == wt.UserId),
-                null),
+                users?.FirstOrDefault(u => u.Id == wt.UserId)),
               _userInfoMapper.Map(
-                users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy),
-                null),
+                users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy)),
               project?.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
               _projectInfoMapper.Map(project));
           }).ToList(),

@@ -33,7 +33,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
-    private readonly ICompanyService _companyService;
     private readonly IResponseCreator _responsCreator;
 
     public FindLeaveTimesCommand(
@@ -44,7 +43,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
       IUserService userService,
-      ICompanyService companyService,
       IResponseCreator responseCreator)
     {
       _validator = validator;
@@ -54,7 +52,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
       _userService = userService;
-      _companyService = companyService;
       _responsCreator = responseCreator;
     }
 
@@ -79,7 +76,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
 
       List<UserInfo> users = (await usersTask)
-        ?.Select(u => _userInfoMapper.Map(u, null)).ToList();
+        ?.Select(u => _userInfoMapper.Map(u)).ToList();
 
       return new()
       {
