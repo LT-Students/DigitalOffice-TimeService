@@ -1,5 +1,4 @@
 ﻿using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
@@ -15,7 +14,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       _imageMapper = imageMapper;
     }
 
-    public UserInfo Map(UserData userData, CompanyUserData companyUserData, ImageData imageData)
+    public UserInfo Map(UserData userData, ImageData imageData)
     {
       if (userData == null)
       {
@@ -29,24 +28,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         MiddleName = userData.MiddleName,
         LastName = userData.LastName,
         IsActive = userData.IsActive,
-        Image =  _imageMapper.Map(imageData)
-      };
-    }
-
-    public UserInfo Map(UserData userData, CompanyUserData companyUserData)
-    {
-      if (userData == null)
-      {
-        return null;
-      }
-
-      return new()
-      {
-        Id = userData.Id,
-        FirstName = userData.FirstName,
-        MiddleName = userData.MiddleName,
-        LastName = userData.LastName,
-        IsActive = userData.IsActive
+        Image = imageData is null
+          ? null
+          : _imageMapper.Map(imageData)
       };
     }
   }

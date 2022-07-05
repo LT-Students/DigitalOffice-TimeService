@@ -164,8 +164,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       List<UserInfo> usersInfos = usersData
         .Select(u => _userInfoMapper.Map(
-          u, 
-          companies?.FirstOrDefault(p => p.UserId == u.Id), 
+          u,
           imagesTask.Result.FirstOrDefault(i => i.ParentId == u.Id))).ToList();
 
       List<ProjectInfo> projectInfos = projectsData?.Select(p => _projectInfoMapper.Map(p)).ToList();
