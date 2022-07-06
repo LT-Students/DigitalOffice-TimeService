@@ -8,7 +8,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 
     public PositionInfo Position { get; set; }
 
-    public CompanyUserInfo CompanyUser { get; set; }
+    public CompanyUserInfo CompanyUserInfo { get; set; }
 
     public List<LeaveTimeInfo> LeaveTimes { get; set; }
 

@@ -181,7 +181,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           dbWorkTimes,
           projectInfos,
           dbLeaveTimes,
-          positionsTask.Result,
+          await positionsTask,
           companies),
         Errors = errors
       };

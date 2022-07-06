@@ -47,7 +47,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       {
         User = user ?? new UserInfo { Id = userId },
         Position = _positionInfoMapper.Map(position),
-        CompanyUser = _companyUserInfoMapper.Map(companyUser),
+        CompanyUserInfo = _companyUserInfoMapper.Map(companyUser),
         LeaveTimes = leaveTimes?.Select(lt => _leaveTimeInfoMapper.Map(lt)).ToList(),
         WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(wt, projectUser, projects.FirstOrDefault(p => p.Id == wt.ProjectId))).ToList(),
         LimitInfo = _monthLimitInfoMapper.Map(monthLimit)
