@@ -167,7 +167,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           u,
           imagesTask.Result.FirstOrDefault(i => i.ParentId == u.Id))).ToList();
 
-      List<ProjectInfo> projectInfos = projectsData?.Select(p => _projectInfoMapper.Map(p)).ToList();
+      List<ProjectInfo> projectInfos = projectsData?.Select(_projectInfoMapper.Map).ToList();
 
       return new FindResultResponse<StatInfo>
       {
