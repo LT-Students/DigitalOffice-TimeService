@@ -46,7 +46,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       return new UserStatInfo
       {
         User = user ?? new UserInfo { Id = userId },
-        PositionInfo = _positionInfoMapper.Map(position),
+        Position = _positionInfoMapper.Map(position),
         CompanyUserInfo = _companyUserInfoMapper.Map(companyUser),
         LeaveTimes = leaveTimes?.Select(lt => _leaveTimeInfoMapper.Map(lt)).ToList(),
         WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(wt, projectUser, projects.FirstOrDefault(p => p.Id == wt.ProjectId))).ToList(),
