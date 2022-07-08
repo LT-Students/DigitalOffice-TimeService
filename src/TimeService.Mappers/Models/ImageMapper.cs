@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 
       return new()
       {
-        ImageId = imageData.ImageId,
+        Id = imageData.ImageId,
         ParentId = imageData.ParentId,
         Content = imageData.Content,
         Extension = imageData.Extension,
