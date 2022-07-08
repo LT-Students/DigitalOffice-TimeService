@@ -5,14 +5,12 @@ using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -35,7 +33,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IUserService _userService;
-    private readonly ICompanyService _companyService;
     private readonly IResponseCreator _responsCreator;
 
     public FindLeaveTimesCommand(
@@ -46,7 +43,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
       IUserService userService,
-      ICompanyService companyService,
       IResponseCreator responseCreator)
     {
       _validator = validator;
@@ -56,7 +52,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
       _userService = userService;
-      _companyService = companyService;
       _responsCreator = responseCreator;
     }
 
@@ -79,18 +74,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       List<Guid> usersIds = dbLeaveTimes.Select(lt => lt.UserId).ToList();
 
       Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
-      Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(usersIds, errors);
-
-      await Task.WhenAll(usersTask, companiesTask);
-
-      List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
       List<UserInfo> users = (await usersTask)
-        ?.Select(u => _userInfoMapper.Map(u, companies?.FirstOrDefault(p => p.UserId == u.Id))).ToList();
+        ?.Select(u => _userInfoMapper.Map(u)).ToList();
 
       return new()
       {
-        Status = OperationResultStatusType.FullSuccess,
         TotalCount = totalCount,
         Body = dbLeaveTimes.Select(lt => _leaveTimeResponseMapper.Map(lt, users?.FirstOrDefault(u => u.Id == lt.UserId))).ToList(),
         Errors = errors

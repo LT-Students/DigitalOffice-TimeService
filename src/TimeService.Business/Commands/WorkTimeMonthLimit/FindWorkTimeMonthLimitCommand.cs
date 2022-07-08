@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
@@ -48,7 +47,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeMonthLimit
 
       return new()
       {
-        Status = OperationResultStatusType.FullSuccess,
         Body = dbWorkTimeMonthLimit.Select(_mapper.Map).ToList(),
         TotalCount = totalCount,
         Errors = new()

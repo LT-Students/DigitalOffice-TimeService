@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using ClosedXML.Excel;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
@@ -437,7 +436,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         return new()
         {
-          Status = OperationResultStatusType.Failed,
           Errors = errors
         };
       }
@@ -472,7 +470,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       return new()
       {
-        Status = OperationResultStatusType.FullSuccess,
         Body = CreateTable(filter, usersInfos, projects, companies, departments, workTimes, leaveTimes, monthsLimits)
       };
     }
