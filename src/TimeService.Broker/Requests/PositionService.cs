@@ -42,7 +42,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       if (positionsData is null)
       {
-        positionsData = 
+        positionsData =
           (await RequestHandler.ProcessRequest<IGetPositionsRequest, IGetPositionsResponse>(
             _rcRequestClient,
             IGetPositionsRequest.CreateObj(usersIds),

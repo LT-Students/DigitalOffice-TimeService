@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 
       return new()
       {
-        Name = positionData.Name, 
+        Name = positionData.Name,
         Id = positionData.Id
       };
     }
