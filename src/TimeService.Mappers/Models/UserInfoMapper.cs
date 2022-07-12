@@ -9,7 +9,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
   {
     private readonly IImageMapper _imageMapper;
 
-    public UserInfoMapper(ImageMapper imageMapper)
+    public UserInfoMapper(IImageMapper imageMapper)
     {
       _imageMapper = imageMapper;
     }
