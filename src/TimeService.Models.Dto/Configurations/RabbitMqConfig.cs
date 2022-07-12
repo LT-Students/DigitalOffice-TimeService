@@ -3,6 +3,8 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Department;
+using LT.DigitalOffice.Models.Broker.Requests.Image;
+using LT.DigitalOffice.Models.Broker.Requests.Position;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
 
@@ -46,5 +48,13 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
 
     [AutoInjectRequest(typeof(IFilterDepartmentsRequest))]
     public string FilterDepartmentUsersEndpoint { get; set; }
+
+    // image
+    [AutoInjectRequest(typeof(IGetImagesRequest))]
+    public string GetImagesEndpoint { get; set; }
+
+    // position
+    [AutoInjectRequest(typeof(IGetPositionsRequest))]
+    public string GetPositionsEndpoint { get; set; }
   }
 }
