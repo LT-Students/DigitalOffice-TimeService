@@ -36,7 +36,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       List<ImageData> imagesData =
         (await RequestHandler.ProcessRequest<IGetImagesRequest, IGetImagesResponse>(
           _rcRequestClient,
-          IGetImagesRequest.CreateObj(usersIds, ImageSource.Time),
+          IGetImagesRequest.CreateObj(usersIds, ImageSource.User),
           errors,
           _logger))
         ?.ImagesData;
