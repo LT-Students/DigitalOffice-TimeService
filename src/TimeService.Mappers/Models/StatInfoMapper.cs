@@ -52,7 +52,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
               workTimes?.Where(wt => wt.UserId == userId).ToList(),
               projects,
               leaveTimes.Where(lt => lt.UserId == userId).ToList(),
-              positions.FirstOrDefault(p => p.UsersIds.Contains(userId)),
+              positions?.FirstOrDefault(p => p.UsersIds.Contains(userId)),
               companyUsers?.FirstOrDefault(cu => cu.UserId == userId)))
             .ToList()
           }
