@@ -19,21 +19,34 @@ using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Validation.Import.Interfaces;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
   public class ImportStatCommand : IImportStatCommand
   {
-    private XLColor FirstHeaderColor => XLColor.LightApricot;
+    private XLColor FirstHeaderColor => XLColor.LightPastelPurple;
     private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
-    private XLColor MainProjectColor => XLColor.LimeGreen;
-    private XLColor OtherProjectColor => XLColor.LightGray;
-    private XLColor LeaveTypesColor => XLColor.CarrotOrange;
+    private XLColor MainProjectColor => XLColor.LightGreen;
+    private XLColor OtherProjectColor => XLColor.LightYellow;
+    private XLColor VacantionColor => XLColor.PastelOrange;
+    private XLColor LeaveTypesColor => XLColor.LavenderBlue;
     private XLColor TimesColor => XLColor.LightGreen;
+
+    //ToDo - move to file
+    private readonly Dictionary<LeaveType, string> _leaveTypesNamesRu = 
+      new()
+      {
+        { LeaveType.Vacation, "Оплачиваемый отпуск" },
+        { LeaveType.SickLeave, "Больничный" },
+        { LeaveType.Training, "Обучение" },
+        { LeaveType.Idle, "За свой счет" }
+      };
 
     private readonly IProjectService _projectService;
     private readonly IDepartmentService _departmentService;
@@ -46,10 +59,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly ICalendar _calendar;
     private readonly IResponseCreator _responseCreator;
     private readonly IImportStatFilterValidator _validator;
+    private readonly IUserImportStatInfoMapper _mapper;
 
     #region private methods
 
-    private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(int year, int month, DateTime start, DateTime end)
+    private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(DateTime start, DateTime end, List<string> errors = null)
     {
       List<DbWorkTimeMonthLimit> limits = await _workTimeMonthLimitRepository.GetAsync(start.Year, start.Month, end.Year, end.Month);
 
@@ -68,9 +82,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         string holidays = await _calendar.GetWorkCalendarByMonthAsync(requestedMonth, requestedYear); // TODO rework
 
-        if (holidays == null)
+        if (holidays is null)
         {
-          throw new InvalidOperationException("Cannot get holidays.");
+          errors?.Add("Cannot get holidays.");
+
+          return null;
         }
 
         newLimits.Add(
@@ -85,6 +101,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         countNeededMonth--;
         requestedMonth--;
+
         if (requestedMonth == 0)
         {
           requestedMonth = 12;
@@ -101,7 +118,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     #region Create table
 
-    private float GetLeaveTimeOurs(List<DbWorkTimeMonthLimit> monthsLimits, DbLeaveTime leaveTime, int year, int month)
+    private float GetLeaveTimeHours(List<DbWorkTimeMonthLimit> monthsLimits, DbLeaveTime leaveTime, int year, int month)
     {
       // monthsLimits should be sort by time
 
@@ -122,7 +139,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       DbWorkTimeMonthLimit first = monthRange.First();
 
-      float extraHoursInFirstMonth = (float)first.Holidays.Substring(0, leaveTime.StartTime.Day).Count(d => d == '0')
+      float extraHoursInFirstMonth = (float)first.Holidays.Substring(0, leaveTime.StartTime.Day - 1).Count(d => d == '0')
         / first.Holidays.Count(d => d == '0') * first.NormHours;
 
       DbWorkTimeMonthLimit last = monthRange.Last();
@@ -152,10 +169,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     {
       IXLCell cell = ws.Cell(1, column);
       cell.SetValue(value);
+
       if (value.Length > 3)
       {
         cell.Style.Alignment.TextRotation = 90;
       }
+
       cell.Style
         .Font.SetBold()
         .Fill.SetBackgroundColor(color);
@@ -163,10 +182,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private byte[] CreateTable(
       ImportStatFilter filter,
-      List<UserData> usersInfos,
-      List<ProjectData> projects,
-      List<CompanyUserData> companies,
-      List<DepartmentData> departments,
+      List<UserImportStatInfo> sortedUsers,
+      List<ProjectData> mainProjects,
+      List<ProjectData> otherProjects,
+      DepartmentData department,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
       List<DbWorkTimeMonthLimit> monthsLimits)
@@ -178,109 +197,143 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       List<string> headers = new()
       {
         "№",
-        "Initials",
-        "Rate",
-        "Standard working hours",
-        "Total"
+        "ФИО",
+        "Ставка",
+        "Норма часов",
+        "Итого"
       };
 
-      using (var workbook = new XLWorkbook())
+      List<string> lastHeaders = new()
+      {
+        "Тип договора"
+      };
+
+      using (var workbook = new XLWorkbook(XLEventTracking.Disabled))
       {
         IXLWorksheet ws = workbook.Worksheets.Add("Hours");
 
-        IXLRange range = ws.Range(1, 1, 1, headers.Count);
-
         int columnNumber = 1;
+
         foreach (var columnName in headers)
         {
           AddHeaderCell(ws, columnNumber, columnName, FirstHeaderColor);
           columnNumber++;
         }
 
-        columnNumber += projects.Count;
+        columnNumber += mainProjects.Count;
 
-        int leaveTypeCount = 0;
-        foreach (var leaveName in Enum.GetValues(typeof(LeaveType)))
+        int leaveTypesCount = 0;
+        foreach (var leaveType in Enum.GetValues<LeaveType>())
         {
-          AddHeaderCell(ws, columnNumber, leaveName.ToString(), LeaveTypesColor);
+          if (leaveType == LeaveType.Vacation)
+          {
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], VacantionColor);
+          }
+          else
+          {
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], LeaveTypesColor);
+          }
+
           columnNumber++;
-          leaveTypeCount++;
+          leaveTypesCount++;
         }
 
-        ws.Cell(2, 2).Value = "Total";
-        ws.Cell(2, 2).Style.Font.SetBold();
-        ws.Range(2, 1, 2, columnNumber - 1).Style.Fill.SetBackgroundColor(SecondHeaderColor);
+        int columnsCount = headers.Count + leaveTypesCount + mainProjects.Count + otherProjects.Count + lastHeaders.Count;
+        columnNumber += otherProjects.Count;
 
-        for (int i = 5; i < columnNumber; i++)
+        foreach (string header in lastHeaders)
         {
-          ws.Cell(2, i).SetFormulaR1C1($"=SUM({ws.Cell(3, i).Address}:{ws.Cell(2 + usersInfos.Count(), i).Address})");
+          AddHeaderCell(ws, columnNumber, header, FirstHeaderColor);
+
+          columnNumber++;
         }
 
-        for (int userNumber = 0; userNumber < usersInfos.Count; userNumber++)
+        ws.Cell(2, 2).Value = "Итого";
+        ws.Cell(2, 2).Style.Font.SetBold();
+        ws.Range(2, 1, 2, columnsCount).Style.Fill.SetBackgroundColor(SecondHeaderColor);
+
+        for (int currentColumn = headers.Count; currentColumn <= columnsCount - lastHeaders.Count; currentColumn++)
+        {
+          ws.Cell(2, currentColumn).SetFormulaR1C1($"=SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})");
+        } 
+
+        for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
           int row = userNumber + 3;
+          double? rate = sortedUsers[userNumber].CompanyUserData?.Rate;
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
-          ws.Cell(row, 2).SetValue($"{usersInfos[userNumber].FirstName} {usersInfos[userNumber].LastName}");
-          ws.Cell(row, 3).SetValue(companies.FirstOrDefault(x => x.UserId == usersInfos[userNumber].Id)?.Rate);
-          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours);
-          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
-            Style.Fill.SetBackgroundColor(FirstHeaderColor);
+          ws.Cell(row, 2).SetValue($"{sortedUsers[userNumber].UserData.LastName} {sortedUsers[userNumber].UserData.FirstName}");
+          ws.Cell(row, 3).SetValue(rate);
+          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * rate);
+          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnsCount - lastHeaders.Count).Address})")
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
+          ws.Cell(row, columnNumber - 1).SetValue(sortedUsers[userNumber].CompanyUserData?.ContractSubject?.Name)
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
         }
 
-        int column = 6;
+        ws.Column(2).AdjustToContents();
+        ws.Columns(columnsCount - lastHeaders.Count + 1, columnsCount).AdjustToContents();
+
         if (filter.DepartmentId.HasValue)
         {
-          DepartmentData requestedDepartment = departments.FirstOrDefault(d => d.Id == filter.DepartmentId.Value);
-          
-          if (requestedDepartment is not null)
-          {
-            CreateProjectsPartTableForDepartment(
-              ws,
-              column,
-              projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-              projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-              usersInfos,
-              workTimes);
-          }
+          CreateProjectsPartTable(
+            ws: ws,
+            mainProjectsStartColumn: headers.Count + 1,
+            otherProjectsStartColumn: headers.Count + mainProjects.Count + leaveTypesCount + 1,
+            mainProjects: mainProjects,
+            otherProjects: otherProjects,
+            sortedUsers: sortedUsers.Select(x => x.UserData).ToList(),
+            workTimes: workTimes);
         }
         else
         {
-          CreateProjectPartTable(
+          /*CreateProjectPartTable(
             ws,
-            column,
-            projects[0],
-            usersInfos,
-            workTimes);
+            headers.Count + 1,
+            mainProjects[0],
+            sortedUsers.Select(x => x.UserData).ToList(),
+            workTimes);*/
+          CreateProjectsPartTable(
+            ws: ws,
+            mainProjectsStartColumn: headers.Count + 1,
+            otherProjectsStartColumn: headers.Count + mainProjects.Count + leaveTypesCount + 1,
+            mainProjects: mainProjects,
+            otherProjects: otherProjects,
+            sortedUsers: sortedUsers.Select(x => x.UserData).ToList(),
+            workTimes: workTimes);
         }
 
-        column += projects.Count;
+        columnNumber = headers.Count + mainProjects.Count + 1;
 
-        if (leaveTimes != null && leaveTimes.Any())
+        if (leaveTimes is not null && leaveTimes.Any())
         {
-          for (int number = 0; number < usersInfos.Count; number++)
+          for (int number = 0; number < sortedUsers.Count; number++)
           {
             int row = number + 3;
 
-            List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id).ToList();
+            List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == sortedUsers[number].UserData.Id).ToList();
 
-            for (int i = 0; i < leaveTypeCount; i++)
+            for (int i = 0; i < leaveTypesCount; i++)
             {
-              ws.Cell(row, column + i).SetValue(
-                  usersLeaveTimes
-                  .Where(lt => lt.LeaveType == i)
-                  .Select(lt => GetLeaveTimeOurs(monthsLimits, lt, filter.Year, filter.Month))
-                  .Sum());
+              float leaveTimeHours = usersLeaveTimes.Where(lt => lt.LeaveType == i)
+                .Select(lt => GetLeaveTimeHours(monthsLimits, lt, filter.Year, filter.Month))
+                .Sum();
+
+              if (leaveTimeHours != 0)
+              {
+                ws.Cell(row, columnNumber + i).SetValue(leaveTimeHours);
+              }
             }
           }
         }
 
-        ws.Range(1, 1, 2 + usersInfos.Count, columnNumber - 1).Style
+        ws.Range(1, 1, 2 + sortedUsers.Count, columnsCount).Style
           .Border.SetBottomBorder(XLBorderStyleValues.Thin)
           .Border.SetLeftBorder(XLBorderStyleValues.Thin)
           .Border.SetRightBorder(XLBorderStyleValues.Thin)
           .Border.SetTopBorder(XLBorderStyleValues.Thin);
-        ws.Range(3, 6, 2 + usersInfos.Count, columnNumber - 1).Style.Fill.SetBackgroundColor(TimesColor);
+        ws.Range(3, 6, 2 + sortedUsers.Count, columnsCount - lastHeaders.Count).Style.Fill.SetBackgroundColor(TimesColor);
 
         workbook.SaveAs(ms);
       }
@@ -288,50 +341,53 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return ms.ToArray();
     }
 
-    private void CreateProjectsPartTableForDepartment(
+    private void CreateProjectsPartTable(
       IXLWorksheet ws,
-      int startColumn,
-      List<ProjectData> departmentProjects,
+      int mainProjectsStartColumn,
+      int otherProjectsStartColumn,
+      List<ProjectData> mainProjects,
       List<ProjectData> otherProjects,
-      List<UserData> usersInfos,
+      List<UserData> sortedUsers,
       List<DbWorkTime> workTimes)
     {
-      int column = startColumn;
+      int mainProjectsColumn = mainProjectsStartColumn;
+      int otherProjectsColumn = otherProjectsStartColumn;
 
-      foreach (var project in departmentProjects)
+      foreach (var project in mainProjects)
       {
-        AddHeaderCell(ws, column, project.Name, MainProjectColor);
-        column++;
+        AddHeaderCell(ws, mainProjectsColumn, project.Name, MainProjectColor);
+        mainProjectsColumn++;
       }
 
       foreach (var project in otherProjects)
       {
-        AddHeaderCell(ws, column, project.Name, OtherProjectColor);
-        column++;
+        AddHeaderCell(ws, otherProjectsColumn, project.Name, OtherProjectColor);
+        otherProjectsColumn++;
       }
 
-      for (int userNumber = 0; userNumber < usersInfos.Count; userNumber++)
+      for (int userNumber = 0; userNumber < sortedUsers.Count; userNumber++)
       {
         int row = userNumber + 3;
-        column = startColumn;
+        mainProjectsColumn = mainProjectsStartColumn;
+        otherProjectsColumn = otherProjectsStartColumn;
 
-        foreach (var project in departmentProjects)
+        foreach (var project in mainProjects)
         {
-          WriteProjectInfo(row, column++, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
+          WriteProjectInfo(row, mainProjectsColumn++, workTimes.FirstOrDefault(wt => wt.UserId == sortedUsers[userNumber].Id && wt.ProjectId == project.Id), ws);
         }
 
         foreach (var project in otherProjects)
         {
-          WriteProjectInfo(row, column++, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
+          WriteProjectInfo(row, otherProjectsColumn++, workTimes.FirstOrDefault(wt => wt.UserId == sortedUsers[userNumber].Id && wt.ProjectId == project.Id), ws);
         }
       }
     }
 
     private void WriteProjectInfo(int row, int column, DbWorkTime wt, IXLWorksheet ws)
     {
-      if (wt != null && (wt.ManagerWorkTime?.Hours != null || wt.Hours.HasValue))
+      if (wt is not null && (wt.ManagerWorkTime?.Hours is not null || wt.Hours.HasValue))
       {
-        ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours != null ? wt.ManagerWorkTime.Hours : wt.Hours);
+        ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours ?? wt.Hours);
       }
     }
 
@@ -366,7 +422,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
       IAccessValidator accessValidator,
       IResponseCreator responseCreator,
-      IImportStatFilterValidator validator)
+      IImportStatFilterValidator validator,
+      IUserImportStatInfoMapper mapper)
     {
       _projectService = projectService;
       _departmentService = departmentService;
@@ -378,6 +435,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       _accessValidator = accessValidator;
       _responseCreator = responseCreator;
       _validator = validator;
+      _mapper = mapper;
       _calendar = new IsDayOffIntegration();
     }
 
@@ -396,8 +454,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       List<Guid> usersIds;
 
       List<ProjectData> projects;
+      List<ProjectData> otherProjects = new();
       List<ProjectUserData> projectsUsers;
-      List<DepartmentData> departments = null;
+      DepartmentData department = null;
 
       if (filter.DepartmentId.HasValue)
       {
@@ -406,6 +465,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           errors,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1))).usersIds;
 
+        //todo - unite into one request
         projectsUsers = (await _projectService.GetProjectUsersAsync(errors, usersIds: usersIds)).projectUsersData;
 
         projects = await _projectService.GetProjectsDataAsync(
@@ -413,12 +473,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           projectsIds: projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(),
           includeUsers: false);
 
-        departments = await _departmentService.GetDepartmentsDataAsync(errors, projectsIds: projects.Select(p => p.Id).ToList());
+        department = (await _departmentService.GetDepartmentsDataAsync(errors, projectsIds: projects.Select(p => p.Id).ToList()))?
+          .FirstOrDefault(d => d.Id == filter.DepartmentId.Value);
 
-        if (projectsUsers == null || projects == null || departments == null)
+        if (projectsUsers is null || projects is null || department is null)
         {
           return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.BadRequest);
         }
+
+        otherProjects.AddRange(projects.Where(p => !department.ProjectsIds.Contains(p.Id)).OrderBy(p => p.Name));
+        projects = projects.Where(p => department.ProjectsIds.Contains(p.Id)).OrderBy(p => p.Name).ToList();
       }
       else
       {
@@ -432,7 +496,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds, errors);
 
-      if (usersInfos == null || projects == null)
+      if (usersInfos is null || projects is null)
       {
         return new()
         {
@@ -441,22 +505,42 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
 
       List<CompanyUserData> companies = (await _companyService.GetCompaniesDataAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
-      List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(usersIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month);
+      List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(
+        usersIds,
+        projects.Select(p => p.Id).Concat(otherProjects.Select(p => p.Id).Concat(new[] {Guid.Empty})).ToList(),
+        filter.Year,
+        filter.Month);
+
+      if (workTimes.Any(wt => wt.ProjectId == Guid.Empty))
+      {
+        otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", default, default, default));
+      }
+
       List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
+
+      List<UserImportStatInfo> sortedUsers = _mapper.Map(usersInfos, companies)
+        .GroupBy(x => x.CompanyUserData?.ContractSubject?.Name).OrderByDescending(x => x.Key).SelectMany(x => x).ToList();
+
       List<DbWorkTimeMonthLimit> monthsLimits;
+
       if (leaveTimes.Any())
       {
         monthsLimits = await GetNeededRangeOfMonthLimitsAsync(
-          filter.Year,
-          filter.Month,
           leaveTimes.Select(lt => lt.StartTime).Min(),
           leaveTimes.Select(lt => lt.EndTime).Max());
+
+        if (monthsLimits is null)
+        {
+          errors.Add("Cannot get month limit.");
+
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.BadRequest, errors);
+        }
       }
       else
       {
         DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
-        if (monthLimit == null)
+        if (monthLimit is null)
         {
           errors.Add("Cannot get month limit.");
 
@@ -470,7 +554,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       return new()
       {
-        Body = CreateTable(filter, usersInfos, projects, companies, departments, workTimes, leaveTimes, monthsLimits)
+        Body = CreateTable(
+          filter: filter,
+          sortedUsers: sortedUsers,
+          mainProjects: projects,
+          otherProjects: otherProjects,
+          department: department,
+          workTimes: workTimes,
+          leaveTimes: leaveTimes,
+          monthsLimits: monthsLimits.OrderBy(x => x.Year).ThenBy(x => x.Month).ToList())
       };
     }
   }
