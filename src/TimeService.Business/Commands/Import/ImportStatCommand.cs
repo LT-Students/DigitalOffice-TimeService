@@ -38,6 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private XLColor LeaveTypesColor => XLColor.LavenderBlue;
     private XLColor TimesColor => XLColor.LightGreen;
 
+    //ToDo - move to file
     private readonly Dictionary<LeaveType, string> _leaveTypesNamesRu = 
       new()
       {
