@@ -519,7 +519,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
 
       List<UserImportStatInfo> sortedUsers = _mapper.Map(usersInfos, companies)
-          .GroupBy(x => x.CompanyUserData?.ContractSubject?.Name).OrderByDescending(x => x.Key).SelectMany(x => x).ToList();
+        .GroupBy(x => x.CompanyUserData?.ContractSubject?.Name).OrderByDescending(x => x.Key).SelectMany(x => x).ToList();
 
       List<DbWorkTimeMonthLimit> monthsLimits;
 
