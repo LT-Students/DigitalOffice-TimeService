@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
     [FromQuery(Name = "month")]
     public int? Month { get; set; }
 
-    [FromQuery(Name = "acsendingsort")]
+    [FromQuery(Name = "ascendingsort")]
     public bool? AscendingSort { get; set; }
 
     [FromQuery(Name = "nameincludesubstring")]
