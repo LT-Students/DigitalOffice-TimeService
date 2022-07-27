@@ -14,7 +14,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response.Interfaces
       DbWorkTimeMonthLimit dbMonthLimit,
       UserInfo userInfo,
       UserInfo managerInfo,
-      ProjectUserData projectUser,
       ProjectInfo project);
   }
 }

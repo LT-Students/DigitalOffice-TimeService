@@ -10,7 +10,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
     {
         WorkTimeInfo Map(
             DbWorkTime dbWorkTime,
-            ProjectUserData projectUser,
             ProjectInfo project);
     }
 }

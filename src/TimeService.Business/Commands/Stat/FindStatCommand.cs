@@ -38,7 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IPositionService _positionService;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
-    private readonly IStatInfoMapper _statInfoMapper;
+    private readonly IUserStatInfoMapper _userStatInfoMapper;
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ILeaveTimeRepository _leaveTimeRepository;
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
@@ -56,7 +56,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IPositionService positionService,
       IUserInfoMapper userInfoMapper,
       IProjectInfoMapper projectInfoMapper,
-      IStatInfoMapper statInfoMapper,
+      IUserStatInfoMapper userStatInfoMapper,
       IWorkTimeRepository workTimeRepository,
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
@@ -73,7 +73,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _positionService = positionService;
       _userInfoMapper = userInfoMapper;
       _projectInfoMapper = projectInfoMapper;
-      _statInfoMapper = statInfoMapper;
+      _userStatInfoMapper = userStatInfoMapper;
       _workTimeRepository = workTimeRepository;
       _leaveTimeRepository = leaveTimeRepository;
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
@@ -83,11 +83,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _accessValidator = accessValidator;
     }
 
-    public async Task<FindResultResponse<StatInfo>> ExecuteAsync(FindStatFilter filter)
+    public async Task<FindResultResponse<UserStatInfo>> ExecuteAsync(FindStatFilter filter)
     {
       if (!_validator.ValidateCustom(filter, out List<string> errors))
       {
-        return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.BadRequest, errors);
       }
 
       List<DbWorkTime> dbWorkTimes;
@@ -105,13 +105,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
         if (projectUsersData is null)
         {
-          return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.NotFound);
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
         }
 
         if (projectUsersData.FirstOrDefault(x => x.UserId == senderId)?.ProjectUserRole != ProjectUserRoleType.Manager
           && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
         {
-          return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
         usersIds = projectUsersData.Select(pu => pu.UserId).ToList();
@@ -124,7 +124,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           && !(filter.DepartmentsIds?.Count == 1
             && departmentsData?.FirstOrDefault()?.Users.FirstOrDefault(user => user.UserId == senderId)?.Role == DepartmentUserRole.Manager))
         {
-          return _responseCreator.CreateFailureFindResponse<StatInfo>(HttpStatusCode.Forbidden);
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
         departmentsData?.ForEach(x => usersIds.AddRange(x.Users.Select(user => user.UserId)));
@@ -133,7 +133,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
       dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
 
-      projectsData = await _projectService.GetProjectsDataAsync(
+      Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
         errors,
         projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(),
         includeUsers: false);
@@ -143,43 +143,45 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         : null;
 
       (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
-        usersIds,
-        filter.SkipCount,
-        filter.TakeCount,
-        filter.AscendingSort,
-        errors);
+        usersIds: usersIds,
+        skipCount: filter.SkipCount,
+        takeCount: filter.TakeCount,
+        ascendingSort: filter.AscendingSort,
+        nameIncludeSubstring: filter.NameIncludeSubstring,
+        errors: errors);
 
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
-      Task<List<ImageData>> imagesTask = _imageService.GetImagesAsync(usersIds, errors);
-      Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersIds, errors);
+      Task<List<ImageData>> imagesTask = _imageService.GetImagesAsync(usersData?.Select(u => u.Id).ToList(), errors);
+      Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
       List<ImageData> images = await imagesTask;
-
-      List<CompanyUserData> companies = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
       List<UserInfo> usersInfos = usersData?
         .Select(u => _userInfoMapper.Map(
           u,
           images?.FirstOrDefault(i => i.ParentId == u.Id))).ToList();
 
-      List<ProjectInfo> projectInfos = projectsData?.Select(_projectInfoMapper.Map).ToList();
+      projectsData = await projectsTask;
 
-      return new FindResultResponse<StatInfo>
+      List<ProjectInfo> projectsInfos = projectsData?.Select(_projectInfoMapper.Map).ToList();
+
+      List<PositionData> positionsData = await positionsTask;
+      List<CompanyUserData> companiesUsersData = (await companiesTask)?.SelectMany(p => p.Users).ToList();
+
+      return new FindResultResponse<UserStatInfo>
       {
         TotalCount = totalCount,
-        Body = _statInfoMapper.Map(
-          departmentsData,
-          usersIds,
-          usersInfos,
-          projectUsersData,
-          monthLimit,
-          dbWorkTimes,
-          projectInfos,
-          dbLeaveTimes,
-          await positionsTask,
-          companies),
+        Body = usersInfos?.Select(user => _userStatInfoMapper.Map(
+          user: user,
+          monthLimit: monthLimit,
+          workTimes: dbWorkTimes?.Where(wt => wt.UserId == user.Id).ToList(),
+          leaveTimes: dbLeaveTimes?.Where(lt => lt.UserId == user.Id).ToList(),
+          projects: projectsInfos,
+          position: positionsData?.FirstOrDefault(p => p.UsersIds.Contains(user.Id)),
+          department: departmentsData?.FirstOrDefault(d => d.Users.Any(du => du.UserId == user.Id)),
+          companyUser: companiesUsersData?.FirstOrDefault(cu => cu.UserId == user.Id))).ToList(),
         Errors = errors
       };
     }

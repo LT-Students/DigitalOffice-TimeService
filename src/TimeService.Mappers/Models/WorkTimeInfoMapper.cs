@@ -18,7 +18,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 
     public WorkTimeInfo Map(
       DbWorkTime dbWorkTime,
-      ProjectUserData projectUser,
       ProjectInfo project)
     {
       if (dbWorkTime == null)
