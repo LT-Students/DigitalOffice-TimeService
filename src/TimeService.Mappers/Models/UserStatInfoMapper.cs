@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using LT.DigitalOffice.Models.Broker.Models.Company;
+using LT.DigitalOffice.Models.Broker.Models.Department;
 using LT.DigitalOffice.Models.Broker.Models.Position;
-using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
@@ -16,6 +15,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
     private readonly IWorkTimeInfoMapper _workTimeInfoMapper;
     private readonly ILeaveTimeInfoMapper _leaveTimeInfoMapper;
     private readonly IPositionInfoMapper _positionInfoMapper;
+    private readonly IDepartmentInfoMapper _departmentInfoMapper;
     private readonly ICompanyUserInfoMapper _companyUserInfoMapper;
 
     public UserStatInfoMapper(
@@ -23,33 +23,35 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       IWorkTimeInfoMapper workTimeInfoMapper,
       ILeaveTimeInfoMapper leaveTimeInfoMapper,
       IPositionInfoMapper positionInfoMapper,
+      IDepartmentInfoMapper departmentInfoMapper,
       ICompanyUserInfoMapper companyUserInfoMapper)
     {
       _monthLimitInfoMapper = monthLimitInfoMapper;
       _workTimeInfoMapper = workTimeInfoMapper;
       _leaveTimeInfoMapper = leaveTimeInfoMapper;
       _positionInfoMapper = positionInfoMapper;
+      _departmentInfoMapper = departmentInfoMapper;
       _companyUserInfoMapper = companyUserInfoMapper;
     }
 
     public UserStatInfo Map(
-      Guid userId,
       UserInfo user,
-      ProjectUserData projectUser,
       DbWorkTimeMonthLimit monthLimit,
       List<DbWorkTime> workTimes,
-      List<ProjectInfo> projects,
       List<DbLeaveTime> leaveTimes,
+      List<ProjectInfo> projects,
       PositionData position,
+      DepartmentData department,
       CompanyUserData companyUser)
     {
       return new UserStatInfo
       {
-        User = user ?? new UserInfo { Id = userId },
+        User = user,
         Position = _positionInfoMapper.Map(position),
+        Department = _departmentInfoMapper.Map(department),
         CompanyUser = _companyUserInfoMapper.Map(companyUser),
         LeaveTimes = leaveTimes?.Select(lt => _leaveTimeInfoMapper.Map(lt)).ToList(),
-        WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(wt, projectUser, projects.FirstOrDefault(p => p.Id == wt.ProjectId))).ToList(),
+        WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(wt, projects?.FirstOrDefault(p => p.Id == wt.ProjectId))).ToList(),
         LimitInfo = _monthLimitInfoMapper.Map(monthLimit)
       };
     }

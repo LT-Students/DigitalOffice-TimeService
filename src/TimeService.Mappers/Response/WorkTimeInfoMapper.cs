@@ -26,7 +26,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response
       DbWorkTimeMonthLimit dbMonthLimit,
       UserInfo userInfo,
       UserInfo managerInfo,
-      ProjectUserData projectUser,
       ProjectInfo project)
     {
       if (dbWorkTime == null)
@@ -36,7 +35,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response
 
       return new WorkTimeResponse
       {
-        WorkTime = _workTimeInfoMapper.Map(dbWorkTime, projectUser, project),
+        WorkTime = _workTimeInfoMapper.Map(dbWorkTime, project),
         User = userInfo ?? new UserInfo { Id = dbWorkTime.UserId },
         Manager = managerInfo,
         LimitInfo = _workTimeMonthLimitInfoMapper.Map(dbMonthLimit)

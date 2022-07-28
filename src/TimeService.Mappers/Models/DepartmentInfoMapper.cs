@@ -8,6 +8,11 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
   {
     public DepartmentInfo Map(DepartmentData departmentData)
     {
+      if (departmentData is null)
+      {
+        return default;
+      }
+
       return new DepartmentInfo()
       {
         Id = departmentData.Id,

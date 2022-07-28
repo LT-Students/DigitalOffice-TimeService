@@ -16,6 +16,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
       int skipCount,
       int takeCount,
       bool? ascendingSort,
+      string nameIncludeSubstring,
       List<string> errors);
   }
 }

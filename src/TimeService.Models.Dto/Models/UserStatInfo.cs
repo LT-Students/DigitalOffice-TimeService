@@ -10,6 +10,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 
     public CompanyUserInfo CompanyUser { get; set; }
 
+    public DepartmentInfo Department { get; set; }
+
     public List<LeaveTimeInfo> LeaveTimes { get; set; }
 
     public List<WorkTimeInfo> WorkTimes { get; set; }

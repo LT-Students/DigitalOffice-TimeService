@@ -22,14 +22,21 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsersData;
     private readonly IRequestClient<IFilteredUsersDataRequest> _rcGetFilteredUsersData;
 
-    private string CreateFilterUsersCacheKey(List<Guid> usersIds, int skipCount, int takeCount, bool? ascendingSort)
+    private string CreateFilterUsersCacheKey(List<Guid> usersIds, int skipCount, int takeCount, bool? ascendingSort, string nameIncludeSubstring)
     {
-      if (ascendingSort is null)
+      List<object> additionalArgs = new() { skipCount, takeCount };
+
+      if (ascendingSort.HasValue)
       {
-        return usersIds.GetRedisCacheHashCode(skipCount, takeCount);
+        additionalArgs.Add(ascendingSort.Value);
+      }
+
+      if (!string.IsNullOrWhiteSpace(nameIncludeSubstring))
+      {
+        additionalArgs.Add(nameIncludeSubstring);
       }
       
-      return usersIds.GetRedisCacheHashCode(skipCount, takeCount, ascendingSort);
+      return usersIds.GetRedisCacheHashCode(additionalArgs.ToArray());
     }
 
     public UserService(
@@ -72,6 +79,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       int skipCount,
       int takeCount,
       bool? ascendingSort,
+      string nameIncludeSubstring,
       List<string> errors)
     {
       if (usersIds is null || !usersIds.Any())
@@ -81,7 +89,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       (List<UserData> usersData, int totalCount) = await _globalCache.GetAsync<(List<UserData>, int)>(
         Cache.Users,
-        CreateFilterUsersCacheKey(usersIds, skipCount, takeCount, ascendingSort));
+        CreateFilterUsersCacheKey(usersIds, skipCount, takeCount, ascendingSort, nameIncludeSubstring));
 
       if (usersData is null)
       {
@@ -92,7 +100,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
               usersIds,
               skipCount: skipCount,
               takeCount: takeCount,
-              ascendingSort: ascendingSort),
+              ascendingSort: ascendingSort,
+              fullNameIncludeSubstring: nameIncludeSubstring),
             errors,
             _logger);
 

@@ -104,20 +104,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       return new()
       {
         TotalCount = totalCount,
-        Body = dbWorkTimes.Select(
-          wt =>
-          {
-            ProjectData project = projects?.FirstOrDefault(p => p.Id == wt.ProjectId);
-            return _workTimeResponseMapper.Map(
-              wt,
-              monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
-              _userInfoMapper.Map(
-                users?.FirstOrDefault(u => u.Id == wt.UserId)),
-              _userInfoMapper.Map(
-                users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy)),
-              project?.Users.FirstOrDefault(pu => pu.UserId == wt.UserId),
-              _projectInfoMapper.Map(project));
-          }).ToList(),
+        Body = dbWorkTimes.Select(wt => _workTimeResponseMapper.Map(
+          wt,
+          monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
+          _userInfoMapper.Map(
+            users?.FirstOrDefault(u => u.Id == wt.UserId)),
+          _userInfoMapper.Map(
+            users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy)),
+          _projectInfoMapper.Map(projects?.FirstOrDefault(p => p.Id == wt.ProjectId)))).ToList(),
         Errors = errors
       };
     }

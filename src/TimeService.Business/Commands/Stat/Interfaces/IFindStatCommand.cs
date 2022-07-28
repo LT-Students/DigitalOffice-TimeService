@@ -9,6 +9,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat.Interfaces
   [AutoInject]
   public interface IFindStatCommand
   {
-    Task<FindResultResponse<StatInfo>> ExecuteAsync(FindStatFilter filter);
+    Task<FindResultResponse<UserStatInfo>> ExecuteAsync(FindStatFilter filter);
   }
 }
