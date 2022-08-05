@@ -16,5 +16,6 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
     public DateTime? ModifiedAtUtc { get; set; }
     public ProjectInfo Project { get; set; }
     public List<WorkTimeDayJobInfo> Jobs { get; set; }
+    public UserInfo Manager { get; set; }
   }
 }

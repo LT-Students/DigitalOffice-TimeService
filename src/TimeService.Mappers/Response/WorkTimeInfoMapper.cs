@@ -1,10 +1,8 @@
-﻿using LT.DigitalOffice.Models.Broker.Models.Project;
-using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
+﻿using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Response.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Models.Dto.Responses;
-using System;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Response
 {
@@ -35,9 +33,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response
 
       return new WorkTimeResponse
       {
-        WorkTime = _workTimeInfoMapper.Map(dbWorkTime, project),
+        WorkTime = _workTimeInfoMapper.Map(dbWorkTime, project, managerInfo),
         User = userInfo ?? new UserInfo { Id = dbWorkTime.UserId },
-        Manager = managerInfo,
         LimitInfo = _workTimeMonthLimitInfoMapper.Map(dbMonthLimit)
       };
     }

@@ -96,6 +96,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<ProjectUserData> projectUsersData = default;
       List<DepartmentData> departmentsData = default;
       List<Guid> usersIds = new();
+      List<Guid> managersIds = new();
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
@@ -133,6 +134,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
       dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
 
+      managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).Distinct().ToList();
+
+      Task<List<UserData>> managersDataTask = _userService.GetUsersDataAsync(managersIds, errors);
+
       Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
         errors,
         projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(),
@@ -163,6 +168,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           u,
           images?.FirstOrDefault(i => i.ParentId == u.Id))).ToList();
 
+      List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
+
       projectsData = await projectsTask;
 
       List<ProjectInfo> projectsInfos = projectsData?.Select(_projectInfoMapper.Map).ToList();
@@ -175,6 +182,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         TotalCount = totalCount,
         Body = usersInfos?.Select(user => _userStatInfoMapper.Map(
           user: user,
+          managersInfos: managersInfos,
           monthLimit: monthLimit,
           workTimes: dbWorkTimes?.Where(wt => wt.UserId == user.Id).ToList(),
           leaveTimes: dbLeaveTimes?.Where(lt => lt.UserId == user.Id).ToList(),

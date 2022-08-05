@@ -107,6 +107,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       return departmentsData;
     }
 
+    //todo - remove projectsIds
     public async Task<List<DepartmentData>> GetDepartmentsDataAsync(
       List<string> errors,
       List<Guid> departmentsIds = null,
