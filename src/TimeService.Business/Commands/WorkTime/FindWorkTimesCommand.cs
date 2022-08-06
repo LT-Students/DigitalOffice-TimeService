@@ -66,7 +66,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
     public async Task<FindResultResponse<WorkTimeResponse>> ExecuteAsync(FindWorkTimesFilter filter)
     {
-      var isAuthor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
+      bool isAuthor = filter.UserId.HasValue && filter.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
       if (!isAuthor && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
