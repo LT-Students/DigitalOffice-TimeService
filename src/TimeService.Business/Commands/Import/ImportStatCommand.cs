@@ -274,14 +274,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
           int row = userNumber + 3;
-          double? rate = sortedUsers[userNumber].CompanyUserData?.Rate;
 
           UserImportStatInfo currentUserStatInfo = sortedUsers[userNumber];
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
           ws.Cell(row, 2).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
-          ws.Cell(row, 3).SetValue(rate);
-          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * rate);
+          ws.Cell(row, 3).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
+          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
           ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnsCount - lastHeaders.Count).Address})")
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
           ws.Cell(row, columnNumber - 1).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
