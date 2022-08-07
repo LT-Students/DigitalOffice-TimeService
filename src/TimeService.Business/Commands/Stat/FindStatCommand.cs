@@ -132,7 +132,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       }
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
-      dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
+      dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
 
       managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).Distinct().ToList();
 
