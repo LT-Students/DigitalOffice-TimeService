@@ -19,7 +19,7 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<(List<DbLeaveTime>, int totalCount)> FindAsync(FindLeaveTimesFilter filter);
 
-    Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month);
+    Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month, bool? isActive = null);
 
     Task<DbLeaveTime> GetAsync(Guid leaveTimeId);
 

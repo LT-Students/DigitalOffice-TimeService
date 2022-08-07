@@ -80,7 +80,7 @@ namespace LT.DigitalOffice.TimeService.Data
       return (await dbLeaveTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), await dbLeaveTimes.CountAsync());
     }
 
-    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month)
+    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month, bool? isActive = null)
     {
       if (usersIds == null)
       {
@@ -88,6 +88,11 @@ namespace LT.DigitalOffice.TimeService.Data
       }
 
       IQueryable<DbLeaveTime> dbLeaveTimes = _provider.LeaveTimes.Where(lt => usersIds.Contains(lt.UserId));
+
+      if (isActive.HasValue)
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(lt => lt.IsActive == isActive.Value);
+      }
 
       if (month is not null)
       {
