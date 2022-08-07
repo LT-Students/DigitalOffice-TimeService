@@ -63,6 +63,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     #region private methods
 
+    private void SetMaxParamsLength(UserImportStatInfo userInfo, ref int nameMaxValue, ref int contractSubjectMaxValue)
+    {
+      nameMaxValue = nameMaxValue > userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3
+        ? nameMaxValue
+        : userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3;
+
+      contractSubjectMaxValue = contractSubjectMaxValue > (userInfo.CompanyUserData?.ContractSubject?.Name.Length ?? 0)
+        ? contractSubjectMaxValue
+        : userInfo.CompanyUserData.ContractSubject.Name.Length + 3;
+    }
+    
     private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(DateTime start, DateTime end, List<string> errors = null)
     {
       List<DbWorkTimeMonthLimit> limits = await _workTimeMonthLimitRepository.GetAsync(start.Year, start.Month, end.Year, end.Month);
@@ -255,25 +266,31 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         for (int currentColumn = headers.Count; currentColumn <= columnsCount - lastHeaders.Count; currentColumn++)
         {
           ws.Cell(2, currentColumn).SetFormulaR1C1($"=SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})");
-        } 
+        }
+
+        int maxUserNameLength = 0;
+        int maxUserContractSubjectLength = 0;
 
         for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
           int row = userNumber + 3;
-          double? rate = sortedUsers[userNumber].CompanyUserData?.Rate;
+
+          UserImportStatInfo currentUserStatInfo = sortedUsers[userNumber];
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
-          ws.Cell(row, 2).SetValue($"{sortedUsers[userNumber].UserData.LastName} {sortedUsers[userNumber].UserData.FirstName}");
-          ws.Cell(row, 3).SetValue(rate);
-          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * rate);
+          ws.Cell(row, 2).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
+          ws.Cell(row, 3).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
+          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
           ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnsCount - lastHeaders.Count).Address})")
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
-          ws.Cell(row, columnNumber - 1).SetValue(sortedUsers[userNumber].CompanyUserData?.ContractSubject?.Name)
+          ws.Cell(row, columnNumber - 1).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
+
+          SetMaxParamsLength(currentUserStatInfo, ref maxUserNameLength, ref maxUserContractSubjectLength);
         }
 
-        ws.Column(2).AdjustToContents();
-        ws.Columns(columnsCount - lastHeaders.Count + 1, columnsCount).AdjustToContents();
+        ws.Column(2).Width = maxUserNameLength;
+        ws.Columns(columnsCount - lastHeaders.Count + 1, columnsCount).Width = maxUserContractSubjectLength;
 
         if (filter.DepartmentId.HasValue)
         {
@@ -288,12 +305,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         }
         else
         {
-          /*CreateProjectPartTable(
-            ws,
-            headers.Count + 1,
-            mainProjects[0],
-            sortedUsers.Select(x => x.UserData).ToList(),
-            workTimes);*/
           CreateProjectsPartTable(
             ws: ws,
             mainProjectsStartColumn: headers.Count + 1,
@@ -388,23 +399,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       if (wt is not null && (wt.ManagerWorkTime?.Hours is not null || wt.Hours.HasValue))
       {
         ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours ?? wt.Hours);
-      }
-    }
-
-    private void CreateProjectPartTable(
-      IXLWorksheet ws,
-      int startColumn,
-      ProjectData project,
-      List<UserData> usersInfos,
-      List<DbWorkTime> workTimes)
-    {
-      AddHeaderCell(ws, startColumn, project.Name, MainProjectColor);
-
-      for (int userNumber = 0; userNumber < usersInfos.Count; userNumber++)
-      {
-        int row = userNumber + 3;
-
-        WriteProjectInfo(row, startColumn, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
       }
     }
 

@@ -36,6 +36,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 
     public UserStatInfo Map(
       UserInfo user,
+      List<UserInfo> managersInfos,
       DbWorkTimeMonthLimit monthLimit,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
@@ -51,7 +52,12 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Department = _departmentInfoMapper.Map(department),
         CompanyUser = _companyUserInfoMapper.Map(companyUser),
         LeaveTimes = leaveTimes?.Select(lt => _leaveTimeInfoMapper.Map(lt)).ToList(),
-        WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(wt, projects?.FirstOrDefault(p => p.Id == wt.ProjectId))).ToList(),
+        WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(
+          dbWorkTime: wt,
+          project: projects?.FirstOrDefault(p => p.Id == wt.ProjectId),
+          manager : wt.ManagerWorkTime is not null
+            ? managersInfos?.FirstOrDefault(m => m.Id == wt.ManagerWorkTime.ModifiedBy.Value)
+            : null)).ToList(),
         LimitInfo = _monthLimitInfoMapper.Map(monthLimit)
       };
     }

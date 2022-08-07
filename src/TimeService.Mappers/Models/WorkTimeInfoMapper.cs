@@ -18,7 +18,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 
     public WorkTimeInfo Map(
       DbWorkTime dbWorkTime,
-      ProjectInfo project)
+      ProjectInfo project,
+      UserInfo manager)
     {
       if (dbWorkTime == null)
       {
@@ -40,7 +41,8 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Description = dbWorkTime.Description,
         ManagerDescription = dbWorkTime.ManagerWorkTime?.Description,
         ModifiedAtUtc = dbWorkTime.ModifiedAtUtc,
-        Jobs = dbWorkTime.WorkTimeDayJobs?.Select(_workTimeDayJobInfoMapper.Map).ToList()
+        Jobs = dbWorkTime.WorkTimeDayJobs?.Select(_workTimeDayJobInfoMapper.Map).ToList(),
+        Manager = manager
       };
     }
   }

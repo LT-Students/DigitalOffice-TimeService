@@ -13,6 +13,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
   {
     UserStatInfo Map(
       UserInfo user,
+      List<UserInfo> managersInfos,
       DbWorkTimeMonthLimit monthLimit,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
