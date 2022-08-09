@@ -19,8 +19,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
     Task<List<DepartmentData>> GetDepartmentsDataAsync(
       List<string> errors,
       List<Guid> departmentsIds = null,
-      List<Guid> usersIds = null,
-      List<Guid> projectsIds = null);
+      List<Guid> usersIds = null);
 
     Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors);
   }

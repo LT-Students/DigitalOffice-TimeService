@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
 
-    private List<Guid> GetRedisKeyArray(List<Guid> departmentsIds = null, List<Guid> usersIds = null, List<Guid> projectsIds = null)
+    private List<Guid> GetRedisKeyArray(List<Guid> departmentsIds = null, List<Guid> usersIds = null)
     {
       List<Guid> keyAray = new List<Guid>();
 
@@ -35,11 +35,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       if (usersIds is not null)
       {
         keyAray.AddRange(usersIds);
-      }
-
-      if (projectsIds is not null)
-      {
-        keyAray.AddRange(projectsIds);
       }
 
       return keyAray;
@@ -107,15 +102,13 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       return departmentsData;
     }
 
-    //todo - remove projectsIds
     public async Task<List<DepartmentData>> GetDepartmentsDataAsync(
       List<string> errors,
       List<Guid> departmentsIds = null,
-      List<Guid> usersIds = null,
-      List<Guid> projectsIds = null)
+      List<Guid> usersIds = null)
     {
       List<DepartmentData> departmentsData = await _globalCache.GetAsync<List<DepartmentData>>(
-        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds, projectsIds).GetRedisCacheHashCode());
+        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheHashCode());
 
       if (departmentsData is null)
       {
@@ -124,8 +117,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             _rcGetDepartments,
             IGetDepartmentsRequest.CreateObj(
               departmentsIds: departmentsIds,
-              usersIds: usersIds,
-              projectsIds: projectsIds),
+              usersIds: usersIds),
             errors,
             _logger))
           ?.Departments;

@@ -10,10 +10,11 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
   public interface IProjectService
   {
     Task<List<ProjectData>> GetProjectsDataAsync(
-      List<string> errors,
       List<Guid> projectsIds = null,
-      Guid? userId = null,
-      bool includeUsers = false);
+      List<Guid> usersIds = null,
+      bool includeUsers = false,
+      bool includeDepartments = false,
+      List<string> errors = null);
 
     Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(
       List<string> errors,

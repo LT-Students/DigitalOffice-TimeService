@@ -24,8 +24,9 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
     private string CreateGetProjectCacheKey(
       List<Guid> projectIds = null,
-      Guid? userId = null,
-      bool includeUsers = false)
+      List<Guid> usersIds = null,
+      bool includeUsers = false,
+      bool includeDepartment = false)
     {
       List<Guid> ids = new();
 
@@ -34,13 +35,12 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         ids.AddRange(projectIds);
       }
 
-      if (userId.HasValue)
+      if (usersIds is not null && usersIds.Any())
       {
-        ids.Add(userId.Value);
+        ids.AddRange(usersIds);
       }
 
-
-      return ids.GetRedisCacheHashCode(includeUsers);
+      return ids.GetRedisCacheHashCode(includeDepartment, includeUsers);
     }
 
     public ProjectService(
@@ -56,12 +56,13 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     }
 
     public async Task<List<ProjectData>> GetProjectsDataAsync(
-      List<string> errors,
       List<Guid> projectsIds = null,
-      Guid? userId = null,
-      bool includeUsers = false)
+      List<Guid> usersIds = null,
+      bool includeUsers = false,
+      bool includeDepartments = false,
+      List<string> errors = null)
     {
-      if (projectsIds is null || !projectsIds.Any())
+      if ((projectsIds is null || !projectsIds.Any()) && (usersIds is null || !usersIds.Any()))
       {
         return null;
       }
@@ -69,7 +70,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       List<ProjectData> projectsData;
 
       (projectsData, int _) = await _globalCache.GetAsync<(List<ProjectData>, int)>(
-        Cache.Projects, CreateGetProjectCacheKey(projectsIds, userId, includeUsers));
+        Cache.Projects, CreateGetProjectCacheKey(projectsIds, usersIds, includeUsers, includeDepartments));
 
       if (projectsData is null)
       {
@@ -78,8 +79,9 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             _rcGetProjects,
             IGetProjectsRequest.CreateObj(
               projectsIds: projectsIds,
-              userId: userId,
-              includeUsers: includeUsers),
+              usersIds: usersIds,
+              includeUsers: includeUsers,
+              includeDepartment: includeDepartments),
             errors,
             _logger))
           ?.Projects;

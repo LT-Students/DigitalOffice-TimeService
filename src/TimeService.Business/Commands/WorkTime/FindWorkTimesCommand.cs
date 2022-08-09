@@ -84,9 +84,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       usersIds.AddRange(dbWorkTimes.Where(wt => wt.ManagerWorkTime != null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).ToList());
 
       Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
-        errors,
         projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(),
-        userId: filter.UserId);
+        usersIds: filter.UserId.HasValue ? new() { filter.UserId.Value } : null);
       Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
       Task<(List<DbWorkTimeMonthLimit>, int)> limitTask = _monthLimitRepository.FindAsync(
         new()
