@@ -12,7 +12,6 @@ using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
-using LT.DigitalOffice.Models.Broker.Models.Department;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
@@ -196,7 +195,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       List<UserImportStatInfo> sortedUsers,
       List<ProjectData> mainProjects,
       List<ProjectData> otherProjects,
-      DepartmentData department,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
       List<DbWorkTimeMonthLimit> monthsLimits)
@@ -446,11 +444,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
 
       List<Guid> usersIds;
-
       List<ProjectData> projects;
       List<ProjectData> otherProjects = new();
-      List<ProjectUserData> projectsUsers;
-      DepartmentData department = null;
 
       if (filter.DepartmentId.HasValue)
       {
@@ -459,29 +454,30 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           errors,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1))).usersIds;
 
-        //todo - unite into one request
-        projectsUsers = (await _projectService.GetProjectUsersAsync(errors, usersIds: usersIds)).projectUsersData;
-
-        projects = await _projectService.GetProjectsDataAsync(
-          errors,
-          projectsIds: projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(),
-          includeUsers: false);
-
-        department = (await _departmentService.GetDepartmentsDataAsync(errors, projectsIds: projects.Select(p => p.Id).ToList()))?
-          .FirstOrDefault(d => d.Id == filter.DepartmentId.Value);
-
-        if (projectsUsers is null || projects is null || department is null)
+        if (usersIds is null || !usersIds.Any())
         {
-          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.BadRequest);
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
         }
 
-        otherProjects.AddRange(projects.Where(p => !department.ProjectsIds.Contains(p.Id)).OrderBy(p => p.Name));
-        projects = projects.Where(p => department.ProjectsIds.Contains(p.Id)).OrderBy(p => p.Name).ToList();
+        projects = await _projectService.GetProjectsDataAsync(
+          usersIds: usersIds,
+          includeDepartments: true);
+
+        if (projects is null)
+        {
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
+        }
+
+        otherProjects.AddRange(
+          projects.Where(p => p.Department is null || p.Department.DepartmentId != filter.DepartmentId.Value)
+          .OrderBy(p => p.Name));
+        projects = projects
+          .Where(p => p.Department is not null && p.Department.DepartmentId == filter.DepartmentId)
+          .OrderBy(p => p.Name).ToList();
       }
       else
       {
         projects = await _projectService.GetProjectsDataAsync(
-          errors,
           projectsIds: new() { filter.ProjectId.Value },
           includeUsers: true);
 
@@ -507,7 +503,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (workTimes.Any(wt => wt.ProjectId == Guid.Empty))
       {
-        otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", default, default, default));
+        otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", default, default, default, default));
       }
 
       List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
@@ -553,7 +549,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           sortedUsers: sortedUsers,
           mainProjects: projects,
           otherProjects: otherProjects,
-          department: department,
           workTimes: workTimes,
           leaveTimes: leaveTimes,
           monthsLimits: monthsLimits.OrderBy(x => x.Year).ThenBy(x => x.Month).ToList())

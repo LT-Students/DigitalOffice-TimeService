@@ -139,9 +139,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       Task<List<UserData>> managersDataTask = _userService.GetUsersDataAsync(managersIds, errors);
 
       Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
-        errors,
-        projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList(),
-        includeUsers: false);
+        projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList());
 
       DbWorkTimeMonthLimit monthLimit = filter.Month.HasValue
         ? await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month.Value)
