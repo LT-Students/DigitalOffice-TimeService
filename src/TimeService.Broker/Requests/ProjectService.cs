@@ -81,8 +81,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       if (projectsData is null)
       {
         projectsData =
-          (await RequestHandler.ProcessRequest<IGetProjectsRequest, IGetProjectsResponse>(
-            _rcGetProjects,
+          (await _rcGetProjects.ProcessRequest<IGetProjectsRequest, IGetProjectsResponse>(
             IGetProjectsRequest.CreateObj(
               projectsIds: projectsIds,
               usersIds: usersIds,
@@ -103,8 +102,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       List<string> errors = null)
     {
       IGetProjectsUsersResponse response =
-          (await RequestHandler.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
-            _rcGetProjectsUsers,
+          (await _rcGetProjectsUsers.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
             IGetProjectsUsersRequest.CreateObj(
               projectsIds: projectsIds,
               usersIds: usersIds,
@@ -112,12 +110,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             errors,
             _logger));
 
-      if (response is null)
-      {
-        return default;
-      }
-
-      return response.Users;
+      return response?.Users;
     }
 
     public async Task<ProjectUserRoleType?> GetProjectUserRoleAsync(
@@ -131,12 +124,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
           projectId: projectId),
         errors);
 
-      if (response is null)
-      {
-        return default;
-      }
-
-      return response.ProjectUserRole;
+      return response?.ProjectUserRole;
     }
   }
 }

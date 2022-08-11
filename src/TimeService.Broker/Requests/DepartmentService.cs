@@ -59,9 +59,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       DateTime? byEntryDate = null,
       List<string> errors = null)
     {
-      IGetDepartmentsUsersResponse response = await RequestHandler
+      IGetDepartmentsUsersResponse response = await _rcGetDepartmentUsers
         .ProcessRequest<IGetDepartmentsUsersRequest, IGetDepartmentsUsersResponse>(
-          _rcGetDepartmentUsers,
           IGetDepartmentsUsersRequest.CreateObj(
             departmentsIds,
             byEntryDate: byEntryDate),
@@ -88,8 +87,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       if (departmentsData is null)
       {
         departmentsData =
-          (await RequestHandler.ProcessRequest<IFilterDepartmentsRequest, IFilterDepartmentsResponse>(
-            _rcFilterDepartments,
+          (await _rcFilterDepartments.ProcessRequest<IFilterDepartmentsRequest, IFilterDepartmentsResponse>(
             IFilterDepartmentsRequest.CreateObj(departmentsIds),
             errors,
             _logger))
@@ -110,8 +108,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       if (departmentsData is null)
       {
         departmentsData =
-          (await RequestHandler.ProcessRequest<IGetDepartmentsRequest, IGetDepartmentsResponse>(
-            _rcGetDepartments,
+          (await _rcGetDepartments.ProcessRequest<IGetDepartmentsRequest, IGetDepartmentsResponse>(
             IGetDepartmentsRequest.CreateObj(
               departmentsIds: departmentsIds,
               usersIds: usersIds),

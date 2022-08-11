@@ -266,8 +266,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           ws.Cell(2, currentColumn).SetFormulaR1C1($"=SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})");
         }
 
-        int maxUserNameLength = 0;
-        int maxUserContractSubjectLength = 0;
+        int maxUserNameLength = 5;
+        int maxUserContractSubjectLength = 5;
 
         for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
@@ -452,7 +452,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         usersIds = (await
           _departmentService.GetDepartmentsUsersAsync(
             new() { filter.DepartmentId.Value },
-            byEntryDate: new DateTime(filter.Year, filter.Month, 1)))
+            byEntryDate: new DateTime(filter.Year, filter.Month, 1)))?
           .Select(u => u.UserId).ToList();
 
         if (usersIds is null || !usersIds.Any())
@@ -482,12 +482,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
       else
       {
-        projects = await _projectService.GetProjectsDataAsync(
+        Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
           projectsIds: new() { filter.ProjectId.Value });
 
         List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
           projectsIds: new() { filter.ProjectId.Value },
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        projects = await projectsTask;
 
         usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList();
       }
