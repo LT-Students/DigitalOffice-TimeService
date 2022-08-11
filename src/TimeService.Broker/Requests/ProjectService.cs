@@ -6,6 +6,7 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Helpers;
 using LT.DigitalOffice.Kernel.RedisSupport.Constants;
 using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
+using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Responses.Project;
@@ -21,6 +22,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IGlobalCacheRepository _globalCache;
     private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
+    private readonly IRequestClient<IGetProjectUserRoleRequest> _rcGetProjectUserRole;
 
     private string CreateGetProjectCacheKey(
       List<Guid> projectIds = null,
@@ -40,19 +42,23 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         ids.AddRange(usersIds);
       }
 
-      return ids.GetRedisCacheHashCode(includeDepartment, includeUsers);
+      List<object> args = new() { includeDepartment, includeUsers };
+
+      return ids.GetRedisCacheHashCode(args.ToArray());
     }
 
     public ProjectService(
       ILogger<ProjectService> logger,
       IGlobalCacheRepository globalCache,
       IRequestClient<IGetProjectsRequest> rcGetProjects,
-      IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers)
+      IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
+      IRequestClient<IGetProjectUserRoleRequest> rcGetProjectUserRole)
     {
       _logger = logger;
       _globalCache = globalCache;
       _rcGetProjects = rcGetProjects;
       _rcGetProjectsUsers = rcGetProjectsUsers;
+      _rcGetProjectUserRole = rcGetProjectUserRole;
     }
 
     public async Task<List<ProjectData>> GetProjectsDataAsync(
@@ -90,12 +96,11 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       return projectsData;
     }
 
-    public async Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(
-      List<string> errors,
+    public async Task<List<ProjectUserData>> GetProjectsUsersAsync(
       List<Guid> projectsIds = null,
       List<Guid> usersIds = null,
-      int? skipCount = null,
-      int? takeCount = null)
+      DateTime? byEntryDate = null,
+      List<string> errors = null)
     {
       IGetProjectsUsersResponse response =
           (await RequestHandler.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
@@ -103,8 +108,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
             IGetProjectsUsersRequest.CreateObj(
               projectsIds: projectsIds,
               usersIds: usersIds,
-              skipCount: skipCount,
-              takeCount: takeCount),
+              byEntryDate: byEntryDate),
             errors,
             _logger));
 
@@ -113,7 +117,26 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return default;
       }
 
-      return (response.Users, response.TotalCount);
+      return response.Users;
+    }
+
+    public async Task<ProjectUserRoleType?> GetProjectUserRoleAsync(
+      Guid userId,
+      Guid projectId,
+      List<string> errors = null)
+    {
+      IGetProjectUserRoleResponse response = await _rcGetProjectUserRole.ProcessRequest<IGetProjectUserRoleRequest, IGetProjectUserRoleResponse>(
+        IGetProjectUserRoleRequest.CreateObj(
+          userId: userId,
+          projectId: projectId),
+        errors);
+
+      if (response is null)
+      {
+        return default;
+      }
+
+      return response.ProjectUserRole;
     }
   }
 }

@@ -17,7 +17,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
     public int Year { get; set; }
 
     [FromQuery(Name = "month")]
-    public int? Month { get; set; }
+    public int Month { get; set; }
 
     [FromQuery(Name = "ascendingsort")]
     public bool? AscendingSort { get; set; }

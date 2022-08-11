@@ -20,7 +20,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly ILogger<DepartmentService> _logger;
     private readonly IGlobalCacheRepository _globalCache;
     private readonly IRequestClient<IFilterDepartmentsRequest> _rcFilterDepartments;
-    private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
+    private readonly IRequestClient<IGetDepartmentsUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
 
     private List<Guid> GetRedisKeyArray(List<Guid> departmentsIds = null, List<Guid> usersIds = null)
@@ -44,7 +44,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       ILogger<DepartmentService> logger,
       IGlobalCacheRepository globalCache,
       IRequestClient<IFilterDepartmentsRequest> rcFilterDepartments,
-      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
+      IRequestClient<IGetDepartmentsUsersRequest> rcGetDepartmentUsers,
       IRequestClient<IGetDepartmentsRequest> rcGetDepartments)
     {
       _logger = logger;
@@ -54,20 +54,17 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       _rcGetDepartments = rcGetDepartments;
     }
 
-    public async Task<(List<Guid> usersIds, int totalCount)> GetDepartmentUsersAsync(
-      Guid departmentId,
-      List<string> errors,
-      int? skipCount = null,
-      int? takeCount = null,
-      DateTime? byEntryDate = null)
+    public async Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
+      List<Guid> departmentsIds,
+      DateTime? byEntryDate = null,
+      List<string> errors = null)
     {
-      IGetDepartmentUsersResponse response = await RequestHandler.ProcessRequest<IGetDepartmentUsersRequest, IGetDepartmentUsersResponse>(
+      IGetDepartmentsUsersResponse response = await RequestHandler
+        .ProcessRequest<IGetDepartmentsUsersRequest, IGetDepartmentsUsersResponse>(
           _rcGetDepartmentUsers,
-          IGetDepartmentUsersRequest.CreateObj(
-            departmentId,
-            skipCount: skipCount,
-            takeCount: takeCount,
-            ByEntryDate: byEntryDate),
+          IGetDepartmentsUsersRequest.CreateObj(
+            departmentsIds,
+            byEntryDate: byEntryDate),
           errors,
           _logger);
 
@@ -76,10 +73,10 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return default;
       }
 
-      return (response.UsersIds, response.TotalCount);
+      return response.Users;
     }
 
-    public async Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors)
+    public async Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors = null)
     {
       if (departmentsIds is null || !departmentsIds.Any())
       {
@@ -103,9 +100,9 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     }
 
     public async Task<List<DepartmentData>> GetDepartmentsDataAsync(
-      List<string> errors,
       List<Guid> departmentsIds = null,
-      List<Guid> usersIds = null)
+      List<Guid> usersIds = null,
+      List<string> errors = null)
     {
       List<DepartmentData> departmentsData = await _globalCache.GetAsync<List<DepartmentData>>(
         Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheHashCode());
