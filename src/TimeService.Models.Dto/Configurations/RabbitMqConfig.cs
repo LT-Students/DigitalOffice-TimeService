@@ -27,6 +27,9 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(IGetProjectsRequest))]
     public string GetProjectsEndpoint { get; set; }
 
+    [AutoInjectRequest(typeof(IGetProjectUserRoleRequest))]
+    public string GetProjectUserRoleEndpoint { get; set; }
+
     // user
 
     [AutoInjectRequest(typeof(ICheckUsersExistence))]
@@ -40,8 +43,8 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
 
     // department
 
-    [AutoInjectRequest(typeof(IGetDepartmentUsersRequest))]
-    public string GetDepartmentUsersEndpoint { get; set; }
+    [AutoInjectRequest(typeof(IGetDepartmentsUsersRequest))]
+    public string GetDepartmentsUsersEndpoint { get; set; }
 
     [AutoInjectRequest(typeof(IGetDepartmentsRequest))]
     public string GetDepartmentsEndpoint { get; set; }

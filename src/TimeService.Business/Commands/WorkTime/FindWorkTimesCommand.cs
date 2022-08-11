@@ -104,13 +104,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       {
         TotalCount = totalCount,
         Body = dbWorkTimes.Select(wt => _workTimeResponseMapper.Map(
-          wt,
-          monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
-          _userInfoMapper.Map(
-            users?.FirstOrDefault(u => u.Id == wt.UserId)),
-          _userInfoMapper.Map(
-            users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy)),
-          _projectInfoMapper.Map(projects?.FirstOrDefault(p => p.Id == wt.ProjectId)))).ToList(),
+          dbWorkTime: wt,
+          dbMonthLimit: monthLimits.FirstOrDefault(p => p.Year == wt.Year && p.Month == wt.Month),
+          userInfo: _userInfoMapper.Map(
+            userData: users?.FirstOrDefault(u => u.Id == wt.UserId)),
+          managerInfo: _userInfoMapper.Map(
+            userData: users?.FirstOrDefault(u => u.Id == wt.ManagerWorkTime?.ModifiedBy)),
+          project: _projectInfoMapper.Map(projects?.FirstOrDefault(p => p.Id == wt.ProjectId)))).ToList(),
         Errors = errors
       };
     }

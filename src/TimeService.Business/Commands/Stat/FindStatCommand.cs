@@ -95,31 +95,40 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<ProjectData> projectsData;
       List<ProjectUserData> projectUsersData = default;
       List<DepartmentData> departmentsData = default;
+      List<DepartmentUserExtendedData> departmentsUsers = default;
       List<Guid> usersIds = new();
       List<Guid> managersIds = new();
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
-      if (filter.ProjectId is not null)
+      if (filter.ProjectId.HasValue)
       {
-        (projectUsersData, _) = await _projectService.GetProjectUsersAsync(errors, new List<Guid> { filter.ProjectId.Value });
+        projectUsersData = await _projectService.GetProjectsUsersAsync(
+          projectsIds: new() { filter.ProjectId.Value },
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
         if (projectUsersData is null)
         {
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
         }
 
-        if (projectUsersData.FirstOrDefault(x => x.UserId == senderId)?.ProjectUserRole != ProjectUserRoleType.Manager
+        if (await _projectService.GetProjectUserRoleAsync(senderId, filter.ProjectId.Value) != ProjectUserRoleType.Manager
           && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
         {
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
-        usersIds = projectUsersData.Select(pu => pu.UserId).ToList();
+        usersIds = projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
       }
       else
       {
-        departmentsData = await _departmentService.GetDepartmentsDataAsync(errors, departmentsIds: filter.DepartmentsIds);
+        Task<List<DepartmentData>> departmentsDataTask = _departmentService.GetDepartmentsDataAsync(departmentsIds: filter.DepartmentsIds);
+
+        Task<List<DepartmentUserExtendedData>> departmentsUsersTask = _departmentService.GetDepartmentsUsersAsync(
+          departmentsIds: filter.DepartmentsIds,
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        departmentsData = await departmentsDataTask;
 
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           && !(filter.DepartmentsIds?.Count == 1
@@ -128,7 +137,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
-        departmentsData?.ForEach(x => usersIds.AddRange(x.Users.Select(user => user.UserId)));
+        departmentsUsers = await departmentsUsersTask;
+
+        usersIds.AddRange(departmentsUsers?.Select(u => u.UserId));
       }
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
@@ -141,9 +152,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
         projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList());
 
-      DbWorkTimeMonthLimit monthLimit = filter.Month.HasValue
-        ? await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month.Value)
-        : null;
+      DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
       (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
         usersIds: usersIds,
@@ -186,7 +195,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           leaveTimes: dbLeaveTimes?.Where(lt => lt.UserId == user.Id).ToList(),
           projects: projectsInfos,
           position: positionsData?.FirstOrDefault(p => p.UsersIds.Contains(user.Id)),
-          department: departmentsData?.FirstOrDefault(d => d.Users.Any(du => du.UserId == user.Id)),
+          department: departmentsData?.FirstOrDefault(d => departmentsUsers.FirstOrDefault(u => u.UserId == user.Id)?.DepartmenId == d.Id),
           companyUser: companiesUsersData?.FirstOrDefault(cu => cu.UserId == user.Id))).ToList(),
         Errors = errors
       };

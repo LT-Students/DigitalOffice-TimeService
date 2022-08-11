@@ -64,11 +64,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private void SetMaxParamsLength(UserImportStatInfo userInfo, ref int nameMaxValue, ref int contractSubjectMaxValue)
     {
-      nameMaxValue = nameMaxValue > userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3
+      nameMaxValue = nameMaxValue >= userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3
         ? nameMaxValue
         : userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3;
 
-      contractSubjectMaxValue = contractSubjectMaxValue > (userInfo.CompanyUserData?.ContractSubject?.Name.Length ?? 0)
+      contractSubjectMaxValue = contractSubjectMaxValue >= (userInfo.CompanyUserData?.ContractSubject?.Name.Length ?? 0)
         ? contractSubjectMaxValue
         : userInfo.CompanyUserData.ContractSubject.Name.Length + 3;
     }
@@ -266,8 +266,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           ws.Cell(2, currentColumn).SetFormulaR1C1($"=SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})");
         }
 
-        int maxUserNameLength = 0;
-        int maxUserContractSubjectLength = 0;
+        int maxUserNameLength = 5;
+        int maxUserContractSubjectLength = 5;
 
         for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
@@ -364,13 +364,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       foreach (var project in mainProjects)
       {
-        AddHeaderCell(ws, mainProjectsColumn, project.Name, MainProjectColor);
+        AddHeaderCell(ws, mainProjectsColumn, project.ShortName, MainProjectColor);
         mainProjectsColumn++;
       }
 
       foreach (var project in otherProjects)
       {
-        AddHeaderCell(ws, otherProjectsColumn, project.Name, OtherProjectColor);
+        AddHeaderCell(ws, otherProjectsColumn, project.ShortName, OtherProjectColor);
         otherProjectsColumn++;
       }
 
@@ -449,18 +449,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (filter.DepartmentId.HasValue)
       {
-        usersIds = (await _departmentService.GetDepartmentUsersAsync(
-          filter.DepartmentId.Value,
-          errors,
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1))).usersIds;
+        usersIds = (await
+          _departmentService.GetDepartmentsUsersAsync(
+            new() { filter.DepartmentId.Value },
+            byEntryDate: new DateTime(filter.Year, filter.Month, 1)))?
+          .Select(u => u.UserId).ToList();
 
         if (usersIds is null || !usersIds.Any())
         {
           return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
         }
 
-        projects = await _projectService.GetProjectsDataAsync(
+        List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
           usersIds: usersIds,
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        projects = await _projectService.GetProjectsDataAsync(
+          projectsIds: projectsUsers?.Select(x => x.ProjectId).Distinct().ToList(),
           includeDepartments: true);
 
         if (projects is null)
@@ -477,21 +482,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
       else
       {
-        projects = await _projectService.GetProjectsDataAsync(
-          projectsIds: new() { filter.ProjectId.Value },
-          includeUsers: true);
+        Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
+          projectsIds: new() { filter.ProjectId.Value });
 
-        usersIds = projects?.SelectMany(p => p.Users.Select(pu => pu.UserId)).OrderBy(id => id).Distinct().ToList();
+        List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
+          projectsIds: new() { filter.ProjectId.Value },
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        projects = await projectsTask;
+
+        usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList();
       }
 
       List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds, errors);
 
       if (usersInfos is null || projects is null)
       {
-        return new()
-        {
-          Errors = errors
-        };
+        return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
       }
 
       List<CompanyUserData> companies = (await _companyService.GetCompaniesDataAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
@@ -503,7 +510,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (workTimes.Any(wt => wt.ProjectId == Guid.Empty))
       {
-        otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", default, default, default, default));
+        otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", shortName: "Другое", default, default, default));
       }
 
       List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);

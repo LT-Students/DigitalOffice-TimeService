@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 
 namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
@@ -16,11 +17,15 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
       bool includeDepartments = false,
       List<string> errors = null);
 
-    Task<(List<ProjectUserData> projectUsersData, int totalCount)> GetProjectUsersAsync(
-      List<string> errors,
+    Task<List<ProjectUserData>> GetProjectsUsersAsync(
       List<Guid> projectsIds = null,
       List<Guid> usersIds = null,
-      int? skipCount = null,
-      int? takeCount = null);
+      DateTime? byEntryDate = null,
+      List<string> errors = null);
+
+    Task<ProjectUserRoleType?> GetProjectUserRoleAsync(
+      Guid userId,
+      Guid projectId,
+      List<string> errors = null);
   }
 }

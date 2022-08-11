@@ -9,18 +9,16 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
   [AutoInject]
   public interface IDepartmentService
   {
-    Task<(List<Guid> usersIds, int totalCount)> GetDepartmentUsersAsync(
-      Guid departmentId,
-      List<string> errors,
-      int? skipCount = null,
-      int? takeCount = null,
-      DateTime? byEntryDate = null);
+    Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
+      List<Guid> departmentsIds,
+      DateTime? byEntryDate = null,
+      List<string> errors = null);
 
     Task<List<DepartmentData>> GetDepartmentsDataAsync(
-      List<string> errors,
       List<Guid> departmentsIds = null,
-      List<Guid> usersIds = null);
+      List<Guid> usersIds = null,
+      List<string> errors = null);
 
-    Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors);
+    Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors = null);
   }
 }
