@@ -75,7 +75,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       List<ProjectData> projectsData;
 
-      (projectsData, int _) = await _globalCache.GetAsync<(List<ProjectData>, int)>(
+      projectsData = await _globalCache.GetAsync<List<ProjectData>>(
         Cache.Projects, CreateGetProjectCacheKey(projectsIds, usersIds, includeUsers, includeDepartments));
 
       if (projectsData is null)
