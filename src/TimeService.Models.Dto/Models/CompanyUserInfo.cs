@@ -6,7 +6,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
   public record CompanyUserInfo
   {
     public double? Rate { get; set; }
-    public ContractSubjectData ContractSubjectData { get; set; }
+    public ContractSubjectData ContractSubject { get; set; }
     public DateTime StartWorkingAt { get; set; }
   }
 }
