@@ -9,6 +9,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
   [AutoInject]
   public interface IImageService
   {
-    Task<List<ImageData>> GetImagesAsync(List<Guid> usersIds, List<string> errors);
+    Task<List<ImageData>> GetUsersImagesAsync(List<Guid> usersIds, List<string> errors);
   }
 }
