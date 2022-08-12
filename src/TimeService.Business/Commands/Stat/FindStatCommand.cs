@@ -165,7 +165,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
-      Task<List<ImageData>> imagesTask = _imageService.GetImagesAsync(usersData?.Select(u => u.Id).ToList(), errors);
+      Task<List<ImageData>> imagesTask = _imageService.GetImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
       List<ImageData> images = await imagesTask;
@@ -173,7 +173,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<UserInfo> usersInfos = usersData?
         .Select(u => _userInfoMapper.Map(
           u,
-          images?.FirstOrDefault(i => i.ParentId == u.Id))).ToList();
+          images?.FirstOrDefault(i => i.ImageId == u.ImageId))).ToList();
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
