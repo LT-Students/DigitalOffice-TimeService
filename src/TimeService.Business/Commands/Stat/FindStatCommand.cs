@@ -165,7 +165,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
-      Task<List<ImageData>> imagesTask = _imageService.GetImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
+      Task<List<ImageData>> imagesTask = _imageService.GetUsersImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
       List<ImageData> images = await imagesTask;

@@ -26,7 +26,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       _rcRequestClient = rcRequestClient;
     }
 
-    public async Task<List<ImageData>> GetImagesAsync(List<Guid> imagesIds, List<string> errors)
+    public async Task<List<ImageData>> GetUsersImagesAsync(List<Guid> imagesIds, List<string> errors)
     {
       if (imagesIds is null || !imagesIds.Any())
       {
