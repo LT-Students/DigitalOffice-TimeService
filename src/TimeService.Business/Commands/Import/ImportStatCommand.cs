@@ -263,7 +263,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         for (int currentColumn = headers.Count; currentColumn <= columnsCount - lastHeaders.Count; currentColumn++)
         {
-          ws.Cell(2, currentColumn).SetFormulaR1C1($"=SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})");
+          ws.Cell(2, currentColumn).FormulaA1 = $"=_xlfn.SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})";
         }
 
         int maxUserNameLength = 5;
