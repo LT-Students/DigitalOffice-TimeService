@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
       return new()
       {
         Rate = companyUserData.Rate,
-        ContractSubject = companyUserData.ContractSubject,
+        ContractSubjectData = companyUserData.ContractSubject,
         StartWorkingAt = companyUserData.StartWorkingAt
       };
     }
