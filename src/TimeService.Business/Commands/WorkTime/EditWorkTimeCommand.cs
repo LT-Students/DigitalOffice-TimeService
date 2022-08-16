@@ -58,7 +58,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
-      if (!_validator.ValidateCustom(request, out List<string> errors))
+      if (!_validator.ValidateCustom((oldDbWorkTime.ProjectId, request), out List<string> errors))
       {
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
