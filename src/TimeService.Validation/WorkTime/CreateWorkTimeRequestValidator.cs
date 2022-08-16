@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using FluentValidation;
-using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
-using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -62,7 +57,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       _workTimeRepository = workTimeRepository;
 
       RuleFor(_ => _httpContextAccessor.HttpContext.GetUserId())
-        .MustAsync(async (userId, _) => await _userService.CheckUsersExistenceAsync(new List<Guid> { userId }))
+        .MustAsync(async (userId, _) => (await _userService.CheckUsersExistenceAsync(new List<Guid> { userId }))?.Count == 1)
         .WithMessage("User with this Id doesn't exist.");
 
       RuleFor(x => x.Description)

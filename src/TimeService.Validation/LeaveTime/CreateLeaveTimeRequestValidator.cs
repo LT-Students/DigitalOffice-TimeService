@@ -49,7 +49,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
-        .MustAsync(async (userId, cancellation) => await _userService.CheckUsersExistenceAsync(new List<Guid>() { userId }))
+        .MustAsync(async (userId, cancellation) => (await _userService.CheckUsersExistenceAsync(new List<Guid>() { userId }))?.Count == 1)
         .WithMessage("This user doesn't exist.");
 
       RuleFor(lt => lt.LeaveType)

@@ -116,15 +116,20 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       return (usersData, totalCount);
     }
 
-    public async Task<bool> CheckUsersExistenceAsync(List<Guid> usersIds, List<string> errors = null)
+    public async Task<List<Guid>> CheckUsersExistenceAsync(List<Guid> usersIds, List<string> errors = null)
     {
+      if (usersIds is null || !usersIds.Any())
+      {
+        return default;
+      }
+
       ICheckUsersExistence response = await
         _rcCheckUsersExistence.ProcessRequest<ICheckUsersExistence, ICheckUsersExistence>(
           ICheckUsersExistence.CreateObj(usersIds),
           errors,
           _logger);
 
-      return response?.UserIds?.Count == usersIds.Count;
+      return response?.UserIds;
     }
   }
 }

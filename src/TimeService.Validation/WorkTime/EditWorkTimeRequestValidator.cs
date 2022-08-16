@@ -64,7 +64,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
-      When(x => x.Item1 == default
+      When(x => x.Item1 == Guid.Empty
         && x.Item2.Operations.Any(op => op.path.EndsWith(nameof(EditWorkTimeRequest.Description), StringComparison.OrdinalIgnoreCase)),
         () =>
         {

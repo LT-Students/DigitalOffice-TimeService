@@ -19,6 +19,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
       string nameIncludeSubstring,
       List<string> errors);
 
-    Task<bool> CheckUsersExistenceAsync(List<Guid> usersIds, List<string> errors = null);
+    Task<List<Guid>> CheckUsersExistenceAsync(List<Guid> usersIds, List<string> errors = null);
   }
 }
