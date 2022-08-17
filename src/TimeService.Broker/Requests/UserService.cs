@@ -6,6 +6,7 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Helpers;
 using LT.DigitalOffice.Kernel.RedisSupport.Constants;
 using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
+using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Requests.User;
 using LT.DigitalOffice.Models.Broker.Responses.User;
@@ -21,6 +22,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IGlobalCacheRepository _globalCache;
     private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsersData;
     private readonly IRequestClient<IFilteredUsersDataRequest> _rcGetFilteredUsersData;
+    private readonly IRequestClient<ICheckUsersExistence> _rcCheckUsersExistence;
 
     private string CreateFilterUsersCacheKey(List<Guid> usersIds, int skipCount, int takeCount, bool? ascendingSort, string nameIncludeSubstring)
     {
@@ -43,12 +45,14 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       ILogger<UserService> logger,
       IGlobalCacheRepository globalCache,
       IRequestClient<IGetUsersDataRequest> rcGetUsersData,
-      IRequestClient<IFilteredUsersDataRequest> rcGetFilteredUsersData)
+      IRequestClient<IFilteredUsersDataRequest> rcGetFilteredUsersData,
+      IRequestClient<ICheckUsersExistence> rcCheckUsersExistence)
     {
       _logger = logger;
       _globalCache = globalCache;
       _rcGetUsersData = rcGetUsersData;
       _rcGetFilteredUsersData = rcGetFilteredUsersData;
+      _rcCheckUsersExistence = rcCheckUsersExistence;
     }
 
     public async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
@@ -110,6 +114,22 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       }
 
       return (usersData, totalCount);
+    }
+
+    public async Task<List<Guid>> CheckUsersExistenceAsync(List<Guid> usersIds, List<string> errors = null)
+    {
+      if (usersIds is null || !usersIds.Any())
+      {
+        return default;
+      }
+
+      ICheckUsersExistence response = await
+        _rcCheckUsersExistence.ProcessRequest<ICheckUsersExistence, ICheckUsersExistence>(
+          ICheckUsersExistence.CreateObj(usersIds),
+          errors,
+          _logger);
+
+      return response?.UserIds;
     }
   }
 }
