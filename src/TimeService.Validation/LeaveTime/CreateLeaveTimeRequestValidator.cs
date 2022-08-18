@@ -49,7 +49,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
-        .MustAsync(async (userId, cancellation) => (await _userService.CheckUsersExistenceAsync(new List<Guid>() { userId }))?.Count == 1)
+        .MustAsync(async (userId, _) => (await _userService.CheckUsersExistenceAsync(new List<Guid> { userId }))?.Count == 1)
         .WithMessage("This user doesn't exist.");
 
       RuleFor(lt => lt.LeaveType)
@@ -70,7 +70,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .WithMessage("Start time and end time offsets must be same.")
         .Must(lt => lt.StartTime <= lt.EndTime)
         .WithMessage("Start time must be before end time.")
-        .Must(lt => CheckLeaveTimeInterval(lt))
+        .Must(CheckLeaveTimeInterval)
         .WithMessage("Incorrect interval for leave time.")
         .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime.UtcDateTime, lt.EndTime.UtcDateTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
