@@ -120,6 +120,9 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.WorkTimeDayJo
       _mocker.Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
           x.HttpContext.Items)
         .Returns(_items);
+      _mocker.Setup<IHttpContextAccessor, int>(x =>
+          x.HttpContext.Response.StatusCode)
+        .Returns((int)HttpStatusCode.Created);
     }
 
     [Test]
