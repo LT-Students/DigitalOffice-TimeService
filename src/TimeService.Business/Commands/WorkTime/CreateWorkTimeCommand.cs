@@ -51,7 +51,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
 
-      return response;
+      return response.Body is null
+        ? _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.BadRequest)
+        : response;
     }
   }
 }

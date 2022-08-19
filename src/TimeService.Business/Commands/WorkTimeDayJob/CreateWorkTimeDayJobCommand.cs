@@ -1,11 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Kernel.FluentValidationExtensions;
+using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -21,6 +22,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
   {
     private readonly ICreateWorkTimeDayJobRequestValidator _validator;
     private readonly IAccessValidator _accessValidator;
+    private readonly IResponseCreator _responseCreator;
     private readonly IDbWorkTimeDayJobMapper _mapper;
     private readonly IWorkTimeDayJobRepository _repository;
     private readonly IWorkTimeRepository _workTimeRepository;
@@ -29,6 +31,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
     public CreateWorkTimeDayJobCommand(
       ICreateWorkTimeDayJobRequestValidator validator,
       IAccessValidator accessValidator,
+      IResponseCreator responseCreator,
       IDbWorkTimeDayJobMapper mapper,
       IWorkTimeDayJobRepository repository,
       IWorkTimeRepository workTimeRepository,
@@ -36,6 +39,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
     {
       _validator = validator;
       _accessValidator = accessValidator;
+      _responseCreator = responseCreator;
       _mapper = mapper;
       _repository = repository;
       _workTimeRepository = workTimeRepository;
@@ -48,22 +52,18 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
 
       DbWorkTime workTime = await _workTimeRepository.GetAsync(request.WorkTimeId);
 
-      if (authorId != workTime.UserId
+      if (authorId != workTime?.UserId
         && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
-        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Forbidden;
-
-        return new();
+        return _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.Forbidden);
       }
 
-      if (!_validator.ValidateCustom(request, out List<string> errors))
+      ValidationResult validationResult = await _validator.ValidateAsync(request);
+      if (!validationResult.IsValid)
       {
-        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-
-        return new()
-        {
-          Errors = errors
-        };
+        return _responseCreator.CreateFailureResponse<Guid?>(
+          HttpStatusCode.BadRequest,
+          validationResult.Errors.Select(e => e.ErrorMessage).ToList());
       }
 
       OperationResultResponse<Guid?> response = new();
@@ -72,12 +72,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
 
-      if (response.Body == default)
-      {
-        _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.BadRequest;
-      }
-
-      return response;
+      return response.Body is null
+        ? _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.BadRequest)
+        : response;
     }
   }
 }
