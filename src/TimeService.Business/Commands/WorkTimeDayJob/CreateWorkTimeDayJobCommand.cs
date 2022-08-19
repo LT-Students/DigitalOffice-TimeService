@@ -70,6 +70,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTimeDayJob
 
       response.Body = await _repository.CreateAsync(_mapper.Map(request));
 
+      _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
+
       return response.Body is null
         ? _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.BadRequest)
         : response;
