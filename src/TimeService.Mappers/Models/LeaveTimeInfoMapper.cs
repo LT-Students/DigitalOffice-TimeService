@@ -22,7 +22,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Minutes = dbLeaveTime.Minutes,
         StartTime = dbLeaveTime.StartTime,
         EndTime = dbLeaveTime.EndTime,
-        CreatedAt = dbLeaveTime.CreatedAt,
+        CreatedAt = dbLeaveTime.CreatedAtUtc,
         Comment = dbLeaveTime.Comment,
         LeaveType = (LeaveType)dbLeaveTime.LeaveType,
         IsActive = dbLeaveTime.IsActive

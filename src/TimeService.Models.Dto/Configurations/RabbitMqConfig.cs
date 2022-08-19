@@ -3,6 +3,8 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Department;
+using LT.DigitalOffice.Models.Broker.Requests.Image;
+using LT.DigitalOffice.Models.Broker.Requests.Position;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
 using LT.DigitalOffice.Models.Broker.Requests.User;
 
@@ -25,6 +27,9 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(IGetProjectsRequest))]
     public string GetProjectsEndpoint { get; set; }
 
+    [AutoInjectRequest(typeof(IGetProjectUserRoleRequest))]
+    public string GetProjectUserRoleEndpoint { get; set; }
+
     // user
 
     [AutoInjectRequest(typeof(ICheckUsersExistence))]
@@ -33,12 +38,26 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(IGetUsersDataRequest))]
     public string GetUsersDataEndpoint { get; set; }
 
+    [AutoInjectRequest(typeof(IFilteredUsersDataRequest))]
+    public string FilterUsersDataEndpoint { get; set; }
+
     // department
 
-    [AutoInjectRequest(typeof(IGetDepartmentUsersRequest))]
-    public string GetDepartmentUsersEndpoint { get; set; }
+    [AutoInjectRequest(typeof(IGetDepartmentsUsersRequest))]
+    public string GetDepartmentsUsersEndpoint { get; set; }
 
     [AutoInjectRequest(typeof(IGetDepartmentsRequest))]
     public string GetDepartmentsEndpoint { get; set; }
+
+    [AutoInjectRequest(typeof(IFilterDepartmentsRequest))]
+    public string FilterDepartmentUsersEndpoint { get; set; }
+
+    // image
+    [AutoInjectRequest(typeof(IGetImagesRequest))]
+    public string GetImagesEndpoint { get; set; }
+
+    // position
+    [AutoInjectRequest(typeof(IGetPositionsRequest))]
+    public string GetPositionsEndpoint { get; set; }
   }
 }

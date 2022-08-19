@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using HealthChecks.UI.Client;
 using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
@@ -9,15 +8,16 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Extensions;
 using LT.DigitalOffice.Kernel.BrokerSupport.Middlewares.Token;
 using LT.DigitalOffice.Kernel.Configurations;
 using LT.DigitalOffice.Kernel.Extensions;
+using LT.DigitalOffice.Kernel.Helpers;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
-using LT.DigitalOffice.Kernel.RedisSupport.Helpers;
-using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.TimeService.Broker.Consumers;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Configurations;
+using LT.DigitalOffice.Kernel.EFSupport.Extensions;
+using LT.DigitalOffice.Kernel.EFSupport.Helpers;
 using MassTransit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -58,7 +58,7 @@ namespace LT.DigitalOffice.TimeService
         .GetSection(BaseServiceInfoConfig.SectionName)
         .Get<BaseServiceInfoConfig>();
 
-      Version = "1.1.7.3";
+      Version = "1.1.7.9";
       Description = "TimeService is an API intended to work with the users time managment";
       StartTime = DateTime.UtcNow;
       ApiName = $"LT Digital Office - {_serviceInfoConfig.Name}";
@@ -93,19 +93,12 @@ namespace LT.DigitalOffice.TimeService
         {
           options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
         })
-        .AddNewtonsoftJson();
+        .AddNewtonsoftJson(options =>
+        {
+          options.SerializerSettings.DateParseHandling = Newtonsoft.Json.DateParseHandling.None;
+        });
 
-      string connStr = Environment.GetEnvironmentVariable("ConnectionString");
-      if (string.IsNullOrEmpty(connStr))
-      {
-        connStr = Configuration.GetConnectionString("SQLConnectionString");
-
-        Log.Information($"SQL connection string from appsettings.json was used. Value '{HidePassord(connStr)}'.");
-      }
-      else
-      {
-        Log.Information($"SQL connection string from environment was used. Value '{HidePassord(connStr)}'.");
-      }
+      string connStr = ConnectionStringHandler.Get(Configuration);
 
       string timeToTryAgaing = Environment.GetEnvironmentVariable("TimeToRestartCreatingRecords");
       if (string.IsNullOrEmpty(timeToTryAgaing) && int.TryParse(timeToTryAgaing, out int minutes))
@@ -123,24 +116,23 @@ namespace LT.DigitalOffice.TimeService
       {
         redisConnStr = Configuration.GetConnectionString("Redis");
 
-        Log.Information($"Redis connection string from appsettings.json was used. Value '{HidePassord(redisConnStr)}'");
+        Log.Information($"Redis connection string from appsettings.json was used. Value '{PasswordHider.Hide(redisConnStr)}'");
       }
       else
       {
-        Log.Information($"Redis connection string from environment was used. Value '{HidePassord(redisConnStr)}'");
+        Log.Information($"Redis connection string from environment was used. Value '{PasswordHider.Hide(redisConnStr)}'");
       }
 
       services.AddSingleton<IConnectionMultiplexer>(
-        x => ConnectionMultiplexer.Connect(redisConnStr));
+        x => ConnectionMultiplexer.Connect(redisConnStr + ",abortConnect=false,connectRetry=1,connectTimeout=2000"));
 
       services.AddBusinessObjects();
 
       ConfigureMassTransit(services);
 
       services.AddMemoryCache();
-      services.AddTransient<WorkTimeCreater>();
-      services.AddTransient<WorkTimeLimitCreater>();
-      services.AddTransient<IRedisHelper, RedisHelper>();
+      services.AddTransient<WorkTimeCreator>();
+      services.AddTransient<WorkTimeLimitCreator>();
 
       services
         .AddHealthChecks()
@@ -150,7 +142,7 @@ namespace LT.DigitalOffice.TimeService
 
     public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
     {
-      UpdateDatabase(app);
+      app.UpdateDatabase<TimeServiceDbContext>();
 
       app.UseForwardedHeaders();
 
@@ -187,17 +179,6 @@ namespace LT.DigitalOffice.TimeService
     #endregion
 
     #region private methods
-
-    private void UpdateDatabase(IApplicationBuilder app)
-    {
-      using var serviceScope = app.ApplicationServices
-        .GetRequiredService<IServiceScopeFactory>()
-        .CreateScope();
-
-      using var context = serviceScope.ServiceProvider.GetService<TimeServiceDbContext>();
-
-      context.Database.Migrate();
-    }
 
     private (string username, string password) GetRabbitMqCredentials()
     {
@@ -257,8 +238,8 @@ namespace LT.DigitalOffice.TimeService
     {
       var scope = app.ApplicationServices.CreateScope();
 
-      var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreater>();
-      var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreater>();
+      var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreator>();
+      var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreator>();
       var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
 
       DbWorkTime lastWorkTime = await workTimeRepository.GetLastAsync();
@@ -272,29 +253,6 @@ namespace LT.DigitalOffice.TimeService
       workTimeLimitCreater.Start(
         _timeConfig.MinutesToRestart,
         _timeConfig.CountNeededNextMonth);
-    }
-
-    private string HidePassord(string line)
-    {
-      string password = "Password";
-
-      int index = line.IndexOf(password, 0, StringComparison.OrdinalIgnoreCase);
-
-      if (index != -1)
-      {
-        string[] words = Regex.Split(line, @"[=,; ]");
-
-        for (int i = 0; i < words.Length; i++)
-        {
-          if (string.Equals(password, words[i], StringComparison.OrdinalIgnoreCase))
-          {
-            line = line.Replace(words[i + 1], "****");
-            break;
-          }
-        }
-      }
-
-      return line;
     }
 
     #endregion

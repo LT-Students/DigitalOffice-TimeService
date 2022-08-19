@@ -1,50 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using FluentValidation;
-using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
-using LT.DigitalOffice.Models.Broker.Common;
+using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
-using MassTransit;
 using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
   public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
   {
-    private readonly IRequestClient<ICheckUsersExistence> _rcCheckUsersExistence;
+    private readonly IUserService _userService;
     private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
-
-    private async Task<bool> CheckUserExistenceAsync(List<Guid> userIds)
-    {
-      string logMessage = "Cannot check existing users {userIds}";
-
-      try
-      {
-        IOperationResult<ICheckUsersExistence> response = (await _rcCheckUsersExistence.GetResponse<IOperationResult<ICheckUsersExistence>>(
-          ICheckUsersExistence.CreateObj(userIds))).Message;
-
-        if (response.IsSuccess && response.Body.UserIds.Count == 1 && response.Body.UserIds[0] == userIds[0])
-        {
-          return true;
-        }
-        _logger.LogWarning($"Can not find users with these Ids '{userIds}': " +
-          $"{Environment.NewLine}{string.Join('\n', response.Errors)}");
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logMessage);
-      }
-
-      return false;
-    }
 
     private bool CheckLeaveTimeInterval(CreateLeaveTimeRequest lt)
     {
-      DateTime timeNow = DateTime.UtcNow;
+      DateTime timeNow = DateTime.UtcNow.Add(lt.StartTime.Offset);
 
       switch (lt.LeaveType)
       {
@@ -68,36 +41,38 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
     public CreateLeaveTimeRequestValidator(
       ILeaveTimeRepository repository,
-      IRequestClient<ICheckUsersExistence> rcCheckUsersExistence,
+      IUserService userService,
       ILogger<CreateLeaveTimeRequestValidator> logger)
     {
-      _rcCheckUsersExistence = rcCheckUsersExistence;
+      _userService = userService;
       _logger = logger;
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
-        .MustAsync(async (userId, cancellation) => await CheckUserExistenceAsync(new List<Guid>() { userId }))
+        .MustAsync(async (userId, _) => (await _userService.CheckUsersExistenceAsync(new List<Guid> { userId }))?.Count == 1)
         .WithMessage("This user doesn't exist.");
 
       RuleFor(lt => lt.LeaveType)
         .IsInEnum();
 
       RuleFor(lt => lt.StartTime)
-        .NotEqual(new DateTime());
+        .NotEqual(new DateTimeOffset());
 
       RuleFor(lt => lt.EndTime)
-        .NotEqual(new DateTime());
+        .NotEqual(new DateTimeOffset());
 
       RuleFor(lt => lt.Minutes)
         .GreaterThan(0);
 
       RuleFor(lt => lt)
         .Cascade(CascadeMode.Stop)
+        .Must(lt => lt.StartTime.Offset.Equals(lt.EndTime.Offset))
+        .WithMessage("Start time and end time offsets must be same.")
         .Must(lt => lt.StartTime <= lt.EndTime)
         .WithMessage("Start time must be before end time.")
-        .Must(lt => CheckLeaveTimeInterval(lt))
+        .Must(CheckLeaveTimeInterval)
         .WithMessage("Incorrect interval for leave time.")
-        .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime, lt.EndTime))
+        .MustAsync(async (lt, _) => !await repository.HasOverlapAsync(lt.UserId, lt.StartTime.UtcDateTime, lt.EndTime.UtcDateTime))
         .WithMessage("New LeaveTime should not overlap with old ones.");
 
       RuleFor(lt => lt.Comment)

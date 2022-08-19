@@ -6,272 +6,74 @@ using System.Net;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.BrokerSupport.Broker;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
-using LT.DigitalOffice.Kernel.RedisSupport.Constants;
-using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
-using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
-using LT.DigitalOffice.Models.Broker.Models.Department;
-using LT.DigitalOffice.Models.Broker.Requests.Company;
-using LT.DigitalOffice.Models.Broker.Requests.Department;
-using LT.DigitalOffice.Models.Broker.Requests.Project;
-using LT.DigitalOffice.Models.Broker.Requests.User;
-using LT.DigitalOffice.Models.Broker.Responses.Company;
-using LT.DigitalOffice.Models.Broker.Responses.Department;
-using LT.DigitalOffice.Models.Broker.Responses.Project;
-using LT.DigitalOffice.Models.Broker.Responses.User;
+using LT.DigitalOffice.Models.Broker.Models.Project;
+using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.Import.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Validation.Import.Interfaces;
-using MassTransit;
-using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
   public class ImportStatCommand : IImportStatCommand
   {
-    private XLColor FirstHeaderColor => XLColor.LightApricot;
+    private XLColor FirstHeaderColor => XLColor.LightPastelPurple;
     private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
-    private XLColor MainProjectColor => XLColor.LimeGreen;
-    private XLColor OtherProjectColor => XLColor.LightGray;
-    private XLColor LeaveTypesColor => XLColor.CarrotOrange;
+    private XLColor MainProjectColor => XLColor.LightGreen;
+    private XLColor OtherProjectColor => XLColor.LightYellow;
+    private XLColor VacantionColor => XLColor.PastelOrange;
+    private XLColor LeaveTypesColor => XLColor.LavenderBlue;
     private XLColor TimesColor => XLColor.LightGreen;
 
-    private readonly IRequestClient<IGetProjectsRequest> _rcGetProjects;
-    private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
-    private readonly IRequestClient<IGetDepartmentUsersRequest> _rcGetDepartmentUsers;
-    private readonly IRequestClient<IGetUsersDataRequest> _rcGetUsers;
-    private readonly IRequestClient<IGetCompaniesRequest> _rcGetCompanies;
-    private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
+    //ToDo - move to file
+    private readonly Dictionary<LeaveType, string> _leaveTypesNamesRu = 
+      new()
+      {
+        { LeaveType.Vacation, "Оплачиваемый отпуск" },
+        { LeaveType.SickLeave, "Больничный" },
+        { LeaveType.Training, "Обучение" },
+        { LeaveType.Idle, "За свой счет" }
+      };
+
+    private readonly IProjectService _projectService;
+    private readonly IDepartmentService _departmentService;
+    private readonly IUserService _userService;
+    private readonly ICompanyService _companyService;
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly ILeaveTimeRepository _leaveTimeRepository;
     private readonly IWorkTimeMonthLimitRepository _workTimeMonthLimitRepository;
-    private readonly ILogger<ImportStatCommand> _logger;
     private readonly IAccessValidator _accessValidator;
     private readonly ICalendar _calendar;
-    private readonly IRedisHelper _redisHelper;
     private readonly IResponseCreator _responseCreator;
     private readonly IImportStatFilterValidator _validator;
+    private readonly IUserImportStatInfoMapper _mapper;
 
     #region private methods
 
-    private async Task<List<ProjectData>> GetProjectsAsync(List<Guid> projectIds, bool includeUsers, List<string> errors)
+    private void SetMaxParamsLength(UserImportStatInfo userInfo, ref int nameMaxValue, ref int contractSubjectMaxValue)
     {
-      string messageError = "Cannot get projects info. Please, try again later.";
-      const string logError = "Cannot get projects info.";
+      nameMaxValue = nameMaxValue >= userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3
+        ? nameMaxValue
+        : userInfo.UserData.FirstName.Length + userInfo.UserData.LastName.Length + 3;
 
-      if (projectIds == null || !projectIds.Any())
-      {
-        return null;
-      }
-
-      try
-      {
-        Response<IOperationResult<IGetProjectsResponse>> result =
-          await _rcGetProjects.GetResponse<IOperationResult<IGetProjectsResponse>>(
-            IGetProjectsRequest.CreateObj(
-              projectsIds: projectIds,
-              includeUsers: includeUsers));
-
-        if (result.Message.IsSuccess)
-        {
-          return result.Message.Body.Projects;
-        }
-
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logError);
-      }
-
-      errors.Add(messageError);
-      return null;
+      contractSubjectMaxValue = contractSubjectMaxValue >= (userInfo.CompanyUserData?.ContractSubject?.Name.Length ?? 0)
+        ? contractSubjectMaxValue
+        : userInfo.CompanyUserData.ContractSubject.Name.Length + 3;
     }
-
-    private async Task<List<ProjectUserData>> GetProjectsUsersAsync(List<Guid> usersIds, List<string> errors)
-    {
-      string messageError = "Cannot get projects users info. Please, try again later.";
-      const string logError = "Cannot get projects users info.";
-
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      try
-      {
-        Response<IOperationResult<IGetProjectsUsersResponse>> result =
-          await _rcGetProjectsUsers.GetResponse<IOperationResult<IGetProjectsUsersResponse>>(
-            IGetProjectsUsersRequest.CreateObj(
-              usersIds: usersIds));
-
-        if (result.Message.IsSuccess)
-        {
-          return result.Message.Body.Users;
-        }
-
-        _logger.LogWarning(logError + "Errors: {errors}.", string.Join("\n", result.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logError);
-      }
-
-      errors.Add(messageError);
-      return null;
-    }
-
-    private async Task<List<Guid>> FindDepartmentUsersAsync(Guid departmentId, DateTime filterbyEntryDate, List<string> errors)
-    {
-      string messageError = "Cannot get department users info. Please, try again later.";
-      const string logError = "Cannot get users of department with id: '{id}'.";
-
-      try
-      {
-        Response<IOperationResult<IGetDepartmentUsersResponse>> result =
-          await _rcGetDepartmentUsers.GetResponse<IOperationResult<IGetDepartmentUsersResponse>>(
-            IGetDepartmentUsersRequest.CreateObj(
-              departmentId,
-              ByEntryDate: filterbyEntryDate));
-
-        if (result.Message.IsSuccess)
-        {
-          return result.Message.Body.UsersIds;
-        }
-
-        _logger.LogWarning(logError + "Errors: {errors}.", departmentId, string.Join("\n", result.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, logError, departmentId);
-      }
-
-      errors.Add(messageError);
-
-      return null;
-    }
-
-    private async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      List<UserData> usersFromCache = await _redisHelper.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheHashCode());
-
-      if (usersFromCache != null)
-      {
-        _logger.LogInformation("UserDatas were taken from the cache. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-        return usersFromCache;
-      }
-
-      return await GetUsersDataFromBrokerAsync(usersIds, errors);
-    }
-
-    private async Task<List<UserData>> GetUsersDataFromBrokerAsync(List<Guid> usersIds, List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      string message = "Cannot get users data. Please try again later.";
-      string loggerMessage = $"Cannot get users data for specific user ids:'{string.Join(",", usersIds)}'.";
-
-      try
-      {
-        var response = await _rcGetUsers.GetResponse<IOperationResult<IGetUsersDataResponse>>(
-            IGetUsersDataRequest.CreateObj(usersIds));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("UserDatas were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-          return response.Message.Body.UsersData;
-        }
-
-        _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, loggerMessage);
-      }
-
-      errors.Add(message);
-
-      return null;
-    }
-
-    private async Task<List<DepartmentData>> GetDapartmentsAsync(List<Guid> projectsIds, List<string> errors)
-    {
-      if (projectsIds == null || !projectsIds.Any())
-      {
-        return null;
-      }
-
-      List<DepartmentData> departmentsFromCache = await _redisHelper.GetAsync<List<DepartmentData>>(
-        Cache.Departments, projectsIds.GetRedisCacheHashCode());
-
-      if (departmentsFromCache != null)
-      {
-        _logger.LogInformation("Departments were taken from the cache. Projects ids: {ids}", string.Join(", ", projectsIds));
-
-        return departmentsFromCache;
-      }
-
-      return await GetDepartmentsFromBrokerAsync(projectsIds, errors);
-    }
-
-    private async Task<List<DepartmentData>> GetDepartmentsFromBrokerAsync(List<Guid> projectsIds, List<string> errors)
-    {
-      if (projectsIds == null || !projectsIds.Any())
-      {
-        return null;
-      }
-
-      string message = "Cannot get departments data. Please try again later.";
-      string loggerMessage = $"Cannot get departments data for specific projects ids:'{string.Join(",", projectsIds)}'.";
-
-      try
-      {
-        Response<IOperationResult<IGetDepartmentsResponse>> response =
-          await _rcGetDepartments.GetResponse<IOperationResult<IGetDepartmentsResponse>>(
-            IGetDepartmentsRequest.CreateObj(projectsIds: projectsIds));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("Departments were taken from the service. Project ids: {ids}", string.Join(", ", projectsIds));
-
-          return response.Message.Body.Departments;
-        }
-
-        _logger.LogWarning(loggerMessage + "Reasons: {Errors}", string.Join("\n", response.Message.Errors));
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, loggerMessage);
-      }
-
-      errors.Add(message);
-
-      return null;
-    }
-
-    private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(int year, int month, DateTime start, DateTime end)
+    
+    private async Task<List<DbWorkTimeMonthLimit>> GetNeededRangeOfMonthLimitsAsync(DateTime start, DateTime end, List<string> errors = null)
     {
       List<DbWorkTimeMonthLimit> limits = await _workTimeMonthLimitRepository.GetAsync(start.Year, start.Month, end.Year, end.Month);
 
@@ -290,9 +92,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         string holidays = await _calendar.GetWorkCalendarByMonthAsync(requestedMonth, requestedYear); // TODO rework
 
-        if (holidays == null)
+        if (holidays is null)
         {
-          throw new InvalidOperationException("Cannot get holidays.");
+          errors?.Add("Cannot get holidays.");
+
+          return null;
         }
 
         newLimits.Add(
@@ -307,6 +111,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         countNeededMonth--;
         requestedMonth--;
+
         if (requestedMonth == 0)
         {
           requestedMonth = 12;
@@ -321,69 +126,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return limits;
     }
 
-    private async Task<List<CompanyData>> GetCompaniesAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      List<CompanyData> companies = await _redisHelper.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
-
-      if (companies != null)
-      {
-        _logger.LogInformation("Companies for users were taken from cache. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-        return companies;
-      }
-
-      return await GetCompaniesThroughBrokerAsync(usersIds, errors);
-    }
-
-    private async Task<List<CompanyData>> GetCompaniesThroughBrokerAsync(
-      List<Guid> usersIds,
-      List<string> errors)
-    {
-      if (usersIds == null || !usersIds.Any())
-      {
-        return null;
-      }
-
-      const string errorMessage = "Can not get companies info. Please try again later.";
-
-      try
-      {
-        Response<IOperationResult<IGetCompaniesResponse>> response = await _rcGetCompanies
-          .GetResponse<IOperationResult<IGetCompaniesResponse>>(
-            IGetCompaniesRequest.CreateObj(usersIds));
-
-        if (response.Message.IsSuccess)
-        {
-          _logger.LogInformation("Companies were taken from the service. Users ids: {usersIds}", string.Join(", ", usersIds));
-
-          return response.Message.Body.Companies;
-        }
-        else
-        {
-          _logger.LogWarning("Errors while getting companies info. Reason: {Errors}",
-            string.Join('\n', response.Message.Errors));
-        }
-      }
-      catch (Exception exc)
-      {
-        _logger.LogError(exc, errorMessage);
-      }
-
-      errors.Add(errorMessage);
-
-      return null;
-    }
-
     #region Create table
 
-    private float GetLeaveTimeOurs(List<DbWorkTimeMonthLimit> monthsLimits, DbLeaveTime leaveTime, int year, int month)
+    private float GetLeaveTimeHours(List<DbWorkTimeMonthLimit> monthsLimits, DbLeaveTime leaveTime, int year, int month)
     {
       // monthsLimits should be sort by time
 
@@ -404,7 +149,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       DbWorkTimeMonthLimit first = monthRange.First();
 
-      float extraHoursInFirstMonth = (float)first.Holidays.Substring(0, leaveTime.StartTime.Day).Count(d => d == '0')
+      float extraHoursInFirstMonth = (float)first.Holidays.Substring(0, leaveTime.StartTime.Day - 1).Count(d => d == '0')
         / first.Holidays.Count(d => d == '0') * first.NormHours;
 
       DbWorkTimeMonthLimit last = monthRange.Last();
@@ -434,10 +179,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     {
       IXLCell cell = ws.Cell(1, column);
       cell.SetValue(value);
+
       if (value.Length > 3)
       {
         cell.Style.Alignment.TextRotation = 90;
       }
+
       cell.Style
         .Font.SetBold()
         .Fill.SetBackgroundColor(color);
@@ -445,10 +192,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     private byte[] CreateTable(
       ImportStatFilter filter,
-      List<UserData> usersInfos,
-      List<ProjectData> projects,
-      List<CompanyUserData> companies,
-      List<DepartmentData> departments,
+      List<UserImportStatInfo> sortedUsers,
+      List<ProjectData> mainProjects,
+      List<ProjectData> otherProjects,
       List<DbWorkTime> workTimes,
       List<DbLeaveTime> leaveTimes,
       List<DbWorkTimeMonthLimit> monthsLimits)
@@ -460,109 +206,143 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       List<string> headers = new()
       {
         "№",
-        "Initials",
-        "Rate",
-        "Standard working hours",
-        "Total"
+        "ФИО",
+        "Ставка",
+        "Норма часов",
+        "Итого"
       };
 
-      using (var workbook = new XLWorkbook())
+      List<string> lastHeaders = new()
+      {
+        "Тип договора"
+      };
+
+      using (var workbook = new XLWorkbook(XLEventTracking.Disabled))
       {
         IXLWorksheet ws = workbook.Worksheets.Add("Hours");
 
-        IXLRange range = ws.Range(1, 1, 1, headers.Count);
-
         int columnNumber = 1;
+
         foreach (var columnName in headers)
         {
           AddHeaderCell(ws, columnNumber, columnName, FirstHeaderColor);
           columnNumber++;
         }
 
-        columnNumber += projects.Count;
+        columnNumber += mainProjects.Count;
 
-        int leaveTypeCount = 0;
-        foreach (var leaveName in Enum.GetValues(typeof(LeaveType)))
+        int leaveTypesCount = 0;
+        foreach (var leaveType in Enum.GetValues<LeaveType>())
         {
-          AddHeaderCell(ws, columnNumber, leaveName.ToString(), LeaveTypesColor);
+          if (leaveType == LeaveType.Vacation)
+          {
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], VacantionColor);
+          }
+          else
+          {
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], LeaveTypesColor);
+          }
+
           columnNumber++;
-          leaveTypeCount++;
+          leaveTypesCount++;
         }
 
-        ws.Cell(2, 2).Value = "Total";
+        int columnsCount = headers.Count + leaveTypesCount + mainProjects.Count + otherProjects.Count + lastHeaders.Count;
+        columnNumber += otherProjects.Count;
+
+        foreach (string header in lastHeaders)
+        {
+          AddHeaderCell(ws, columnNumber, header, FirstHeaderColor);
+
+          columnNumber++;
+        }
+
+        ws.Cell(2, 2).Value = "Итого";
         ws.Cell(2, 2).Style.Font.SetBold();
-        ws.Range(2, 1, 2, columnNumber - 1).Style.Fill.SetBackgroundColor(SecondHeaderColor);
+        ws.Range(2, 1, 2, columnsCount).Style.Fill.SetBackgroundColor(SecondHeaderColor);
 
-        for (int i = 5; i < columnNumber; i++)
+        for (int currentColumn = headers.Count; currentColumn <= columnsCount - lastHeaders.Count; currentColumn++)
         {
-          ws.Cell(2, i).SetFormulaR1C1($"=SUM({ws.Cell(3, i).Address}:{ws.Cell(2 + usersInfos.Count(), i).Address})");
+          ws.Cell(2, currentColumn).FormulaA1 = $"=_xlfn.SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})";
         }
 
-        for (int number = 0; number < usersInfos.Count; number++)
-        {
-          int row = number + 3;
+        int maxUserNameLength = 5;
+        int maxUserContractSubjectLength = 5;
 
-          ws.Cell(row, 1).SetValue(number + 1);
-          ws.Cell(row, 2).SetValue($"{usersInfos[number].FirstName} {usersInfos[number].LastName}");
-          ws.Cell(row, 3).SetValue(companies.FirstOrDefault(x => x.UserId == usersInfos[number].Id)?.Rate);
-          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours);
-          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnNumber - 1).Address})").
-            Style.Fill.SetBackgroundColor(FirstHeaderColor);
+        for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
+        {
+          int row = userNumber + 3;
+
+          UserImportStatInfo currentUserStatInfo = sortedUsers[userNumber];
+
+          ws.Cell(row, 1).SetValue(userNumber + 1);
+          ws.Cell(row, 2).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
+          ws.Cell(row, 3).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
+          ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
+          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnsCount - lastHeaders.Count).Address})")
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
+          ws.Cell(row, columnNumber - 1).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
+
+          SetMaxParamsLength(currentUserStatInfo, ref maxUserNameLength, ref maxUserContractSubjectLength);
         }
 
-        int column = 6;
+        ws.Column(2).Width = maxUserNameLength;
+        ws.Columns(columnsCount - lastHeaders.Count + 1, columnsCount).Width = maxUserContractSubjectLength;
+
         if (filter.DepartmentId.HasValue)
         {
-          DepartmentData requestedDepartment = departments.FirstOrDefault(d => d.Id == filter.DepartmentId.Value);
-          
-          if (requestedDepartment is not null)
-          {
-            CreateProjectsPartTableForDepartment(
-              ws,
-              column,
-              projects.Where(p => requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-              projects.Where(p => !requestedDepartment.ProjectsIds.Contains(p.Id)).ToList(),
-              usersInfos,
-              workTimes);
-          }
+          CreateProjectsPartTable(
+            ws: ws,
+            mainProjectsStartColumn: headers.Count + 1,
+            otherProjectsStartColumn: headers.Count + mainProjects.Count + leaveTypesCount + 1,
+            mainProjects: mainProjects,
+            otherProjects: otherProjects,
+            sortedUsers: sortedUsers.Select(x => x.UserData).ToList(),
+            workTimes: workTimes);
         }
         else
         {
-          CreateProjectPartTable(
-            ws,
-            column,
-            projects[0],
-            usersInfos,
-            workTimes);
+          CreateProjectsPartTable(
+            ws: ws,
+            mainProjectsStartColumn: headers.Count + 1,
+            otherProjectsStartColumn: headers.Count + mainProjects.Count + leaveTypesCount + 1,
+            mainProjects: mainProjects,
+            otherProjects: otherProjects,
+            sortedUsers: sortedUsers.Select(x => x.UserData).ToList(),
+            workTimes: workTimes);
         }
 
-        column += projects.Count;
+        columnNumber = headers.Count + mainProjects.Count + 1;
 
-        if (leaveTimes != null && leaveTimes.Any())
+        if (leaveTimes is not null && leaveTimes.Any())
         {
-          for (int number = 0; number < usersInfos.Count; number++)
+          for (int number = 0; number < sortedUsers.Count; number++)
           {
             int row = number + 3;
 
-            List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == usersInfos[number].Id).ToList();
+            List<DbLeaveTime> usersLeaveTimes = leaveTimes.Where(lt => lt.UserId == sortedUsers[number].UserData.Id).ToList();
 
-            for (int i = 0; i < leaveTypeCount; i++)
+            for (int i = 0; i < leaveTypesCount; i++)
             {
-              ws.Cell(row, column + i).SetValue(
-                  usersLeaveTimes
-                  .Where(lt => lt.LeaveType == i)
-                  .Select(lt => GetLeaveTimeOurs(monthsLimits, lt, filter.Year, filter.Month))
-                  .Sum());
+              float leaveTimeHours = usersLeaveTimes.Where(lt => lt.LeaveType == i)
+                .Select(lt => GetLeaveTimeHours(monthsLimits, lt, filter.Year, filter.Month))
+                .Sum();
+
+              if (leaveTimeHours != 0)
+              {
+                ws.Cell(row, columnNumber + i).SetValue(leaveTimeHours);
+              }
             }
           }
         }
 
-        ws.Range(1, 1, 2 + usersInfos.Count, columnNumber - 1).Style
+        ws.Range(1, 1, 2 + sortedUsers.Count, columnsCount).Style
           .Border.SetBottomBorder(XLBorderStyleValues.Thin)
           .Border.SetLeftBorder(XLBorderStyleValues.Thin)
           .Border.SetRightBorder(XLBorderStyleValues.Thin)
           .Border.SetTopBorder(XLBorderStyleValues.Thin);
-        ws.Range(3, 6, 2 + usersInfos.Count, columnNumber - 1).Style.Fill.SetBackgroundColor(TimesColor);
+        ws.Range(3, 6, 2 + sortedUsers.Count, columnsCount - lastHeaders.Count).Style.Fill.SetBackgroundColor(TimesColor);
 
         workbook.SaveAs(ms);
       }
@@ -570,67 +350,53 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return ms.ToArray();
     }
 
-    private void CreateProjectsPartTableForDepartment(
+    private void CreateProjectsPartTable(
       IXLWorksheet ws,
-      int startColumn,
-      List<ProjectData> departmentProjects,
+      int mainProjectsStartColumn,
+      int otherProjectsStartColumn,
+      List<ProjectData> mainProjects,
       List<ProjectData> otherProjects,
-      List<UserData> usersInfos,
+      List<UserData> sortedUsers,
       List<DbWorkTime> workTimes)
     {
-      int column = startColumn;
+      int mainProjectsColumn = mainProjectsStartColumn;
+      int otherProjectsColumn = otherProjectsStartColumn;
 
-      foreach (var project in departmentProjects)
+      foreach (var project in mainProjects)
       {
-        AddHeaderCell(ws, column, project.Name, MainProjectColor);
-        column++;
+        AddHeaderCell(ws, mainProjectsColumn, project.ShortName, MainProjectColor);
+        mainProjectsColumn++;
       }
 
       foreach (var project in otherProjects)
       {
-        AddHeaderCell(ws, column, project.Name, OtherProjectColor);
-        column++;
+        AddHeaderCell(ws, otherProjectsColumn, project.ShortName, OtherProjectColor);
+        otherProjectsColumn++;
       }
 
-      for (int userNumber = 0; userNumber < usersInfos.Count; userNumber++)
+      for (int userNumber = 0; userNumber < sortedUsers.Count; userNumber++)
       {
         int row = userNumber + 3;
-        column = startColumn;
+        mainProjectsColumn = mainProjectsStartColumn;
+        otherProjectsColumn = otherProjectsStartColumn;
 
-        foreach (var project in departmentProjects)
+        foreach (var project in mainProjects)
         {
-          WriteProjectInfo(row, column++, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
+          WriteProjectInfo(row, mainProjectsColumn++, workTimes.FirstOrDefault(wt => wt.UserId == sortedUsers[userNumber].Id && wt.ProjectId == project.Id), ws);
         }
 
         foreach (var project in otherProjects)
         {
-          WriteProjectInfo(row, column++, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
+          WriteProjectInfo(row, otherProjectsColumn++, workTimes.FirstOrDefault(wt => wt.UserId == sortedUsers[userNumber].Id && wt.ProjectId == project.Id), ws);
         }
       }
     }
 
     private void WriteProjectInfo(int row, int column, DbWorkTime wt, IXLWorksheet ws)
     {
-      if (wt != null && (wt.ManagerWorkTime?.Hours != null || wt.Hours.HasValue))
+      if (wt is not null && (wt.ManagerWorkTime?.Hours is not null || wt.Hours.HasValue))
       {
-        ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours != null ? wt.ManagerWorkTime.Hours : wt.Hours);
-      }
-    }
-
-    private void CreateProjectPartTable(
-      IXLWorksheet ws,
-      int startColumn,
-      ProjectData project,
-      List<UserData> usersInfos,
-      List<DbWorkTime> workTimes)
-    {
-      AddHeaderCell(ws, startColumn, project.Name, MainProjectColor);
-
-      for (int userNumber = 0; userNumber < usersInfos.Count; userNumber++)
-      {
-        int row = userNumber + 3;
-
-        WriteProjectInfo(row, startColumn, workTimes.FirstOrDefault(wt => wt.UserId == usersInfos[userNumber].Id && wt.ProjectId == project.Id), ws);
+        ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours ?? wt.Hours);
       }
     }
 
@@ -639,35 +405,29 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     #endregion
 
     public ImportStatCommand(
-      IRequestClient<IGetProjectsRequest> rcGetProjects,
-      IRequestClient<IGetProjectsUsersRequest> rcGetProjectsUsers,
-      IRequestClient<IGetDepartmentUsersRequest> rcGetDepartmentUsers,
-      IRequestClient<IGetUsersDataRequest> rcGetUsers,
-      IRequestClient<IGetCompaniesRequest> rcGetCompanies,
-      IRequestClient<IGetDepartmentsRequest> rcGetDepartments,
+      IProjectService projectService,
+      IDepartmentService departmentService,
+      IUserService userService,
+      ICompanyService companyService,
       IWorkTimeRepository workTimeRepository,
       ILeaveTimeRepository leaveTimeRepository,
       IWorkTimeMonthLimitRepository workTimeMonthLimitRepository,
-      ILogger<ImportStatCommand> logger,
       IAccessValidator accessValidator,
-      IRedisHelper redisHelper,
       IResponseCreator responseCreator,
-      IImportStatFilterValidator validator)
+      IImportStatFilterValidator validator,
+      IUserImportStatInfoMapper mapper)
     {
-      _rcGetProjects = rcGetProjects;
-      _rcGetProjectsUsers = rcGetProjectsUsers;
-      _rcGetDepartmentUsers = rcGetDepartmentUsers;
-      _rcGetUsers = rcGetUsers;
-      _rcGetCompanies = rcGetCompanies;
-      _rcGetDepartments = rcGetDepartments;
+      _projectService = projectService;
+      _departmentService = departmentService;
+      _userService = userService;
+      _companyService = companyService;
       _workTimeRepository = workTimeRepository;
       _leaveTimeRepository = leaveTimeRepository;
       _workTimeMonthLimitRepository = workTimeMonthLimitRepository;
-      _logger = logger;
       _accessValidator = accessValidator;
-      _redisHelper = redisHelper;
       _responseCreator = responseCreator;
       _validator = validator;
+      _mapper = mapper;
       _calendar = new IsDayOffIntegration();
     }
 
@@ -684,64 +444,100 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
 
       List<Guid> usersIds;
-
       List<ProjectData> projects;
-      List<ProjectUserData> projectsUsers;
-      List<DepartmentData> departments = null;
+      List<ProjectData> otherProjects = new();
 
       if (filter.DepartmentId.HasValue)
       {
-        usersIds = await FindDepartmentUsersAsync(
-          filter.DepartmentId.Value,
-          new DateTime(filter.Year, filter.Month, 1), errors);
+        usersIds = (await
+          _departmentService.GetDepartmentsUsersAsync(
+            new() { filter.DepartmentId.Value },
+            byEntryDate: new DateTime(filter.Year, filter.Month, 1)))?
+          .Select(u => u.UserId).ToList();
 
-        projectsUsers = await GetProjectsUsersAsync(usersIds, errors);
-
-        projects = await GetProjectsAsync(
-          projectsUsers?.Select(pu => pu.ProjectId).Distinct().ToList(), false, errors);
-
-        departments = await GetDapartmentsAsync(projects.Select(p => p.Id).ToList(), errors);
-
-        if (projectsUsers == null || projects == null || departments == null)
+        if (usersIds is null || !usersIds.Any())
         {
-          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.BadRequest);
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
         }
+
+        List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
+          usersIds: usersIds,
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        projects = await _projectService.GetProjectsDataAsync(
+          projectsIds: projectsUsers?.Select(x => x.ProjectId).Distinct().ToList(),
+          includeDepartments: true);
+
+        if (projects is null)
+        {
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
+        }
+
+        otherProjects.AddRange(
+          projects.Where(p => p.Department is null || p.Department.DepartmentId != filter.DepartmentId.Value)
+          .OrderBy(p => p.Name));
+        projects = projects
+          .Where(p => p.Department is not null && p.Department.DepartmentId == filter.DepartmentId)
+          .OrderBy(p => p.Name).ToList();
       }
       else
       {
-        projects = await GetProjectsAsync(new() { filter.ProjectId.Value }, true, errors);
+        Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
+          projectsIds: new() { filter.ProjectId.Value });
 
-        usersIds = projects?.SelectMany(p => p.Users.Select(pu => pu.UserId)).OrderBy(id => id).Distinct().ToList();
+        List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
+          projectsIds: new() { filter.ProjectId.Value },
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        projects = await projectsTask;
+
+        usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList();
       }
 
-      List<UserData> usersInfos = await GetUsersDataAsync(usersIds, errors);
+      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds, errors);
 
-      if (usersInfos == null || projects == null)
+      if (usersInfos is null || projects is null)
       {
-        return new()
-        {
-          Status = OperationResultStatusType.Failed,
-          Errors = errors
-        };
+        return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
       }
 
-      List<CompanyUserData> companies = (await GetCompaniesAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
-      List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(usersIds, projects.Select(p => p.Id).ToList(), filter.Year, filter.Month);
-      List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month);
+      List<CompanyUserData> companies = (await _companyService.GetCompaniesDataAsync(usersIds, errors))?.SelectMany(p => p.Users).ToList();
+      List<DbWorkTime> workTimes = await _workTimeRepository.GetAsync(
+        usersIds,
+        projects.Select(p => p.Id).Concat(otherProjects.Select(p => p.Id).Concat(new[] {Guid.Empty})).ToList(),
+        filter.Year,
+        filter.Month);
+
+      if (workTimes.Any(wt => wt.ProjectId == Guid.Empty))
+      {
+        otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", shortName: "Другое", default, default, default));
+      }
+
+      List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
+
+      List<UserImportStatInfo> sortedUsers = _mapper.Map(usersInfos, companies)
+        .GroupBy(x => x.CompanyUserData?.ContractSubject?.Name).OrderByDescending(x => x.Key).SelectMany(x => x).ToList();
+
       List<DbWorkTimeMonthLimit> monthsLimits;
+
       if (leaveTimes.Any())
       {
         monthsLimits = await GetNeededRangeOfMonthLimitsAsync(
-          filter.Year,
-          filter.Month,
           leaveTimes.Select(lt => lt.StartTime).Min(),
           leaveTimes.Select(lt => lt.EndTime).Max());
+
+        if (monthsLimits is null)
+        {
+          errors.Add("Cannot get month limit.");
+
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.BadRequest, errors);
+        }
       }
       else
       {
         DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
-        if (monthLimit == null)
+        if (monthLimit is null)
         {
           errors.Add("Cannot get month limit.");
 
@@ -755,8 +551,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       return new()
       {
-        Status = OperationResultStatusType.FullSuccess,
-        Body = CreateTable(filter, usersInfos, projects, companies, departments, workTimes, leaveTimes, monthsLimits)
+        Body = CreateTable(
+          filter: filter,
+          sortedUsers: sortedUsers,
+          mainProjects: projects,
+          otherProjects: otherProjects,
+          workTimes: workTimes,
+          leaveTimes: leaveTimes,
+          monthsLimits: monthsLimits.OrderBy(x => x.Year).ThenBy(x => x.Month).ToList())
       };
     }
   }

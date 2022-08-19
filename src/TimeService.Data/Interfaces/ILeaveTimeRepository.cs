@@ -19,13 +19,13 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<(List<DbLeaveTime>, int totalCount)> FindAsync(FindLeaveTimesFilter filter);
 
-    Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int month);
+    Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month, bool? isActive = null);
 
     Task<DbLeaveTime> GetAsync(Guid leaveTimeId);
 
     Task<bool> EditAsync(DbLeaveTime leaveTime, JsonPatchDocument<DbLeaveTime> request);
 
-    Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd);
+    Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end);
 
     Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end);
   }

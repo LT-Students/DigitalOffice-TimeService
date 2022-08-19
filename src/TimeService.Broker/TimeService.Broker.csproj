@@ -4,6 +4,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TimeService.Data\TimeService.Data.csproj" />
+    <ProjectReference Include="..\TimeService.Mappers\TimeService.Mappers.csproj" />
   </ItemGroup>
 
 </Project>

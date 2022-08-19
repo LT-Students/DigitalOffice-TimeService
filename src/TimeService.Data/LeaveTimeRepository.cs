@@ -80,21 +80,37 @@ namespace LT.DigitalOffice.TimeService.Data
       return (await dbLeaveTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), await dbLeaveTimes.CountAsync());
     }
 
-    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int month)
+    public async Task<List<DbLeaveTime>> GetAsync(List<Guid> usersIds, int year, int? month, bool? isActive = null)
     {
       if (usersIds == null)
       {
         return null;
       }
 
-      int countMonths = year * 12 + month;
+      IQueryable<DbLeaveTime> dbLeaveTimes = _provider.LeaveTimes.Where(lt => usersIds.Contains(lt.UserId));
 
-      return await _provider.LeaveTimes
-        .Where(
-          lt =>
-            usersIds.Contains(lt.UserId)
-            && lt.StartTime.Month + lt.StartTime.Year * 12 <= countMonths
-            && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths).ToListAsync();
+      if (isActive.HasValue)
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(lt => lt.IsActive == isActive.Value);
+      }
+
+      if (month is not null)
+      {
+        int countMonths = year * 12 + month.Value;
+
+        dbLeaveTimes = dbLeaveTimes.Where(lt =>
+          usersIds.Contains(lt.UserId)
+          && lt.StartTime.Month + lt.StartTime.Year * 12 <= countMonths
+          && lt.EndTime.Month + lt.EndTime.Year * 12 >= countMonths);
+      }
+      else
+      {
+        dbLeaveTimes = dbLeaveTimes.Where(lt =>
+          lt.StartTime.Year <= year
+          && lt.EndTime.Year >= year);
+      }
+
+      return await dbLeaveTimes.ToListAsync();
     }
 
     public async Task<DbLeaveTime> GetAsync(Guid leaveTimeId)
@@ -104,29 +120,25 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end)
     {
-      return !await _provider.LeaveTimes.AllAsync(oldLeaveTime => !oldLeaveTime.IsActive
-        || oldLeaveTime.UserId != userId
-        || end <= oldLeaveTime.StartTime || oldLeaveTime.EndTime <= start);
+      return await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
+        dbLeaveTime.IsActive
+        && dbLeaveTime.UserId == userId
+        &&
+        ((start >= dbLeaveTime.StartTime && start <= dbLeaveTime.EndTime)
+        || (end >= dbLeaveTime.StartTime && end <= dbLeaveTime.EndTime)
+        || (start <= dbLeaveTime.StartTime && end >= dbLeaveTime.EndTime)));
     }
 
-    public async Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime? newStart, DateTime? newEnd)
+    public async Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end)
     {
-      if (!newStart.HasValue && !newEnd.HasValue)
-      {
-        return false;
-      }
-
-      DateTime start = newStart ?? leaveTime.StartTime;
-      DateTime end = newEnd ?? leaveTime.EndTime;
-
       return await _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
         dbLeaveTime.IsActive
         && dbLeaveTime.UserId == leaveTime.UserId
         && dbLeaveTime.Id != leaveTime.Id
         &&
-        ((dbLeaveTime.StartTime <= start && dbLeaveTime.EndTime >= end)
-        || (dbLeaveTime.StartTime >= start && dbLeaveTime.StartTime <= end)
-        || (dbLeaveTime.EndTime >= start && dbLeaveTime.EndTime <= end)));
+        ((start >= dbLeaveTime.StartTime && start <= dbLeaveTime.EndTime)
+        || (end >= dbLeaveTime.StartTime && end <= dbLeaveTime.EndTime)
+        || (start <= dbLeaveTime.StartTime && end >= dbLeaveTime.EndTime)));
     }
   }
 }

@@ -4,7 +4,6 @@ using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
-using LT.DigitalOffice.Kernel.Enums;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
@@ -59,14 +58,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
-      if (!_validator.ValidateCustom(request, out List<string> errors))
+      if (!_validator.ValidateCustom((oldDbWorkTime.ProjectId, request), out List<string> errors))
       {
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
+      OperationResultResponse<bool> response = new();
+
       if (!isOwner)
       {
-        if (oldDbWorkTime.ManagerWorkTime == null)
+        if (oldDbWorkTime.ParentId is null && oldDbWorkTime.ManagerWorkTime is null)
         {
           DbWorkTime managerWorkTime = _dbMapper.Map(oldDbWorkTime, _httpContextAccessor.HttpContext.GetUserId());
 
@@ -74,30 +75,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
           bool result = (await _repository.CreateAsync(managerWorkTime)).HasValue;
 
-          return new OperationResultResponse<bool>
-          {
-            Body = result,
-            Status = result ? OperationResultStatusType.FullSuccess : OperationResultStatusType.Failed,
-            Errors = new()
-          };
+          response.Body = result;
         }
         else
         {
-          return new OperationResultResponse<bool>
-          {
-            Body = await _repository.EditAsync(oldDbWorkTime.ManagerWorkTime, _patchMapper.Map(request)),
-            Status = OperationResultStatusType.FullSuccess,
-            Errors = new()
-          };
+          response.Body = await _repository.EditAsync(oldDbWorkTime.ManagerWorkTime ?? oldDbWorkTime, _patchMapper.Map(request));
         }
       }
-
-      return new OperationResultResponse<bool>
+      else
       {
-        Body = await _repository.EditAsync(oldDbWorkTime, _patchMapper.Map(request)),
-        Status = OperationResultStatusType.FullSuccess,
-        Errors = new()
-      };
+        response.Body = await _repository.EditAsync(oldDbWorkTime, _patchMapper.Map(request));
+      }
+
+      return response;
     }
   }
 }

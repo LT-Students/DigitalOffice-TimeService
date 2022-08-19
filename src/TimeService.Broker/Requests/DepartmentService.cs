@@ -1,0 +1,123 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using LT.DigitalOffice.Kernel.BrokerSupport.Helpers;
+using LT.DigitalOffice.Kernel.RedisSupport.Constants;
+using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
+using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
+using LT.DigitalOffice.Models.Broker.Models.Department;
+using LT.DigitalOffice.Models.Broker.Requests.Department;
+using LT.DigitalOffice.Models.Broker.Responses.Department;
+using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
+using MassTransit;
+using Microsoft.Extensions.Logging;
+
+namespace LT.DigitalOffice.TimeService.Broker.Requests
+{
+  public class DepartmentService : IDepartmentService
+  {
+    private readonly ILogger<DepartmentService> _logger;
+    private readonly IGlobalCacheRepository _globalCache;
+    private readonly IRequestClient<IFilterDepartmentsRequest> _rcFilterDepartments;
+    private readonly IRequestClient<IGetDepartmentsUsersRequest> _rcGetDepartmentUsers;
+    private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
+
+    private List<Guid> GetRedisKeyArray(List<Guid> departmentsIds = null, List<Guid> usersIds = null)
+    {
+      List<Guid> keyAray = new List<Guid>();
+
+      if (departmentsIds is not null)
+      {
+        keyAray.AddRange(departmentsIds);
+      }
+
+      if (usersIds is not null)
+      {
+        keyAray.AddRange(usersIds);
+      }
+
+      return keyAray;
+    }
+
+    public DepartmentService(
+      ILogger<DepartmentService> logger,
+      IGlobalCacheRepository globalCache,
+      IRequestClient<IFilterDepartmentsRequest> rcFilterDepartments,
+      IRequestClient<IGetDepartmentsUsersRequest> rcGetDepartmentUsers,
+      IRequestClient<IGetDepartmentsRequest> rcGetDepartments)
+    {
+      _logger = logger;
+      _globalCache = globalCache;
+      _rcFilterDepartments = rcFilterDepartments;
+      _rcGetDepartmentUsers = rcGetDepartmentUsers;
+      _rcGetDepartments = rcGetDepartments;
+    }
+
+    public async Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
+      List<Guid> departmentsIds,
+      DateTime? byEntryDate = null,
+      List<string> errors = null)
+    {
+      IGetDepartmentsUsersResponse response = await _rcGetDepartmentUsers
+        .ProcessRequest<IGetDepartmentsUsersRequest, IGetDepartmentsUsersResponse>(
+          IGetDepartmentsUsersRequest.CreateObj(
+            departmentsIds,
+            byEntryDate: byEntryDate),
+          errors,
+          _logger);
+
+      if (response is null)
+      {
+        return default;
+      }
+
+      return response.Users;
+    }
+
+    public async Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors = null)
+    {
+      if (departmentsIds is null || !departmentsIds.Any())
+      {
+        return null;
+      }
+
+      List<DepartmentFilteredData> departmentsData = await _globalCache.GetAsync<List<DepartmentFilteredData>>(Cache.Departments, departmentsIds.GetRedisCacheHashCode());
+
+      if (departmentsData is null)
+      {
+        departmentsData =
+          (await _rcFilterDepartments.ProcessRequest<IFilterDepartmentsRequest, IFilterDepartmentsResponse>(
+            IFilterDepartmentsRequest.CreateObj(departmentsIds),
+            errors,
+            _logger))
+          ?.Departments;
+      }
+
+      return departmentsData;
+    }
+
+    public async Task<List<DepartmentData>> GetDepartmentsDataAsync(
+      List<Guid> departmentsIds = null,
+      List<Guid> usersIds = null,
+      List<string> errors = null)
+    {
+      List<DepartmentData> departmentsData = await _globalCache.GetAsync<List<DepartmentData>>(
+        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheHashCode());
+
+      if (departmentsData is null)
+      {
+        departmentsData =
+          (await _rcGetDepartments.ProcessRequest<IGetDepartmentsRequest, IGetDepartmentsResponse>(
+            IGetDepartmentsRequest.CreateObj(
+              departmentsIds: departmentsIds,
+              usersIds: usersIds),
+            errors,
+            _logger))
+          ?.Departments;
+      }
+
+      return departmentsData;
+    }
+  }
+}

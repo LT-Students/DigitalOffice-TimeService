@@ -2,9 +2,15 @@
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Models
 {
-  public record StatInfo
+  public record UserStatInfo
   {
     public UserInfo User { get; set; }
+
+    public PositionInfo Position { get; set; }
+
+    public CompanyUserInfo CompanyUser { get; set; }
+
+    public DepartmentInfo Department { get; set; }
 
     public List<LeaveTimeInfo> LeaveTimes { get; set; }
 
