@@ -32,6 +32,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
 {
   internal class FindStatCommandTests
   {
+    private readonly List<ProjectUserData> _nullProjectUserData = default;
+
     private AutoMocker _mocker;
     private IFindStatCommand _command;
 
@@ -42,7 +44,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
     private Dictionary<object, object> _items;
 
     private List<ProjectUserData> _projectUserData;
-    private List<ProjectUserData> _nullProjectUserData;
     private List<DepartmentData> _departmentData;
     private List<DepartmentUserExtendedData> _departmentUserExtendedData;
     private List<DbWorkTime> _dbWorkTimes;
