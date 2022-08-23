@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
@@ -85,9 +85,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
     public async Task<FindResultResponse<UserStatInfo>> ExecuteAsync(FindStatFilter filter)
     {
-      if (!_validator.ValidateCustom(filter, out List<string> errors))
+      ValidationResult validationResult = await _validator.ValidateAsync(filter);
+      if (!validationResult.IsValid)
       {
-        return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureFindResponse<UserStatInfo>(
+          HttpStatusCode.BadRequest,
+          validationResult.Errors.Select(e => e.ErrorMessage).ToList());
       }
 
       List<DbWorkTime> dbWorkTimes;
@@ -146,6 +149,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
 
       managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).Distinct().ToList();
+
+      List<string> errors = new();
 
       Task<List<UserData>> managersDataTask = _userService.GetUsersDataAsync(managersIds, errors);
 
