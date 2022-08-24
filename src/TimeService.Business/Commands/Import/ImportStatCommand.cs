@@ -7,9 +7,11 @@ using System.Threading.Tasks;
 using ClosedXML.Excel;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Project;
@@ -24,6 +26,7 @@ using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Validation.Import.Interfaces;
+using Microsoft.AspNetCore.Http;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
@@ -59,6 +62,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private readonly IResponseCreator _responseCreator;
     private readonly IImportStatFilterValidator _validator;
     private readonly IUserImportStatInfoMapper _mapper;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     #region private methods
 
@@ -415,7 +419,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       IAccessValidator accessValidator,
       IResponseCreator responseCreator,
       IImportStatFilterValidator validator,
-      IUserImportStatInfoMapper mapper)
+      IUserImportStatInfoMapper mapper,
+      IHttpContextAccessor httpContextAccessor)
     {
       _projectService = projectService;
       _departmentService = departmentService;
@@ -428,16 +433,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       _responseCreator = responseCreator;
       _validator = validator;
       _mapper = mapper;
+      _httpContextAccessor = httpContextAccessor;
+
       _calendar = new IsDayOffIntegration();
     }
 
     public async Task<OperationResultResponse<byte[]>> ExecuteAsync(ImportStatFilter filter)
     {
-      if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
-      {
-        return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.Forbidden);
-      }
-
       if (!_validator.ValidateCustom(filter, out List<string> errors))
       {
         return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.BadRequest, errors);
@@ -449,6 +451,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       if (filter.DepartmentId.HasValue)
       {
+        if (await _departmentService
+          .GetDepartmentUserRoleAsync(
+            userId: _httpContextAccessor.HttpContext.GetUserId(),
+            departmentId: filter.DepartmentId.Value) != DepartmentUserRole.Manager
+          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+        {
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.Forbidden);
+        }
+
         usersIds = (await
           _departmentService.GetDepartmentsUsersAsync(
             new() { filter.DepartmentId.Value },
@@ -482,6 +493,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
       else
       {
+        if (await _projectService
+          .GetProjectUserRoleAsync(
+            userId: _httpContextAccessor.HttpContext.GetUserId(),
+            projectId: filter.ProjectId.Value) != ProjectUserRoleType.Manager
+          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+        {
+          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.Forbidden);
+        }
+
         Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
           projectsIds: new() { filter.ProjectId.Value });
 

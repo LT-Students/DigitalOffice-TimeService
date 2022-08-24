@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
+using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models.Department;
 
 namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
@@ -20,5 +21,10 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
       List<string> errors = null);
 
     Task<List<DepartmentFilteredData>> GetDepartmentFilteredDataAsync(List<Guid> departmentsIds, List<string> errors = null);
+
+    Task<DepartmentUserRole?> GetDepartmentUserRoleAsync(
+      Guid departmentId,
+      Guid userId,
+      List<string> errors = null);
   }
 }

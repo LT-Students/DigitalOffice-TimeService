@@ -6,6 +6,7 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Helpers;
 using LT.DigitalOffice.Kernel.RedisSupport.Constants;
 using LT.DigitalOffice.Kernel.RedisSupport.Extensions;
 using LT.DigitalOffice.Kernel.RedisSupport.Helpers.Interfaces;
+using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models.Department;
 using LT.DigitalOffice.Models.Broker.Requests.Department;
 using LT.DigitalOffice.Models.Broker.Responses.Department;
@@ -22,6 +23,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IRequestClient<IFilterDepartmentsRequest> _rcFilterDepartments;
     private readonly IRequestClient<IGetDepartmentsUsersRequest> _rcGetDepartmentUsers;
     private readonly IRequestClient<IGetDepartmentsRequest> _rcGetDepartments;
+    private readonly IRequestClient<IGetDepartmentUserRoleRequest> _rcGetDepartmentUserRole;
 
     private List<Guid> GetRedisKeyArray(List<Guid> departmentsIds = null, List<Guid> usersIds = null)
     {
@@ -45,13 +47,15 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       IGlobalCacheRepository globalCache,
       IRequestClient<IFilterDepartmentsRequest> rcFilterDepartments,
       IRequestClient<IGetDepartmentsUsersRequest> rcGetDepartmentUsers,
-      IRequestClient<IGetDepartmentsRequest> rcGetDepartments)
+      IRequestClient<IGetDepartmentsRequest> rcGetDepartments,
+      IRequestClient<IGetDepartmentUserRoleRequest> rcGetDepartmentUserRole)
     {
       _logger = logger;
       _globalCache = globalCache;
       _rcFilterDepartments = rcFilterDepartments;
       _rcGetDepartmentUsers = rcGetDepartmentUsers;
       _rcGetDepartments = rcGetDepartments;
+      _rcGetDepartmentUserRole = rcGetDepartmentUserRole;
     }
 
     public async Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
@@ -118,6 +122,20 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       }
 
       return departmentsData;
+    }
+
+    public async Task<DepartmentUserRole?> GetDepartmentUserRoleAsync(
+      Guid departmentId,
+      Guid userId,
+      List<string> errors = null)
+    {
+      IGetDepartmentUserRoleResponse response = await _rcGetDepartmentUserRole.ProcessRequest<IGetDepartmentUserRoleRequest, IGetDepartmentUserRoleResponse>(
+        IGetDepartmentUserRoleRequest.CreateObj(
+          departmentId: departmentId,
+          userId: userId),
+        errors, _logger);
+
+      return response?.DepartmentUserRole;
     }
   }
 }
