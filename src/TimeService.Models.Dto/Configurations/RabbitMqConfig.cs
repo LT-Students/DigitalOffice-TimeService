@@ -52,6 +52,9 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     [AutoInjectRequest(typeof(IFilterDepartmentsRequest))]
     public string FilterDepartmentUsersEndpoint { get; set; }
 
+    [AutoInjectRequest(typeof(IGetDepartmentUserRoleRequest))]
+    public string GetDepartmentUserRoleEndpoint { get; set; }
+
     // image
     [AutoInjectRequest(typeof(IGetImagesRequest))]
     public string GetImagesEndpoint { get; set; }
