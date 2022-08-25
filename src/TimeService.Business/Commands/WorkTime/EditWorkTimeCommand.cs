@@ -8,6 +8,8 @@ using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.Models.Broker.Enums;
+using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
@@ -26,6 +28,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IWorkTimeRepository _repository;
     private readonly IPatchDbWorkTimeMapper _patchMapper;
     private readonly IDbWorkTimeMapper _dbMapper;
+    private readonly IProjectService _projectService;
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IResponseCreator _responseCreator;
@@ -35,6 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IWorkTimeRepository repository,
       IPatchDbWorkTimeMapper patchMapper,
       IDbWorkTimeMapper dbMapper,
+      IProjectService projectService,
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
       IResponseCreator responseCreator)
@@ -43,6 +47,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _repository = repository;
       _patchMapper = patchMapper;
       _dbMapper = dbMapper;
+      _projectService = projectService;
       _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
       _responseCreator = responseCreator;
@@ -52,8 +57,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     {
       DbWorkTime oldDbWorkTime = await _repository.GetAsync(workTimeId);
 
-      bool isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldDbWorkTime.UserId;
-      if (!isOwner && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+      Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
+      bool isOwner = senderId == oldDbWorkTime.UserId;
+      if (!isOwner
+        && await _projectService.GetProjectUserRoleAsync(userId: senderId, projectId: oldDbWorkTime.ProjectId) != ProjectUserRoleType.Manager
+        && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
       {
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }

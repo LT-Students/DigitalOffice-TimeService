@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Models.Broker.Publishing.Subscriber.Time;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -14,8 +16,22 @@ namespace LT.DigitalOffice.TimeService.Broker.Consumers
 
     private async Task CreateWorkTime(ICreateWorkTimePublish publish)
     {
-      await _workTimeRepository.CreateAsync(
-        publish.UserIds.Select(u => _mapper.Map(u, publish.ProjectId)).ToList());
+      IEnumerable<Guid> existingUsersIds = (await _workTimeRepository.GetAsync(
+        usersIds: publish.UserIds,
+        projectsIds: new() { publish.ProjectId },
+        year: DateTime.Now.Year,
+        month: DateTime.Now.Month))?.Select(wt => wt.UserId);
+
+      if (existingUsersIds is null || !existingUsersIds.Any())
+      {
+        await _workTimeRepository.CreateAsync(
+          publish.UserIds.Select(u => _mapper.Map(u, publish.ProjectId)).ToList());
+      }
+      else
+      {
+        await _workTimeRepository.CreateAsync(
+          publish.UserIds.Except(existingUsersIds).Select(u => _mapper.Map(u, publish.ProjectId)).ToList());
+      }
     }
 
     public CreateWorkTimeConsumer(
