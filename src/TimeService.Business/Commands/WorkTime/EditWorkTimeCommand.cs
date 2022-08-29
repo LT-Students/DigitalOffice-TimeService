@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
@@ -9,6 +10,7 @@ using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.Models.Broker.Enums;
+using LT.DigitalOffice.Models.Broker.Models.Department;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
@@ -29,6 +31,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IPatchDbWorkTimeMapper _patchMapper;
     private readonly IDbWorkTimeMapper _dbMapper;
     private readonly IProjectService _projectService;
+    private readonly IDepartmentService _departmentService;
     private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IResponseCreator _responseCreator;
@@ -39,6 +42,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IPatchDbWorkTimeMapper patchMapper,
       IDbWorkTimeMapper dbMapper,
       IProjectService projectService,
+      IDepartmentService departmentService,
       IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
       IResponseCreator responseCreator)
@@ -48,6 +52,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       _patchMapper = patchMapper;
       _dbMapper = dbMapper;
       _projectService = projectService;
+      _departmentService = departmentService;
       _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
       _responseCreator = responseCreator;
@@ -59,11 +64,23 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
       bool isOwner = senderId == oldDbWorkTime.UserId;
-      if (!isOwner
-        && await _projectService.GetProjectUserRoleAsync(userId: senderId, projectId: oldDbWorkTime.ProjectId) != ProjectUserRoleType.Manager
-        && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+
+      if (!isOwner)
       {
-        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        Task<List<DepartmentData>> getWorktimeOwnerDepartmentTask = _departmentService.GetDepartmentsDataAsync(usersIds: new() { oldDbWorkTime.UserId });
+        Task<ProjectUserRoleType?> senderProjectRoleTask = _projectService.GetProjectUserRoleAsync(userId: senderId, projectId: oldDbWorkTime.ProjectId);
+        Task<bool> hasRightsTask = _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime);
+
+        Task<DepartmentUserRole?> senderDepartmentRoleTask = (await getWorktimeOwnerDepartmentTask)?.FirstOrDefault() != null
+        ? _departmentService.GetDepartmentUserRoleAsync(userId: senderId, departmentId: (await getWorktimeOwnerDepartmentTask).First().Id)
+        : Task.FromResult(default(DepartmentUserRole?));
+
+        if (await senderProjectRoleTask != ProjectUserRoleType.Manager
+          && await senderDepartmentRoleTask != DepartmentUserRole.Manager
+          && !await hasRightsTask)
+        {
+          return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        }
       }
 
       if (!_validator.ValidateCustom((oldDbWorkTime.ProjectId, request), out List<string> errors))
@@ -77,7 +94,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       {
         if (oldDbWorkTime.ParentId is null && oldDbWorkTime.ManagerWorkTime is null)
         {
-          DbWorkTime managerWorkTime = _dbMapper.Map(oldDbWorkTime, _httpContextAccessor.HttpContext.GetUserId());
+          DbWorkTime managerWorkTime = _dbMapper.Map(oldDbWorkTime, senderId);
 
           _patchMapper.Map(request).ApplyTo(managerWorkTime);
 
