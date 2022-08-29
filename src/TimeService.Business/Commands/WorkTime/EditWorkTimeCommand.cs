@@ -67,12 +67,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       if (!isOwner)
       {
-        Task<List<DepartmentData>> getWtOwnerDepartmentTask = _departmentService.GetDepartmentsDataAsync(usersIds: new() { oldDbWorkTime.UserId });
+        Task<List<DepartmentData>> getWorktimeOwnerDepartmentTask = _departmentService.GetDepartmentsDataAsync(usersIds: new() { oldDbWorkTime.UserId });
         Task<ProjectUserRoleType?> senderProjectRoleTask = _projectService.GetProjectUserRoleAsync(userId: senderId, projectId: oldDbWorkTime.ProjectId);
         Task<bool> hasRightsTask = _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime);
 
-        Task<DepartmentUserRole?> senderDepartmentRoleTask = (await getWtOwnerDepartmentTask)?.FirstOrDefault() != null
-        ? _departmentService.GetDepartmentUserRoleAsync(userId: senderId, departmentId: (await getWtOwnerDepartmentTask).First().Id)
+        Task<DepartmentUserRole?> senderDepartmentRoleTask = (await getWorktimeOwnerDepartmentTask)?.FirstOrDefault() != null
+        ? _departmentService.GetDepartmentUserRoleAsync(userId: senderId, departmentId: (await getWorktimeOwnerDepartmentTask).First().Id)
         : Task.FromResult(default(DepartmentUserRole?));
 
         if (await senderProjectRoleTask != ProjectUserRoleType.Manager
