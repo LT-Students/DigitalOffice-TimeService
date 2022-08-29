@@ -65,28 +65,22 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
       bool isOwner = senderId == oldDbWorkTime.UserId;
 
-      Task<List<DepartmentData>> getWtOwnerDepartmentTask = isOwner
-        ? Task.FromResult(default(List<DepartmentData>))
-        : _departmentService.GetDepartmentsDataAsync(usersIds: new() { oldDbWorkTime.UserId });
+      if (!isOwner)
+      {
+        Task<List<DepartmentData>> getWtOwnerDepartmentTask = _departmentService.GetDepartmentsDataAsync(usersIds: new() { oldDbWorkTime.UserId });
+        Task<ProjectUserRoleType?> senderProjectRoleTask = _projectService.GetProjectUserRoleAsync(userId: senderId, projectId: oldDbWorkTime.ProjectId);
+        Task<bool> hasRightsTask = _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime);
 
-      Task<ProjectUserRoleType?> senderProjectRoleTask = isOwner
-        ? Task.FromResult(default(ProjectUserRoleType?))
-        : _projectService.GetProjectUserRoleAsync(userId: senderId, projectId: oldDbWorkTime.ProjectId);
-
-      Task<bool> hasRightsTask = isOwner
-        ? Task.FromResult(default(bool))
-        : _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime);
-
-      Task<DepartmentUserRole?> senderDepartmentRoleTask = !isOwner && (await getWtOwnerDepartmentTask)?.FirstOrDefault() != null
+        Task<DepartmentUserRole?> senderDepartmentRoleTask = (await getWtOwnerDepartmentTask)?.FirstOrDefault() != null
         ? _departmentService.GetDepartmentUserRoleAsync(userId: senderId, departmentId: (await getWtOwnerDepartmentTask).First().Id)
         : Task.FromResult(default(DepartmentUserRole?));
 
-      if (!isOwner
-        && await senderProjectRoleTask != ProjectUserRoleType.Manager
-        && await senderDepartmentRoleTask != DepartmentUserRole.Manager
-        && !await hasRightsTask)
-      {
-        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        if (await senderProjectRoleTask != ProjectUserRoleType.Manager
+          && await senderDepartmentRoleTask != DepartmentUserRole.Manager
+          && !await hasRightsTask)
+        {
+          return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        }
       }
 
       if (!_validator.ValidateCustom((oldDbWorkTime.ProjectId, request), out List<string> errors))
@@ -100,7 +94,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       {
         if (oldDbWorkTime.ParentId is null && oldDbWorkTime.ManagerWorkTime is null)
         {
-          DbWorkTime managerWorkTime = _dbMapper.Map(oldDbWorkTime, _httpContextAccessor.HttpContext.GetUserId());
+          DbWorkTime managerWorkTime = _dbMapper.Map(oldDbWorkTime, senderId);
 
           _patchMapper.Map(request).ApplyTo(managerWorkTime);
 
