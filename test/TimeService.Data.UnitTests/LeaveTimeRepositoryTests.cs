@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
-using LT.DigitalOffice.UnitTestKernel;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
@@ -24,13 +22,14 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     private DbLeaveTime _firstLeaveTime;
     private DbLeaveTime _secondLeaveTime;
     private DbLeaveTime _thirdLeaveTime;
+    private DbLeaveTime _editableLeaveTime;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
       var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
-                              .UseInMemoryDatabase("InMemoryDatabase")
-                              .Options;
+        .UseInMemoryDatabase("InMemoryDatabase")
+        .Options;
       _dbContext = new TimeServiceDbContext(dbOptions);
       _repository = new LeaveTimeRepository(_dbContext);
 
@@ -41,7 +40,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       {
         Id = Guid.NewGuid(),
         LeaveType = (int)LeaveType.SickLeave,
-        Comment = "SickLeave",
+        Comment = "SickLeave 1",
         StartTime = new DateTime(2020, 7, 5),
         EndTime = new DateTime(2020, 7, 25),
         UserId = _firstWorkerId,
@@ -51,7 +50,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       {
         Id = Guid.NewGuid(),
         LeaveType = (int)LeaveType.Training,
-        Comment = "SickLeave",
+        Comment = "SickLeave 2",
         StartTime = new DateTime(2020, 7, 10),
         EndTime = new DateTime(2020, 7, 20),
         UserId = _secondWorkerId,
@@ -61,7 +60,17 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       {
         Id = Guid.NewGuid(),
         LeaveType = (int)LeaveType.SickLeave,
-        Comment = "SickLeave",
+        Comment = "SickLeave 3",
+        StartTime = new DateTime(2020, 7, 5),
+        EndTime = new DateTime(2020, 7, 25),
+        UserId = _firstWorkerId,
+        IsActive = true
+      };
+      _editableLeaveTime = new DbLeaveTime
+      {
+        Id = Guid.NewGuid(),
+        LeaveType = (int)LeaveType.SickLeave,
+        Comment = "SickLeave 4",
         StartTime = new DateTime(2020, 7, 5),
         EndTime = new DateTime(2020, 7, 25),
         UserId = _firstWorkerId,
@@ -82,7 +91,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     public async Task SuccessfullyCreateAsync()
     {
       Assert.AreEqual(_firstLeaveTime.Id, await _repository.CreateAsync(_firstLeaveTime));
-      SerializerAssert.AreEqual(_firstLeaveTime, await _dbContext.LeaveTimes.FirstAsync());
+      Assert.AreEqual(_firstLeaveTime, await _dbContext.LeaveTimes.FirstAsync());
     }
 
     [Test]
@@ -95,7 +104,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task EditSuccessfullyAsync()
     {
-      await _dbContext.AddAsync(_firstLeaveTime);
+      await _dbContext.AddAsync(_editableLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       string value = "EditedSickLeave";
@@ -104,7 +113,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         Operations = { new() { op = "replace", path = "/Comment", value = value } }
       };
 
-      Assert.IsTrue(await _repository.EditAsync(_firstLeaveTime, request));
+      Assert.IsTrue(await _repository.EditAsync(_editableLeaveTime, request));
       Assert.AreEqual(value, (await _dbContext.LeaveTimes.FirstAsync()).Comment);
     }
 
@@ -120,19 +129,11 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddRangeAsync(_firstLeaveTime, _secondLeaveTime, _thirdLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      FindLeaveTimesFilter filter = new() { StartTime = _firstLeaveTime.StartTime };
-      (List<DbLeaveTime> leaveTimes, int totalCount) expectedLeaveTimes = new()
-      {
-        leaveTimes = new List<DbLeaveTime>
-        {
-          _firstLeaveTime,
-          _thirdLeaveTime
-        },
-        totalCount = 2
-      };
+      FindLeaveTimesFilter filter = new() { UserId = _firstLeaveTime.UserId, TakeCount = 2 };
+      List<DbLeaveTime> expectedLeaveTimes = new() { _firstLeaveTime, _thirdLeaveTime };
 
       Assert.AreEqual(3, await _dbContext.LeaveTimes.CountAsync());
-      SerializerAssert.AreEqual(expectedLeaveTimes, await _repository.FindAsync(filter));
+      CollectionAssert.AreEquivalent(expectedLeaveTimes, (await _repository.FindAsync(filter)).Item1);
     }
 
     [Test]
@@ -142,10 +143,14 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.SaveChangesAsync();
 
       FindLeaveTimesFilter filter = new() { StartTime = new DateTime(2030, 12, 30) };
-      (List<DbLeaveTime> leaveTimes, int totalCount) expectedLeaveTimes = new();
+      (List<DbLeaveTime> leaveTimes, int totalCount) expectedLeaveTimes = new()
+      {
+        leaveTimes = new(),
+        totalCount = 0
+      };
 
       Assert.AreEqual(3, await _dbContext.LeaveTimes.CountAsync());
-      SerializerAssert.AreEqual(expectedLeaveTimes, await _repository.FindAsync(filter));
+      Assert.AreEqual(expectedLeaveTimes, await _repository.FindAsync(filter));
     }
 
     [Test]
@@ -154,7 +159,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      SerializerAssert.AreEqual(
+      Assert.AreEqual(
         new List<DbLeaveTime> { _firstLeaveTime },
         await _repository.GetAsync(new List<Guid> { _firstLeaveTime.UserId }, 2020, null));
     }
@@ -165,7 +170,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      SerializerAssert.AreEqual(
+      Assert.AreEqual(
         new List<DbLeaveTime> { _firstLeaveTime },
         await _repository.GetAsync(new List<Guid> { _firstLeaveTime.UserId }, 2020, 7));
     }
@@ -176,9 +181,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      SerializerAssert.AreEqual(
-        Enumerable.Empty<DbLeaveTime>(),
-        await _repository.GetAsync(new List<Guid> { _firstLeaveTime.UserId }, 2020, 8));
+      Assert.IsEmpty(await _repository.GetAsync(new List<Guid> { _firstLeaveTime.UserId }, 2020, 8));
     }
 
     [Test]
@@ -187,9 +190,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      SerializerAssert.AreEqual(
-        Enumerable.Empty<DbLeaveTime>(),
-        await _repository.GetAsync(new List<Guid> { _secondLeaveTime.UserId }, 2020, null));
+      Assert.IsEmpty(await _repository.GetAsync(
+        new List<Guid> { _secondLeaveTime.UserId },
+        2020,
+        null));
     }
 
     [Test]
@@ -198,9 +202,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      SerializerAssert.AreEqual(
-        null,
-        await _repository.GetAsync(null, 2020, null));
+      Assert.IsNull(await _repository.GetAsync(null, 2020, null));
     }
 
     [Test]
@@ -218,7 +220,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      Assert.AreEqual(null, await _repository.GetAsync(_secondLeaveTime.Id));
+      Assert.IsNull(await _repository.GetAsync(_secondLeaveTime.Id));
     }
 
     [Test]
