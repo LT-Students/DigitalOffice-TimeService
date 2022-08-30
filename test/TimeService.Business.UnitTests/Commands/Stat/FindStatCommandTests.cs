@@ -243,7 +243,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _userStatInfo = new UserStatInfo();
       _goodResponse = new FindResultResponse<UserStatInfo>
       {
-        Body = new List<UserStatInfo> { _userStatInfo }, 
+        Body = new List<UserStatInfo> { _userStatInfo },
         TotalCount = 1,
         Errors = new List<string>()
       };
