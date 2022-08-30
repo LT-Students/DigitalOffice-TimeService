@@ -144,7 +144,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         .Where(ml => ml.Year * 12 + ml.Month >= startCountMonths && ml.Year * 12 + ml.Month <= endCountMonths)
         .ToList();
 
-      if (monthsLimits.Count == 1)
+      if (monthRange.Count == 1)
       {
         return (float)leaveTime.Minutes / 60;
       }
@@ -153,13 +153,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       DbWorkTimeMonthLimit first = monthRange.First();
 
-      float extraHoursInFirstMonth = (float)first.Holidays.Substring(0, leaveTime.StartTime.Day - 1).Count(d => d == '0')
-        / first.Holidays.Count(d => d == '0') * first.NormHours;
+      float extraHoursInFirstMonth = first.Holidays.Substring(0, leaveTime.StartTime.Day - 1).Count(d => d == '0') * first.NormHours
+        / first.Holidays.Count(d => d == '0');
 
       DbWorkTimeMonthLimit last = monthRange.Last();
 
-      float extraHoursInLastMonth = (1 - (float)last.Holidays.Substring(0, leaveTime.EndTime.Day).Count(d => d == '0')
-        / last.Holidays.Count(d => d == '0')) * last.NormHours;
+      float extraHoursInLastMonth = last.NormHours - (last.Holidays.Substring(0, leaveTime.EndTime.Day).Count(d => d == '0') * last.NormHours
+        / last.Holidays.Count(d => d == '0'));
 
       countWorkingHours -= extraHoursInFirstMonth + extraHoursInLastMonth;
 
