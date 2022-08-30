@@ -57,6 +57,36 @@ namespace LT.DigitalOffice.TimeService.Data
         .FirstOrDefaultAsync(x => x.Id == id);
     }
 
+    public async Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int? month, bool includeJobs = false)
+    {
+      if (usersIds is null)
+      {
+        return null;
+      }
+
+      IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
+        .Include(wt => wt.ManagerWorkTime)
+        .Where(wt => usersIds.Contains(wt.UserId) && !wt.ParentId.HasValue)
+        .Where(wt => wt.Year == year);
+
+      if (month is not null)
+      {
+        workTimes = workTimes.Where(wt => wt.Month == month.Value);
+      }
+
+      if (projectsIds is not null)
+      {
+        workTimes = workTimes.Where(wt => projectsIds.Contains(wt.ProjectId));
+      }
+
+      if (includeJobs)
+      {
+        workTimes = workTimes.Include(wt => wt.WorkTimeDayJobs);
+      }
+
+      return await workTimes.ToListAsync();
+    }
+
     public async Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter)
     {
       var dbWorkTimes = _provider.WorkTimes.Include(wt => wt.ManagerWorkTime).Where(wt => !wt.ParentId.HasValue).AsQueryable();
@@ -121,36 +151,6 @@ namespace LT.DigitalOffice.TimeService.Data
     {
       return await _provider.WorkTimes.AnyAsync(wt => wt.UserId == userId && wt.ProjectId == default
         && wt.Month == month && wt.Year == year);
-    }
-
-    public async Task<List<DbWorkTime>> GetAsync(List<Guid> usersIds, List<Guid> projectsIds, int year, int? month, bool includeJobs = false)
-    {
-      if (usersIds is null)
-      {
-        return null;
-      }
-
-      IQueryable<DbWorkTime> workTimes = _provider.WorkTimes
-        .Include(wt => wt.ManagerWorkTime)
-        .Where(wt => usersIds.Contains(wt.UserId) && !wt.ParentId.HasValue)
-        .Where(wt => wt.Year == year);
-
-      if (month is not null)
-      {
-        workTimes = workTimes.Where(wt => wt.Month == month.Value);
-      }
-
-      if (projectsIds is not null)
-      {
-        workTimes = workTimes.Where(wt => projectsIds.Contains(wt.ProjectId));
-      }
-
-      if (includeJobs)
-      {
-        workTimes = workTimes.Include(wt => wt.WorkTimeDayJobs);
-      }
-
-      return await workTimes.ToListAsync();
     }
   }
 }
