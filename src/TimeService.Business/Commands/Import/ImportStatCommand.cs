@@ -32,12 +32,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
   public class ImportStatCommand : IImportStatCommand
   {
-    private XLColor FirstHeaderColor => XLColor.LightPastelPurple;
+    private XLColor FirstHeaderColor => XLColor.LavenderBlue;
     private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
     private XLColor MainProjectColor => XLColor.LightGreen;
     private XLColor OtherProjectColor => XLColor.LightYellow;
     private XLColor VacantionColor => XLColor.PastelOrange;
-    private XLColor LeaveTypesColor => XLColor.LavenderBlue;
+    private XLColor LeaveTypesColor => XLColor.LightPastelPurple;
     private XLColor TimesColor => XLColor.LightGreen;
 
     //ToDo - move to file
@@ -132,51 +132,40 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
     #region Create table
 
-    private float GetLeaveTimeHours(List<DbWorkTimeMonthLimit> monthsLimits, DbLeaveTime leaveTime, int year, int month)
+    private decimal GetLeaveTimeHours(List<DbWorkTimeMonthLimit> monthsLimits, DbLeaveTime leaveTime, int year, int month)
     {
-      // monthsLimits should be sort by time
-
-      int requestedMonthCount = year * 12 + month;
-      int startCountMonths = leaveTime.StartTime.Year * 12 + leaveTime.StartTime.Month;
-      int endCountMonths = leaveTime.EndTime.Year * 12 + leaveTime.EndTime.Month;
-
       List<DbWorkTimeMonthLimit> monthRange = monthsLimits
-        .Where(ml => ml.Year * 12 + ml.Month >= startCountMonths && ml.Year * 12 + ml.Month <= endCountMonths)
+        .Where(ml => ml.Year >= leaveTime.StartTime.Year && ml.Month >= leaveTime.StartTime.Month
+          && ml.Year <= leaveTime.EndTime.Year && ml.Month <= leaveTime.EndTime.Month)
+        .OrderBy(ml => ml.Year).ThenBy(ml => ml.Month)
         .ToList();
 
-      if (monthsLimits.Count == 1)
+      if (monthRange.Count == 1)
       {
-        return (float)leaveTime.Minutes / 60;
+        return (decimal)leaveTime.Minutes / 60;
       }
 
-      float countWorkingHours = monthRange.Select(ml => ml.NormHours).Sum();
+      DbWorkTimeMonthLimit firstMonthLimit = monthRange.First();
+      DbWorkTimeMonthLimit lastMonthLimit = monthRange.Last();
 
-      DbWorkTimeMonthLimit first = monthRange.First();
+      DbWorkTimeMonthLimit thisMonthLimit = monthRange.First(ml => ml.Year == year && ml.Month == month);
+      decimal thisMonthVacantionHours = (decimal)thisMonthLimit.NormHours;
 
-      float extraHoursInFirstMonth = (float)first.Holidays.Substring(0, leaveTime.StartTime.Day - 1).Count(d => d == '0')
-        / first.Holidays.Count(d => d == '0') * first.NormHours;
-
-      DbWorkTimeMonthLimit last = monthRange.Last();
-
-      float extraHoursInLastMonth = (1 - (float)last.Holidays.Substring(0, leaveTime.EndTime.Day).Count(d => d == '0')
-        / last.Holidays.Count(d => d == '0')) * last.NormHours;
-
-      countWorkingHours -= extraHoursInFirstMonth + extraHoursInLastMonth;
-
-      DbWorkTimeMonthLimit thisMonth = monthRange.First(ml => ml.Year == year && ml.Month == month);
-      float countWorkingHoursOfThisMonth = thisMonth.NormHours;
-
-      if (thisMonth == first)
+      if (thisMonthLimit == firstMonthLimit)
       {
-        countWorkingHoursOfThisMonth -= extraHoursInFirstMonth;
+        decimal workingHoursInFirstMonth = firstMonthLimit.Holidays.Substring(0, leaveTime.StartTime.Day - 1).Count(d => d == '0')
+          * (decimal)firstMonthLimit.NormHours / firstMonthLimit.Holidays.Count(d => d == '0');
+
+        thisMonthVacantionHours -= workingHoursInFirstMonth;
       }
 
-      if (thisMonth == last)
+      if (thisMonthLimit == lastMonthLimit)
       {
-        countWorkingHoursOfThisMonth -= extraHoursInLastMonth;
+        thisMonthVacantionHours = lastMonthLimit.Holidays.Substring(0, leaveTime.EndTime.Day).Count(d => d == '0')
+          * (decimal)lastMonthLimit.NormHours / lastMonthLimit.Holidays.Count(d => d == '0');
       }
 
-      return countWorkingHoursOfThisMonth / countWorkingHours * leaveTime.Minutes / 60;
+      return thisMonthVacantionHours;
     }
 
     private void AddHeaderCell(IXLWorksheet ws, int column, string value, XLColor color)
@@ -329,7 +318,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
             for (int i = 0; i < leaveTypesCount; i++)
             {
-              float leaveTimeHours = usersLeaveTimes.Where(lt => lt.LeaveType == i)
+              decimal leaveTimeHours = usersLeaveTimes.Where(lt => lt.LeaveType == i)
                 .Select(lt => GetLeaveTimeHours(monthsLimits, lt, filter.Year, filter.Month))
                 .Sum();
 
