@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
-using LT.DigitalOffice.TimeService.Data.Provider;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
@@ -23,7 +21,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     private AutoMocker _mocker;
     private TimeServiceDbContext _dbContext;
     private IWorkTimeMonthLimitRepository _repository;
-    private IHttpContextAccessor _httpContextAccessor;
+    private Mock<IHttpContextAccessor> _httpContextAccessorMock;
 
     private DbWorkTimeMonthLimit _firstWorkTimeMonthLimit;
     private DbWorkTimeMonthLimit _secondWorkTimeMonthLimit;
@@ -75,9 +73,16 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         .Options;
 
       _dbContext = new TimeServiceDbContext(dbOptions);
+
       _mocker = new AutoMocker();
-      _httpContextAccessor = _mocker.CreateInstance<HttpContextAccessor>();
-      _repository = new WorkTimeMonthLimitRepository(_dbContext, _httpContextAccessor);
+      _httpContextAccessorMock = new();
+      _httpContextAccessorMock
+        .Setup(x => x.HttpContext.Items)
+        .Returns(_items);
+
+      _repository = new WorkTimeMonthLimitRepository(_dbContext, _httpContextAccessorMock.Object);
+
+      _mocker.GetMock<IHttpContextAccessor>().Reset();
     }
 
     [TearDown]
@@ -101,7 +106,6 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     {
       Assert.IsNull(await _repository.CreateAsync(null));
       Assert.AreEqual(0, await _dbContext.WorkTimeMonthLimits.CountAsync());
-
     }
 
     [Test]
@@ -141,33 +145,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task EditSuccessfullyAsync()
     {
-      List<DbWorkTimeMonthLimit> list = new() { _editableWorkTimeMonthLimit };
-      IQueryable<DbWorkTimeMonthLimit> queryable = list.AsQueryable();
-      Mock<DbSet<DbWorkTimeMonthLimit>> dbSet = new Mock<DbSet<DbWorkTimeMonthLimit>>();
-
-      dbSet.As<IQueryable<DbWorkTimeMonthLimit>>()
-        .Setup(x => x.Provider)
-        .Returns(queryable.Provider);
-      dbSet.As<IQueryable<DbWorkTimeMonthLimit>>()
-        .Setup(m => m.Expression)
-        .Returns(queryable.Expression);
-      dbSet
-        .As<IQueryable<DbWorkTimeMonthLimit>>()
-        .Setup(m => m.ElementType)
-        .Returns(queryable.ElementType);
-      dbSet
-        .As<IQueryable<DbWorkTimeMonthLimit>>()
-        .Setup(m => m.GetEnumerator())
-        .Returns(() => queryable.GetEnumerator());
-
-      _mocker
-        .Setup<IHttpContextAccessor, IDictionary<object, object>>(x => x.HttpContext.Items)
-        .Returns(_items);
-      _mocker
-        .Setup<IDataProvider, IEnumerable<DbWorkTimeMonthLimit>>(x => x.WorkTimeMonthLimits)
-        .Returns(dbSet.Object);
-
-      WorkTimeMonthLimitRepository mockedRepository = _mocker.CreateInstance<WorkTimeMonthLimitRepository>();
+      await _dbContext.AddAsync(_editableWorkTimeMonthLimit);
+      await _dbContext.SaveChangesAsync();
 
       string value = "Edited Holidays";
       JsonPatchDocument<DbWorkTimeMonthLimit> request = new()
@@ -175,7 +154,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         Operations = { new() { op = "replace", path = "/Holidays", value = value } }
       };
 
-      Assert.IsTrue(await mockedRepository.EditAsync(_editableWorkTimeMonthLimit.Id, request));
+      Assert.IsTrue(await _repository.EditAsync(_editableWorkTimeMonthLimit.Id, request));
       Assert.AreEqual(value, _editableWorkTimeMonthLimit.Holidays);
     }
 

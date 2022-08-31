@@ -8,6 +8,7 @@ using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Moq.AutoMock;
 using NUnit.Framework;
 
@@ -21,8 +22,8 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     private readonly List<DbWorkTime> _nullListDbWorkTime = null;
 
     private AutoMocker _mocker;
+    private Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private TimeServiceDbContext _dbContext;
-    private IHttpContextAccessor _httpContextAccessor;
     private IWorkTimeRepository _repository;
 
     private DbWorkTime _firstWorkTime;
@@ -81,9 +82,17 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         .Options;
 
       _dbContext = new TimeServiceDbContext(dbOptions);
+
       _mocker = new AutoMocker();
-      _httpContextAccessor = _mocker.CreateInstance<HttpContextAccessor>();
-      _repository = new WorkTimeRepository(_dbContext, _httpContextAccessor);
+      _httpContextAccessorMock = new();
+      _httpContextAccessorMock
+        .Setup(x => x.HttpContext.Items)
+        .Returns(_items);
+
+      _repository = new WorkTimeRepository(_dbContext, _httpContextAccessorMock.Object);
+
+      _mocker.GetMock<IHttpContextAccessor>().Reset();
+
     }
 
     [TearDown]
@@ -220,11 +229,6 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task EditSuccessfullyAsync()
     {
-      WorkTimeRepository mockedRepository = _mocker.CreateInstance<WorkTimeRepository>();
-      _mocker.Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
-          x.HttpContext.Items)
-        .Returns(_items);
-
       await _dbContext.WorkTimes.AddAsync(_editableWorkTime);
       await _dbContext.SaveChangesAsync();
 
@@ -234,7 +238,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         Operations = { new() { op = "replace", path = "/Description", value = value } }
       };
 
-      Assert.IsTrue(await mockedRepository.EditAsync(_editableWorkTime, request));
+      Assert.IsTrue(await _repository.EditAsync(_editableWorkTime, request));
       Assert.AreEqual(value, (await _dbContext.WorkTimes.FirstAsync()).Description);
     }
 
