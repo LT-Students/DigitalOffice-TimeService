@@ -115,9 +115,9 @@ namespace LT.DigitalOffice.TimeService.Data
         .ToListAsync();
     }
 
-    public async Task<DbWorkTimeMonthLimit> GetLastAsync()
+    public Task<DbWorkTimeMonthLimit> GetLastAsync()
     {
-      return await _provider.WorkTimeMonthLimits.OrderByDescending(l => l.Year).ThenByDescending(l => l.Month).FirstOrDefaultAsync();
+      return _provider.WorkTimeMonthLimits.OrderByDescending(l => l.Year).ThenByDescending(l => l.Month).FirstOrDefaultAsync();
     }
   }
 }

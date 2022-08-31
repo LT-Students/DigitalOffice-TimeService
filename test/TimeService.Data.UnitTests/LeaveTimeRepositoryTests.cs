@@ -97,7 +97,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task CreateReturnNullAsync()
     {
-      Assert.AreEqual(null, await _repository.CreateAsync(null));
+      Assert.IsNull(await _repository.CreateAsync(null));
       Assert.AreEqual(0, await _dbContext.LeaveTimes.CountAsync());
     }
 

@@ -121,7 +121,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task CreateReturnNullAsync()
     {
-      Assert.AreEqual(null, await _repository.CreateAsync(_nullDbWorkTime));
+      Assert.IsNull(await _repository.CreateAsync(_nullDbWorkTime));
     }
 
     [Test]
@@ -139,7 +139,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.WorkTimes.AddAsync(_firstWorkTime);
       await _dbContext.SaveChangesAsync();
 
-      Assert.AreEqual(null, await _repository.GetAsync(_secondWorkTime.Id));
+      Assert.IsNull(await _repository.GetAsync(_secondWorkTime.Id));
     }
 
     [Test]
@@ -165,27 +165,21 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.WorkTimes.AddRangeAsync(_firstWorkTime, _secondWorkTime, _thirdWorkTime);
       await _dbContext.SaveChangesAsync();
 
-      List<DbWorkTime> expectedResult = new();
-
-      Assert.AreEqual(
-        expectedResult,
-        await _repository.GetAsync(
-          new List<Guid> { _firstWorkTime.UserId, _secondWorkTime.UserId },
-          new List<Guid> { _secondWorkTime.ProjectId },
-          2022,
-          null));
+      Assert.IsEmpty(await _repository.GetAsync(
+        new List<Guid> { _firstWorkTime.UserId, _secondWorkTime.UserId },
+        new List<Guid> { _secondWorkTime.ProjectId },
+        2022,
+        null));
     }
 
     [Test]
     public async Task GetByUsersIdsReturnNullAsync()
     {
-      Assert.AreEqual(
+      Assert.IsNull(await _repository.GetAsync(
         null,
-        await _repository.GetAsync(
-          null,
-          null,
-          2022,
-          8));
+        null,
+        2022,
+        8));
     }
 
     [Test]
