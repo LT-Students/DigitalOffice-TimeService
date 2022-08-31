@@ -12,7 +12,7 @@ using NUnit.Framework;
 
 namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
-  public class CreateLeaveTimeTests
+  public class LeaveTimeRepositoryTests
   {
     private TimeServiceDbContext _dbContext;
     private ILeaveTimeRepository _repository;

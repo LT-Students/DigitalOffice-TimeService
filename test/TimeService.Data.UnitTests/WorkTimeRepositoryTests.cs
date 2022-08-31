@@ -13,7 +13,7 @@ using NUnit.Framework;
 
 namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
-  public class CreateWorkTimeTests
+  public class WorkTimeRepositoryTests
   {
     private readonly Dictionary<object, object> _items = new() { { "UserId", Guid.NewGuid() } };
 
