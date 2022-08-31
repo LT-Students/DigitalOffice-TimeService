@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<Guid?> CreateAsync(DbWorkTimeMonthLimit workTimeMonthLimit)
     {
-      if (workTimeMonthLimit == null)
+      if (workTimeMonthLimit is null)
       {
         return null;
       }
@@ -41,7 +41,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task CreateRangeAsync(List<DbWorkTimeMonthLimit> workTimeMonthsLimits)
     {
-      if (workTimeMonthsLimits == null || workTimeMonthsLimits.Contains(null))
+      if (workTimeMonthsLimits is null || workTimeMonthsLimits.Contains(null))
       {
         return;
       }
@@ -54,7 +54,7 @@ namespace LT.DigitalOffice.TimeService.Data
     {
       DbWorkTimeMonthLimit dbWorkTimeMonthLimit = _provider.WorkTimeMonthLimits.FirstOrDefault(ml => ml.Id == workTimeMonthLimitId);
 
-      if (dbWorkTimeMonthLimit == null || request == null)
+      if (dbWorkTimeMonthLimit is null || request is null)
       {
         return false;
       }
@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter)
     {
-      if (filter == null)
+      if (filter is null)
       {
         return (null, default);
       }
