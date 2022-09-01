@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Data
   {
     private readonly IDataProvider _provider;
 
-    private IQueryable<DbLeaveTime> CreateQueryble(FindLeaveTimesFilter filter)
+    private IQueryable<DbLeaveTime> CreateQueryable(FindLeaveTimesFilter filter)
     {
       var dbLeaveTimes = _provider.LeaveTimes.AsQueryable();
 
@@ -75,7 +75,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<(List<DbLeaveTime>, int totalCount)> FindAsync(FindLeaveTimesFilter filter)
     {
-      IQueryable<DbLeaveTime> dbLeaveTimes = CreateQueryble(filter);
+      IQueryable<DbLeaveTime> dbLeaveTimes = CreateQueryable(filter);
 
       return (await dbLeaveTimes.Skip(filter.SkipCount).Take(filter.TakeCount).ToListAsync(), await dbLeaveTimes.CountAsync());
     }
