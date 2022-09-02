@@ -84,6 +84,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       int takeCount,
       bool? ascendingSort,
       string nameIncludeSubstring,
+      bool? isActive,
       List<string> errors)
     {
       if (usersIds is null || !usersIds.Any())
@@ -105,7 +106,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
               skipCount: skipCount,
               takeCount: takeCount,
               ascendingSort: ascendingSort,
-              fullNameIncludeSubstring: nameIncludeSubstring),
+              fullNameIncludeSubstring: nameIncludeSubstring,
+              isActive: isActive),
             errors,
             _logger);
 

@@ -17,6 +17,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
       int takeCount,
       bool? ascendingSort,
       string nameIncludeSubstring,
+      bool? isActive,
       List<string> errors);
 
     Task<List<Guid>> CheckUsersExistenceAsync(List<Guid> usersIds, List<string> errors = null);
