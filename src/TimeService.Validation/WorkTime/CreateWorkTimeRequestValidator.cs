@@ -24,7 +24,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       DateTime dateTimeNow = DateTime.UtcNow.AddHours(offset);
 
       if (month == dateTimeNow.Month
-        || (dateTimeNow.Day <= 5 && dateTimeNow.AddMonths(1).Month == month))
+        || (dateTimeNow.Day <= 5 && dateTimeNow.AddMonths(-1).Month == month))
       {
         return true;
       }
@@ -37,7 +37,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       DateTime dateTimeNow = DateTime.UtcNow.AddHours(offset);
 
       if (dateTimeNow.Year == year
-        || dateTimeNow.AddMonths(-1).Year == year && month == 1)
+        || (dateTimeNow.AddMonths(-1).Year == year && month == 1))
       {
         return true;
       }
