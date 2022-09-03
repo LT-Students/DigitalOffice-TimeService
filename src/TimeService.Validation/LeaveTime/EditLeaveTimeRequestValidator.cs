@@ -18,6 +18,17 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
   {
     private readonly ILeaveTimeRepository _repository;
 
+    private bool ValidateTimes(List<Operation<EditLeaveTimeRequest>> operations)
+    {
+      Operation<EditLeaveTimeRequest> startTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
+      Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+
+      return (startTimeOperation is null || DateTimeOffset.TryParse(startTimeOperation.value.ToString(), out _))
+        && (endTimeOperation is null || DateTimeOffset.TryParse(endTimeOperation.value.ToString(), out _));
+    }
+
     private async Task ValidateOverlappingAsync(
       DbLeaveTime oldLeaveTime,
       List<Operation<EditLeaveTimeRequest>> operations,
@@ -49,6 +60,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
           : DateTimeOffset.Parse(endTimeOperation.value.ToString());
       }
 
+      //converting utc time with offset to local time
       DateTime startTime = startTimeWithOffset.DateTime.Add(startTimeWithOffset.Offset);
       DateTime endTime = endTimeWithOffset.DateTime.Add(endTimeWithOffset.Offset);
 
@@ -104,30 +116,6 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       AddСorrectOperations(nameof(EditLeaveTimeRequest.LeaveType), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.IsActive), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Comment), new List<OperationType> { OperationType.Replace });
-
-      #endregion
-
-      #region StartTime
-
-      AddFailureForPropertyIf(
-        nameof(EditLeaveTimeRequest.StartTime),
-        x => x == OperationType.Replace,
-        new()
-        {
-          { x => DateTimeOffset.TryParse(x.value.ToString(), out _), "Incorrect format of StartTime." },
-        });
-
-      #endregion
-
-      #region EndTime
-
-      AddFailureForPropertyIf(
-        nameof(EditLeaveTimeRequest.EndTime),
-        x => x == OperationType.Replace,
-        new()
-        {
-          { x => DateTimeOffset.TryParse(x.value.ToString(), out _), "Incorrect format of EndTime." },
-        });
 
       #endregion
 
@@ -188,7 +176,13 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .Custom(HandleInternalPropertyValidation);
 
       RuleFor(x => x)
-        .CustomAsync(async (x, context, _) => await ValidateOverlappingAsync(x.Item1, x.Item2.Operations, context));
+        .Must(x => ValidateTimes(x.Item2.Operations))
+        .WithMessage("Incorrect format of startTime or endTime")
+        .DependentRules(() =>
+        {
+          RuleFor(x => x)
+            .CustomAsync(async (x, context, _) => await ValidateOverlappingAsync(x.Item1, x.Item2.Operations, context));
+        });
     }
   }
 }

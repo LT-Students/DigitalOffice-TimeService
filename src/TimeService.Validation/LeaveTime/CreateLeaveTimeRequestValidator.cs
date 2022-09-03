@@ -19,14 +19,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       DateTime timeNow = DateTime.UtcNow.Add(lt.StartTime.Offset);
       DateTime thisMonthFirstDay = new DateTime(timeNow.Year, timeNow.Month, 1);
 
-      if (lt.EndTime >= thisMonthFirstDay.AddMonths(2)
-        || (lt.StartTime < thisMonthFirstDay && timeNow.Day > 5)
-        || lt.StartTime < thisMonthFirstDay.AddMonths(-1))
-      {
-        return false;
-      }
-
-      return true;
+      return !(lt.EndTime >= thisMonthFirstDay.AddMonths(2) //checks that end time does not exceed +1 month (from first day)
+        || (lt.StartTime < thisMonthFirstDay && timeNow.Day > 5) //checks that start time is not in previous month if it is not the first five days of this month
+        || lt.StartTime < thisMonthFirstDay.AddMonths(-1)); //checks that end time does not exceed -1 month (from first day)
     }
 
     public CreateLeaveTimeRequestValidator(
