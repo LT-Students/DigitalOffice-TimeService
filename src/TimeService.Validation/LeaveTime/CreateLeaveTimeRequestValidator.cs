@@ -13,27 +13,17 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
   public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
   {
     private readonly IUserService _userService;
-    private readonly ILogger<CreateLeaveTimeRequestValidator> _logger;
 
     private bool CheckLeaveTimeInterval(CreateLeaveTimeRequest lt)
     {
       DateTime timeNow = DateTime.UtcNow.Add(lt.StartTime.Offset);
+      DateTime thisMonthFirstDay = new DateTime(timeNow.Year, timeNow.Month, 1);
 
-      switch (lt.LeaveType)
+      if (lt.EndTime >= thisMonthFirstDay.AddMonths(2)
+        || (lt.StartTime < thisMonthFirstDay && timeNow.Day > 5)
+        || lt.StartTime < thisMonthFirstDay.AddMonths(-1))
       {
-        case LeaveType.SickLeave:
-          if (lt.StartTime < timeNow.AddMonths(-1) || lt.EndTime > timeNow.AddMonths(1))
-          {
-            return false;
-          }
-          break;
-
-        default:
-          if (lt.StartTime < timeNow.AddMonths(-1) || (lt.StartTime.Month == timeNow.AddMonths(-1).Month && timeNow.Day > 5))
-          {
-            return false;
-          }
-          break;
+        return false;
       }
 
       return true;
@@ -41,11 +31,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
     public CreateLeaveTimeRequestValidator(
       ILeaveTimeRepository repository,
-      IUserService userService,
-      ILogger<CreateLeaveTimeRequestValidator> logger)
+      IUserService userService)
     {
       _userService = userService;
-      _logger = logger;
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
