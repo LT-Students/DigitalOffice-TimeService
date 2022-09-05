@@ -18,17 +18,6 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
   {
     private readonly ILeaveTimeRepository _repository;
 
-    private bool ValidateTimes(List<Operation<EditLeaveTimeRequest>> operations)
-    {
-      Operation<EditLeaveTimeRequest> startTimeOperation = operations.FirstOrDefault(
-        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
-      Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
-        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
-
-      return (startTimeOperation is null || DateTimeOffset.TryParse(startTimeOperation.value.ToString(), out _))
-        && (endTimeOperation is null || DateTimeOffset.TryParse(endTimeOperation.value.ToString(), out _));
-    }
-
     private async Task ValidateOverlappingAsync(
       DbLeaveTime oldLeaveTime,
       List<Operation<EditLeaveTimeRequest>> operations,
@@ -42,6 +31,12 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       if (startTimeOperation is null && endTimeOperation is null)
       {
         return;
+      }
+
+      if (!(startTimeOperation is null || DateTimeOffset.TryParse(startTimeOperation.value.ToString(), out _))
+        || !(endTimeOperation is null || DateTimeOffset.TryParse(endTimeOperation.value.ToString(), out _)))
+      {
+        context.AddFailure("Incorrect format of startTime or endTime");
       }
 
       DateTimeOffset startTimeWithOffset;
@@ -175,14 +170,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
+      //will be moved to own validator
       RuleFor(x => x)
-        .Must(x => ValidateTimes(x.Item2.Operations))
-        .WithMessage("Incorrect format of startTime or endTime")
-        .DependentRules(() =>
-        {
-          RuleFor(x => x)
-            .CustomAsync(async (x, context, _) => await ValidateOverlappingAsync(x.Item1, x.Item2.Operations, context));
-        });
+        .CustomAsync(async (x, context, _) => await ValidateOverlappingAsync(x.Item1, x.Item2.Operations, context));
     }
   }
 }
