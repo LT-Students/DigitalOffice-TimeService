@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 using ClosedXML.Excel;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
@@ -32,6 +33,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
   public class ImportStatCommand : IImportStatCommand
   {
+    private const string _contractSubjectPrefix = "ИП";
+
     private XLColor FirstHeaderColor => XLColor.LavenderBlue;
     private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
     private XLColor MainProjectColor => XLColor.LightGreen;
@@ -172,11 +175,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     {
       IXLCell cell = ws.Cell(1, column);
       cell.SetValue(value);
-
-      if (value.Length > 3)
-      {
-        cell.Style.Alignment.TextRotation = 90;
-      }
+      cell.Style.Alignment.TextRotation = 90;
 
       cell.Style
         .Font.SetBold()
@@ -205,10 +204,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         "Итого"
       };
 
-      List<string> lastHeaders = new()
+      /*List<string> lastHeaders = new()
       {
         "Тип договора"
-      };
+      };*/
 
       using (var workbook = new XLWorkbook(XLEventTracking.Disabled))
       {
@@ -240,21 +239,21 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           leaveTypesCount++;
         }
 
-        int columnsCount = headers.Count + leaveTypesCount + mainProjects.Count + otherProjects.Count + lastHeaders.Count;
+        int columnsCount = headers.Count + leaveTypesCount + mainProjects.Count + otherProjects.Count/* + lastHeaders.Count*/;
         columnNumber += otherProjects.Count;
 
-        foreach (string header in lastHeaders)
+        /*foreach (string header in lastHeaders)
         {
           AddHeaderCell(ws, columnNumber, header, FirstHeaderColor);
 
           columnNumber++;
-        }
+        }*/
 
         ws.Cell(2, 2).Value = "Итого";
         ws.Cell(2, 2).Style.Font.SetBold();
         ws.Range(2, 1, 2, columnsCount).Style.Fill.SetBackgroundColor(SecondHeaderColor);
 
-        for (int currentColumn = headers.Count; currentColumn <= columnsCount - lastHeaders.Count; currentColumn++)
+        for (int currentColumn = headers.Count; currentColumn <= columnsCount/* - lastHeaders.Count*/; currentColumn++)
         {
           ws.Cell(2, currentColumn).FormulaA1 = $"=_xlfn.SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})";
         }
@@ -269,19 +268,28 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           UserImportStatInfo currentUserStatInfo = sortedUsers[userNumber];
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
-          ws.Cell(row, 2).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
+
+          if (_contractSubjectPrefix.Equals(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name, StringComparison.OrdinalIgnoreCase))
+          {
+            ws.Cell(row, 2).SetValue($"{_contractSubjectPrefix} {currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
+          }
+          else
+          {
+            ws.Cell(row, 2).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
+          }
+
           ws.Cell(row, 3).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
           ws.Cell(row, 4).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
-          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnsCount - lastHeaders.Count).Address})")
+          ws.Cell(row, 5).SetFormulaR1C1($"=SUM({ws.Cell(row, 6).Address}:{ws.Cell(row, columnsCount/* - lastHeaders.Count*/).Address})")
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
-          ws.Cell(row, columnNumber - 1).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
-            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
+          /*ws.Cell(row, columnNumber - 1).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor);*/
 
           SetMaxParamsLength(currentUserStatInfo, ref maxUserNameLength, ref maxUserContractSubjectLength);
         }
 
         ws.Column(2).Width = maxUserNameLength;
-        ws.Columns(columnsCount - lastHeaders.Count + 1, columnsCount).Width = maxUserContractSubjectLength;
+        //ws.Columns(columnsCount /*- lastHeaders.Count*/ + 1, columnsCount).Width = maxUserContractSubjectLength;
 
         if (filter.DepartmentId.HasValue)
         {
@@ -335,7 +343,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           .Border.SetLeftBorder(XLBorderStyleValues.Thin)
           .Border.SetRightBorder(XLBorderStyleValues.Thin)
           .Border.SetTopBorder(XLBorderStyleValues.Thin);
-        ws.Range(3, 6, 2 + sortedUsers.Count, columnsCount - lastHeaders.Count).Style.Fill.SetBackgroundColor(TimesColor);
+        ws.Range(3, 6, 2 + sortedUsers.Count, columnsCount /*- lastHeaders.Count*/).Style.Fill.SetBackgroundColor(TimesColor);
 
         workbook.SaveAs(ms);
       }
