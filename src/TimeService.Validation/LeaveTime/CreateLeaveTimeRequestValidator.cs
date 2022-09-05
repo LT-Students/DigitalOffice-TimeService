@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using FluentValidation;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
-using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
-using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
