@@ -135,13 +135,18 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
-      RuleFor(x => x.Item2.Operations)
-        .Must(ops => ValidateTimeVariables(ops))
-        .WithMessage("Incorrect format of startTime or endTime.")
-        .DependentRules(() =>
+      When(x => x.Item2.Operations.FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase)) is not null
+        || x.Item2.Operations.FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase)) is not null,
+        () =>
         {
-          RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
-            .SetValidator(validator);
+          RuleFor(x => x.Item2.Operations)
+            .Must(ops => ValidateTimeVariables(ops))
+            .WithMessage("Incorrect format of startTime or endTime.")
+            .DependentRules(() =>
+            {
+              RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
+                .SetValidator(validator);
+            });
         });
     }
   }
