@@ -114,9 +114,14 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       DateTimeOffset startTime;
       DateTimeOffset endTime;
 
-      if (startTimeOperation is null)
+      if (startTimeOperation is null && endTimeOperation is null)
       {
-        endTime = DateTimeOffset.Parse(endTimeOperation.value.ToString());
+        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified));
+        endTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified));
+      }
+      else if (startTimeOperation is null)
+      {
+        endTime = DateTimeOffset.Parse(endTimeOperation?.value.ToString());
         startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified), endTime.Offset);
       }
       else
