@@ -1,17 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Threading;
 using FluentValidation;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
   public class CreateLeaveTimeRequestValidator : AbstractValidator<CreateLeaveTimeRequest>, ICreateLeaveTimeRequestValidator
   {
-    private readonly IUserService _userService;
-
     //dbLeaveTime is always null here, it is used for time validation in editLeaveTimeRequest
     private (DateTimeOffset startTime, DateTimeOffset endTime, DbLeaveTime leaveTime, Guid? userId) GetItems(
       DateTimeOffset startTime,
@@ -25,21 +26,15 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       IUserService userService,
       ILeaveTimeIntervalValidator leaveTimeIntervalValidator)
     {
-      _userService = userService;
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
 
       RuleFor(lt => lt.UserId)
         .NotEmpty()
-        .MustAsync(async (userId, _) => (await _userService.CheckUsersExistenceAsync(new List<Guid> { userId }))?.Count == 1)
-        .WithMessage("This user doesn't exist.");
+        .MustAsync(async (userId, _) => (await userService.CheckUsersExistenceAsync(new List<Guid> { userId }))?.Count == 1)
+        .WithMessage(LeaveTimeValidatorResource.UserDoesNotExist);
 
       RuleFor(lt => lt.LeaveType)
         .IsInEnum();
-
-      RuleFor(lt => lt.StartTime)
-        .NotEqual(new DateTimeOffset());
-
-      RuleFor(lt => lt.EndTime)
-        .NotEqual(new DateTimeOffset());
 
       RuleFor(lt => lt.Minutes)
         .GreaterThan(0);
