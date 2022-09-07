@@ -114,9 +114,14 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       DateTimeOffset startTime;
       DateTimeOffset endTime;
 
-      if (startTimeOperation is null)
+      if (startTimeOperation is null && endTimeOperation is null)
       {
-        endTime = DateTimeOffset.Parse(endTimeOperation.value.ToString());
+        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified));
+        endTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified));
+      }
+      else if (startTimeOperation is null)
+      {
+        endTime = DateTimeOffset.Parse(endTimeOperation?.value.ToString());
         startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified), endTime.Offset);
       }
       else
@@ -135,18 +140,13 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
-      When(x => x.Item2.Operations.FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase)) is not null
-        || x.Item2.Operations.FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase)) is not null,
-        () =>
+      RuleFor(x => x.Item2.Operations)
+        .Must(ops => ValidateTimeVariables(ops))
+        .WithMessage("Incorrect format of startTime or endTime.")
+        .DependentRules(() =>
         {
-          RuleFor(x => x.Item2.Operations)
-            .Must(ops => ValidateTimeVariables(ops))
-            .WithMessage("Incorrect format of startTime or endTime.")
-            .DependentRules(() =>
-            {
-              RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
-                .SetValidator(validator);
-            });
+          RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
+            .SetValidator(validator);
         });
     }
   }
