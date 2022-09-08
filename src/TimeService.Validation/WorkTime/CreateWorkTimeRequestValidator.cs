@@ -7,11 +7,9 @@ using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
-using LT.DigitalOffice.TimeService.Validation.LeaveTime;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Resources;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
@@ -48,14 +46,14 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       IHttpContextAccessor httpContextAccessor,
       IWorkTimeRepository workTimeRepository)
     {
-      Thread.CurrentThread.CurrentUICulture = new CultureInfo("en-US");
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
 
       RuleFor(_ => httpContextAccessor.HttpContext.GetUserId())
         .MustAsync(async (userId, _) => (await userService.CheckUsersExistenceAsync(new List<Guid> { userId }))?.Count == 1)
         .WithMessage(WorkTimeValidationResource.UserDoesNotExist);
 
       RuleFor(x => x.Description)
-        .MaximumLength(500).WithMessage("Description is too long.");
+        .MaximumLength(500).WithMessage($"{nameof(CreateWorkTimeRequest.Description)} {WorkTimeValidationResource.LongPropertyValue}");
 
       RuleFor(request => request)
         .Must(request => request.Offset >= -12 && request.Offset <= 12).WithMessage(WorkTimeValidationResource.OffsetIsIncorrect)

@@ -120,15 +120,6 @@
   <data name="MonthIsIncorrect" xml:space="preserve">
     <value>Передан некорректный месяц</value>
   </data>
-  <data name="OffsetIsIncorrect" xml:space="preserve">
-    <value>Передано некорректное смещение часового пояса</value>
-  </data>
-  <data name="UserDoesNotExist" xml:space="preserve">
-    <value>Указанный пользователь не найден</value>
-  </data>
-  <data name="WorkTimeAlreadyExists" xml:space="preserve">
-    <value>В этом месяце уже существует запись по данному проекту</value>
-  </data>
   <data name="YearIsIncorrect" xml:space="preserve">
     <value>Передан некорректный год</value>
   </data>

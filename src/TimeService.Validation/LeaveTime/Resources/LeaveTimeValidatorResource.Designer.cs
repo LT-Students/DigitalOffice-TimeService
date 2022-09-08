@@ -62,6 +62,15 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incorrect format of.
+        /// </summary>
+        internal static string IncorrectFormat {
+            get {
+                return ResourceManager.GetString("IncorrectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incorrect interval for leave time.
         /// </summary>
         internal static string LeaveTimeIntervalIsNotCorrect {
@@ -76,6 +85,15 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         internal static string LeaveTimesOverlap {
             get {
                 return ResourceManager.GetString("LeaveTimesOverlap", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to value is too long.
+        /// </summary>
+        internal static string LongPropertyValue {
+            get {
+                return ResourceManager.GetString("LongPropertyValue", resourceCulture);
             }
         }
         

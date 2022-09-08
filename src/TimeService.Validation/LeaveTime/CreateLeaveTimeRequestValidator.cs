@@ -43,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .SetValidator(leaveTimeIntervalValidator);
 
       RuleFor(lt => lt.Comment)
-        .MaximumLength(500).WithMessage("Comment is too long.");
+        .MaximumLength(500).WithMessage($"{nameof(CreateLeaveTimeRequest.Comment)} {LeaveTimeValidatorResource.LongPropertyValue}");
     }
   }
 }

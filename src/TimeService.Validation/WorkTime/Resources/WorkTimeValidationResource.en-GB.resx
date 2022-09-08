@@ -120,15 +120,6 @@
   <data name="MonthIsIncorrect" xml:space="preserve">
     <value>Incorrect month value</value>
   </data>
-  <data name="OffsetIsIncorrect" xml:space="preserve">
-    <value>Incorrect offset value</value>
-  </data>
-  <data name="UserDoesNotExist" xml:space="preserve">
-    <value>This user doesn't exist</value>
-  </data>
-  <data name="WorkTimeAlreadyExists" xml:space="preserve">
-    <value>WorkTime for this month already exists</value>
-  </data>
   <data name="YearIsIncorrect" xml:space="preserve">
     <value>Incorrect year value</value>
   </data>

@@ -62,6 +62,33 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to value can not be empty.
+        /// </summary>
+        internal static string EmptyValue {
+            get {
+                return ResourceManager.GetString("EmptyValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incorrect format of.
+        /// </summary>
+        internal static string IncorrectFormat {
+            get {
+                return ResourceManager.GetString("IncorrectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to value is too long.
+        /// </summary>
+        internal static string LongPropertyValue {
+            get {
+                return ResourceManager.GetString("LongPropertyValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incorrect month value.
         /// </summary>
         internal static string MonthIsIncorrect {
