@@ -64,27 +64,18 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Incorrect month value.
         /// </summary>
-        internal static string IncorrectMonth {
+        internal static string MonthIsIncorrect {
             get {
-                return ResourceManager.GetString("IncorrectMonth", resourceCulture);
+                return ResourceManager.GetString("MonthIsIncorrect", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Incorrect offset value.
         /// </summary>
-        internal static string IncorrectOffset {
+        internal static string OffsetIsIncorrect {
             get {
-                return ResourceManager.GetString("IncorrectOffset", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Incorrect year value.
-        /// </summary>
-        internal static string IncorrectYear {
-            get {
-                return ResourceManager.GetString("IncorrectYear", resourceCulture);
+                return ResourceManager.GetString("OffsetIsIncorrect", resourceCulture);
             }
         }
         
@@ -103,6 +94,15 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime.Resources {
         internal static string WorkTimeAlreadyExists {
             get {
                 return ResourceManager.GetString("WorkTimeAlreadyExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incorrect year value.
+        /// </summary>
+        internal static string YearIsIncorrect {
+            get {
+                return ResourceManager.GetString("YearIsIncorrect", resourceCulture);
             }
         }
     }

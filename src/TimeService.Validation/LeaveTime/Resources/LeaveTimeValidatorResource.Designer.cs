@@ -64,9 +64,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         /// <summary>
         ///   Looks up a localized string similar to Incorrect interval for leave time.
         /// </summary>
-        internal static string IncorrectLeaveTimeInterval {
+        internal static string LeaveTimeIntervalIsNotCorrect {
             get {
-                return ResourceManager.GetString("IncorrectLeaveTimeInterval", resourceCulture);
+                return ResourceManager.GetString("LeaveTimeIntervalIsNotCorrect", resourceCulture);
             }
         }
         

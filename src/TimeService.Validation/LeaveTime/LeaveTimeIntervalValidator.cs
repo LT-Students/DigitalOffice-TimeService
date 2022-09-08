@@ -42,7 +42,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleFor(x => x)
         .Must(x => x.startTime.Offset.Equals(x.endTime.Offset)).WithMessage(LeaveTimeValidatorResource.OffsetsAreNotSame)
         .Must(x => x.startTime <= x.endTime).WithMessage(LeaveTimeValidatorResource.StartTimeAfterEndTime)
-        .Must(x => ValidateInterval(x.startTime, x.endTime, x.leaveTime)).WithMessage(LeaveTimeValidatorResource.IncorrectLeaveTimeInterval)
+        .Must(x => ValidateInterval(x.startTime, x.endTime, x.leaveTime)).WithMessage(LeaveTimeValidatorResource.LeaveTimeIntervalIsNotCorrect)
         .MustAsync(async (x, _) =>
           (x.leaveTime is not null && !await repository.HasOverlapAsync(x.leaveTime, x.startTime.UtcDateTime, x.endTime.UtcDateTime))
           || (x.userId.HasValue && !await repository.HasOverlapAsync(x.userId.Value, x.startTime.UtcDateTime, x.endTime.UtcDateTime)))

@@ -58,9 +58,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         .MaximumLength(500).WithMessage("Description is too long.");
 
       RuleFor(request => request)
-        .Must(request => request.Offset >= -12 && request.Offset <= 12).WithMessage(WorkTimeValidationResource.IncorrectOffset)
-        .Must(request => IsMonthValid(request.Month, request.Offset)).WithMessage(WorkTimeValidationResource.IncorrectMonth)
-        .Must(request => IsYearValid(request.Year, request.Month, request.Offset)).WithMessage(WorkTimeValidationResource.IncorrectYear)
+        .Must(request => request.Offset >= -12 && request.Offset <= 12).WithMessage(WorkTimeValidationResource.OffsetIsIncorrect)
+        .Must(request => IsMonthValid(request.Month, request.Offset)).WithMessage(WorkTimeValidationResource.MonthIsIncorrect)
+        .Must(request => IsYearValid(request.Year, request.Month, request.Offset)).WithMessage(WorkTimeValidationResource.YearIsIncorrect)
         .MustAsync(async (x, _) =>
           !await workTimeRepository.DoesEmptyWorkTimeExistAsync(httpContextAccessor.HttpContext.GetUserId(), x.Month, x.Year))
         .WithMessage(WorkTimeValidationResource.WorkTimeAlreadyExists);
