@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using FluentValidation;
 using FluentValidation.Validators;
 using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.WorkTime.Resources;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTime
@@ -40,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
           {
             x => x.value == null
               || float.TryParse(x.value.ToString(), out _),
-            "Incorrect format of Hours."
+            $"{WorkTimeValidationResource.IncorrectFormat} {nameof(EditWorkTimeRequest.Hours)}"
           }
         });
 
@@ -53,7 +56,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => x.value is null || x.value.ToString().Length <= 500, "Description is too long."}
+          { x => x.value is null || x.value.ToString().Length <= 500, $"{nameof(EditWorkTimeRequest.Description)} {WorkTimeValidationResource.LongPropertyValue}" }
         });
 
       #endregion
@@ -61,6 +64,8 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 
     public EditWorkTimeRequestValidator()
     {
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
+
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
@@ -70,7 +75,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
         {
           RuleFor(x => x.Item2.Operations.FirstOrDefault(op => op.path.EndsWith(nameof(EditWorkTimeRequest.Description), StringComparison.OrdinalIgnoreCase)))
             .Must(op => !string.IsNullOrWhiteSpace(op.value?.ToString()))
-            .WithMessage("Description can't be empty.");
+            .WithMessage($"{nameof(EditWorkTimeRequest.Description)} {WorkTimeValidationResource.EmptyValue}");
         });
     }
   }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using FluentValidation;
 using FluentValidation.Validators;
 using LT.DigitalOffice.Kernel.Validators;
@@ -8,6 +10,7 @@ using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
@@ -48,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => int.TryParse(x.value.ToString(), out int count) && count > 0, "Incorrect format of Minutes." },
+          { x => int.TryParse(x.value.ToString(), out int count) && count > 0, $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.Minutes)}" },
         });
 
       #endregion
@@ -60,7 +63,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), "Incorrect format of LeaveType." },
+          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.LeaveType)}" },
         });
 
       #endregion
@@ -72,7 +75,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => bool.TryParse(x.value.ToString(), out _), "Incorrect format of IsActive." },
+          { x => bool.TryParse(x.value.ToString(), out _), $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.IsActive)}" },
         });
 
       #endregion
@@ -84,7 +87,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => x.value is null || x.value.ToString().Length <= 500, "Comment is too long." },
+          { x => x.value is null || x.value.ToString().Length <= 500, $"{nameof(EditLeaveTimeRequest.Comment)} {LeaveTimeValidatorResource.LongPropertyValue}" },
         });
 
       #endregion
@@ -137,12 +140,14 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
     public EditLeaveTimeRequestValidator(ILeaveTimeIntervalValidator validator)
     {
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
+
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
       RuleFor(x => x.Item2.Operations)
         .Must(ops => ValidateTimeVariables(ops))
-        .WithMessage("Incorrect format of startTime or endTime.")
+        .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
         .DependentRules(() =>
         {
           RuleFor(x => GetItems(x.Item1, x.Item2.Operations))

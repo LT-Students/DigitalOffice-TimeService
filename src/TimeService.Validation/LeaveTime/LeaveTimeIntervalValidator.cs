@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Globalization;
+using System.Threading;
 using FluentValidation;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
@@ -32,18 +35,18 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
     public LeaveTimeIntervalValidator(ILeaveTimeRepository repository)
     {
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
+
       CascadeMode = CascadeMode.Stop;
 
       RuleFor(x => x)
-        .Must(x => x.startTime.Offset.Equals(x.endTime.Offset))
-        .WithMessage("Start time and end time offsets must be same.")
-        .Must(x => x.startTime <= x.endTime).WithMessage("Start time must be before end time.")
-        .Must(x => ValidateInterval(x.startTime, x.endTime, x.leaveTime))
-        .WithMessage("Incorrect interval for leave time.")
+        .Must(x => x.startTime.Offset.Equals(x.endTime.Offset)).WithMessage(LeaveTimeValidatorResource.OffsetsAreNotSame)
+        .Must(x => x.startTime <= x.endTime).WithMessage(LeaveTimeValidatorResource.StartTimeAfterEndTime)
+        .Must(x => ValidateInterval(x.startTime, x.endTime, x.leaveTime)).WithMessage(LeaveTimeValidatorResource.LeaveTimeIntervalIsNotCorrect)
         .MustAsync(async (x, _) =>
           (x.leaveTime is not null && !await repository.HasOverlapAsync(x.leaveTime, x.startTime.UtcDateTime, x.endTime.UtcDateTime))
           || (x.userId.HasValue && !await repository.HasOverlapAsync(x.userId.Value, x.startTime.UtcDateTime, x.endTime.UtcDateTime)))
-        .WithMessage("New LeaveTime should not overlap with old ones.");
+        .WithMessage(LeaveTimeValidatorResource.LeaveTimesOverlap);
     }
   }
 }
