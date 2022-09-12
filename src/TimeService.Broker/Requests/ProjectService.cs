@@ -24,29 +24,6 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     private readonly IRequestClient<IGetProjectsUsersRequest> _rcGetProjectsUsers;
     private readonly IRequestClient<IGetProjectUserRoleRequest> _rcGetProjectUserRole;
 
-    private string CreateGetProjectCacheKey(
-      List<Guid> projectIds = null,
-      List<Guid> usersIds = null,
-      bool includeUsers = false,
-      bool includeDepartment = false)
-    {
-      List<Guid> ids = new();
-
-      if (projectIds is not null && projectIds.Any())
-      {
-        ids.AddRange(projectIds);
-      }
-
-      if (usersIds is not null && usersIds.Any())
-      {
-        ids.AddRange(usersIds);
-      }
-
-      List<object> args = new() { includeDepartment, includeUsers };
-
-      return ids.GetRedisCacheHashCode(args.ToArray());
-    }
-
     public ProjectService(
       ILogger<ProjectService> logger,
       IGlobalCacheRepository globalCache,
@@ -73,20 +50,32 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return null;
       }
 
-      List<ProjectData> projectsData;
+      List<Guid> allGuids = new();
 
-      projectsData = await _globalCache.GetAsync<List<ProjectData>>(
-        Cache.Projects, CreateGetProjectCacheKey(projectsIds, usersIds, includeUsers, includeDepartments));
+      if (projectsIds is not null)
+      {
+        allGuids.AddRange(projectsIds);
+      }
+
+      if (usersIds is not null)
+      {
+        allGuids.AddRange(usersIds);
+      }
+
+      object request = IGetProjectsRequest.CreateObj(
+        projectsIds: projectsIds,
+        usersIds: usersIds,
+        includeUsers: includeUsers,
+        includeDepartment: includeDepartments);
+
+      List<ProjectData> projectsData = await _globalCache.GetAsync<List<ProjectData>>(
+        Cache.Projects, allGuids.GetRedisCacheKey(request.GetBasicProperties()));
 
       if (projectsData is null)
       {
         projectsData =
           (await _rcGetProjects.ProcessRequest<IGetProjectsRequest, IGetProjectsResponse>(
-            IGetProjectsRequest.CreateObj(
-              projectsIds: projectsIds,
-              usersIds: usersIds,
-              includeUsers: includeUsers,
-              includeDepartment: includeDepartments),
+            request,
             errors,
             _logger))
           ?.Projects;
