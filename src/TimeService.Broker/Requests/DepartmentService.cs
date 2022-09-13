@@ -86,13 +86,16 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return null;
       }
 
-      List<DepartmentFilteredData> departmentsData = await _globalCache.GetAsync<List<DepartmentFilteredData>>(Cache.Departments, departmentsIds.GetRedisCacheHashCode());
+      object request = IFilterDepartmentsRequest.CreateObj(departmentsIds);
+
+      List<DepartmentFilteredData> departmentsData =
+        await _globalCache.GetAsync<List<DepartmentFilteredData>>(Cache.Departments, departmentsIds.GetRedisCacheKey(request.GetBasicProperties()));
 
       if (departmentsData is null)
       {
         departmentsData =
           (await _rcFilterDepartments.ProcessRequest<IFilterDepartmentsRequest, IFilterDepartmentsResponse>(
-            IFilterDepartmentsRequest.CreateObj(departmentsIds),
+            request,
             errors,
             _logger))
           ?.Departments;
@@ -106,16 +109,18 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       List<Guid> usersIds = null,
       List<string> errors = null)
     {
+      object request = IGetDepartmentsRequest.CreateObj(
+        departmentsIds: departmentsIds,
+        usersIds: usersIds);
+
       List<DepartmentData> departmentsData = await _globalCache.GetAsync<List<DepartmentData>>(
-        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheHashCode());
+        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheKey(request.GetBasicProperties()));
 
       if (departmentsData is null)
       {
         departmentsData =
           (await _rcGetDepartments.ProcessRequest<IGetDepartmentsRequest, IGetDepartmentsResponse>(
-            IGetDepartmentsRequest.CreateObj(
-              departmentsIds: departmentsIds,
-              usersIds: usersIds),
+            request,
             errors,
             _logger))
           ?.Departments;
