@@ -135,6 +135,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<int>(),
           It.IsAny<bool>(),
           It.IsAny<string>(),
+          It.IsAny<bool?>(),
           It.IsAny<List<string>>()),
         getFilteredUsersDataTimes);
 
@@ -243,7 +244,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _userStatInfo = new UserStatInfo();
       _goodResponse = new FindResultResponse<UserStatInfo>
       {
-        Body = new List<UserStatInfo> { _userStatInfo }, 
+        Body = new List<UserStatInfo> { _userStatInfo },
         TotalCount = 1,
         Errors = new List<string>()
       };
@@ -307,6 +308,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<int>(),
           It.IsAny<bool>(),
           It.IsAny<string>(),
+          It.IsAny<bool?>(),
           It.IsAny<List<string>>()))
         .ReturnsAsync(_filteredUsersData);
 

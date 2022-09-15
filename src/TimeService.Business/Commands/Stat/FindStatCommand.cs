@@ -166,6 +166,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         takeCount: filter.TakeCount,
         ascendingSort: filter.AscendingSort,
         nameIncludeSubstring: filter.NameIncludeSubstring,
+        isActive: null,
         errors: errors);
 
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(

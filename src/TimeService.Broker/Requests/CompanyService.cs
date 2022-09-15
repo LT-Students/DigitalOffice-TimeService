@@ -38,14 +38,16 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return null;
       }
 
-      List<CompanyData> companiesData = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheHashCode());
+      object request = IGetCompaniesRequest.CreateObj(usersIds);
+
+      List<CompanyData> companiesData = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
 
       if (companiesData is null)
       {
         companiesData =
           (await RequestHandler.ProcessRequest<IGetCompaniesRequest, IGetCompaniesResponse>(
             _rcGetCompanies,
-            IGetCompaniesRequest.CreateObj(usersIds),
+            request,
             errors,
             _logger))
           ?.Companies;

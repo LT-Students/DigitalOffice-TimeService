@@ -1,18 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
+using System.Threading;
 using FluentValidation;
 using FluentValidation.Validators;
 using LT.DigitalOffice.Kernel.Validators;
-using LT.DigitalOffice.TimeService.Data.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
+using LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
-  public class EditLeaveTimeRequestValidator : BaseEditRequestValidator<EditLeaveTimeRequest>, IEditLeaveTimeRequestValidator
+  public class EditLeaveTimeRequestValidator : ExtendedEditRequestValidator<DbLeaveTime, EditLeaveTimeRequest>, IEditLeaveTimeRequestValidator
   {
     private void HandleInternalPropertyValidation(Operation<EditLeaveTimeRequest> requestedOperation, CustomContext context)
     {
@@ -41,30 +44,6 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       #endregion
 
-      #region StartTime
-
-      AddFailureForPropertyIf(
-        nameof(EditLeaveTimeRequest.StartTime),
-        x => x == OperationType.Replace,
-        new()
-        {
-          { x => DateTimeOffset.TryParse(x.value.ToString(), out _), "Incorrect format of StartTime." },
-        });
-
-      #endregion
-
-      #region EndTime
-
-      AddFailureForPropertyIf(
-        nameof(EditLeaveTimeRequest.EndTime),
-        x => x == OperationType.Replace,
-        new()
-        {
-          { x => DateTimeOffset.TryParse(x.value.ToString(), out _), "Incorrect format of EndTime." },
-        });
-
-      #endregion
-
       #region Minutes
 
       AddFailureForPropertyIf(
@@ -72,7 +51,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => int.TryParse(x.value.ToString(), out int count) && count > 0, "Incorrect format of Minutes." },
+          { x => int.TryParse(x.value.ToString(), out int count) && count > 0, $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.Minutes)}" },
         });
 
       #endregion
@@ -84,7 +63,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), "Incorrect format of LeaveType." },
+          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.LeaveType)}" },
         });
 
       #endregion
@@ -96,7 +75,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => bool.TryParse(x.value.ToString(), out _), "Incorrect format of IsActive." },
+          { x => bool.TryParse(x.value.ToString(), out _), $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.IsActive)}" },
         });
 
       #endregion
@@ -108,38 +87,72 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         x => x == OperationType.Replace,
         new()
         {
-          { x => x.value is null || x.value.ToString().Length <= 500, "Comment is too long." },
+          { x => x.value is null || x.value.ToString().Length <= 500, $"{nameof(EditLeaveTimeRequest.Comment)} {LeaveTimeValidatorResource.LongPropertyValue}" },
         });
 
       #endregion
     }
 
-    public EditLeaveTimeRequestValidator(ILeaveTimeRepository repository)
+    private bool ValidateTimeVariables(List<Operation<EditLeaveTimeRequest>> operations)
     {
-      RuleForEach(x => x.Operations)
+      Operation<EditLeaveTimeRequest> startTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
+      Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+
+      return (startTimeOperation is null || DateTimeOffset.TryParse(startTimeOperation.value.ToString(), out _))
+        && (endTimeOperation is null || DateTimeOffset.TryParse(endTimeOperation.value.ToString(), out _));
+    }
+
+    //user id is always null here, it is used for time validation in createLeaveTimeRequest
+    private (DateTimeOffset startTime, DateTimeOffset endTime, DbLeaveTime leaveTime, Guid? userId) GetItems(
+      DbLeaveTime oldLeaveTime,
+      List<Operation<EditLeaveTimeRequest>> operations)
+    {
+      Operation<EditLeaveTimeRequest> startTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase));
+      Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+
+      DateTimeOffset startTime;
+      DateTimeOffset endTime;
+
+      if (startTimeOperation is null && endTimeOperation is null)
+      {
+        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified));
+        endTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified));
+      }
+      else if (startTimeOperation is null)
+      {
+        endTime = DateTimeOffset.Parse(endTimeOperation?.value.ToString());
+        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified), endTime.Offset);
+      }
+      else
+      {
+        startTime = DateTimeOffset.Parse(startTimeOperation.value.ToString());
+        endTime = endTimeOperation is null
+          ? new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified), startTime.Offset)
+          : DateTimeOffset.Parse(endTimeOperation.value.ToString());
+      }
+
+      return (startTime: startTime, endTime: endTime, leaveTime: oldLeaveTime, userId: null);
+    }
+
+    public EditLeaveTimeRequestValidator(ILeaveTimeIntervalValidator validator)
+    {
+      Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
+
+      RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
-      When(x => x.Operations.Any(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
-        && x.Operations.Any(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase)),
-        () =>
-            {
-              RuleFor(x => x)
-                .Must(x =>
-                {
-                  DateTimeOffset start = DateTimeOffset.Parse(x.Operations
-                    .FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase))
-                    .value
-                    .ToString());
-
-                  DateTimeOffset end = DateTimeOffset.Parse(x.Operations
-                    .FirstOrDefault(o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase))
-                    .value
-                    .ToString());
-
-                  return (start <= end && start.Offset.Equals(end.Offset));
-                })
-                .WithMessage("Start time must be earlier than end time, offsets must be same.");
-            });
+      RuleFor(x => x.Item2.Operations)
+        .Must(ops => ValidateTimeVariables(ops))
+        .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
+        .DependentRules(() =>
+        {
+          RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
+            .SetValidator(validator);
+        });
     }
   }
 }

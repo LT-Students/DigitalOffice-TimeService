@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<Guid?> CreateAsync(DbWorkTimeMonthLimit workTimeMonthLimit)
     {
-      if (workTimeMonthLimit == null)
+      if (workTimeMonthLimit is null)
       {
         return null;
       }
@@ -41,7 +41,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task CreateRangeAsync(List<DbWorkTimeMonthLimit> workTimeMonthsLimits)
     {
-      if (workTimeMonthsLimits == null || workTimeMonthsLimits.Contains(null))
+      if (workTimeMonthsLimits is null || workTimeMonthsLimits.Contains(null))
       {
         return;
       }
@@ -54,7 +54,7 @@ namespace LT.DigitalOffice.TimeService.Data
     {
       DbWorkTimeMonthLimit dbWorkTimeMonthLimit = _provider.WorkTimeMonthLimits.FirstOrDefault(ml => ml.Id == workTimeMonthLimitId);
 
-      if (dbWorkTimeMonthLimit == null)
+      if (dbWorkTimeMonthLimit is null || request is null)
       {
         return false;
       }
@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<(List<DbWorkTimeMonthLimit> dbWorkTimeMonthLimit, int totalCount)> FindAsync(FindWorkTimeMonthLimitsFilter filter)
     {
-      if (filter == null)
+      if (filter is null)
       {
         return (null, default);
       }
@@ -95,17 +95,12 @@ namespace LT.DigitalOffice.TimeService.Data
       return (await dbWorkTimeMonthLimits.ToListAsync(), totalCount);
     }
 
-    public async Task<DbWorkTimeMonthLimit> GetAsync(int year, int month)
+    public Task<DbWorkTimeMonthLimit> GetAsync(int year, int month)
     {
-      return await _provider.WorkTimeMonthLimits.FirstOrDefaultAsync(l => l.Year == year && l.Month == month);
+      return _provider.WorkTimeMonthLimits.FirstOrDefaultAsync(l => l.Year == year && l.Month == month);
     }
 
-    public async Task<DbWorkTimeMonthLimit> GetLastAsync()
-    {
-      return await _provider.WorkTimeMonthLimits.OrderByDescending(l => l.Year).ThenByDescending(l => l.Month).FirstOrDefaultAsync();
-    }
-
-    public async Task<List<DbWorkTimeMonthLimit>> GetAsync(int startYear, int startMonth, int endYear, int endMonth)
+    public Task<List<DbWorkTimeMonthLimit>> GetAsync(int startYear, int startMonth, int endYear, int endMonth)
     {
       int startCountMonths = startYear * 12 + startMonth;
       int endCountMonths = endYear * 12 + endMonth;
@@ -115,9 +110,17 @@ namespace LT.DigitalOffice.TimeService.Data
         return null;
       }
 
-      return await _provider.WorkTimeMonthLimits
+      return _provider.WorkTimeMonthLimits
         .Where(ml => ml.Year * 12 + ml.Month >= startCountMonths && ml.Year * 12 + ml.Month <= endCountMonths)
         .ToListAsync();
+    }
+
+    public Task<DbWorkTimeMonthLimit> GetLastAsync()
+    {
+      return _provider.WorkTimeMonthLimits
+        .OrderByDescending(l => l.Year)
+        .ThenByDescending(l => l.Month)
+        .FirstOrDefaultAsync();
     }
   }
 }

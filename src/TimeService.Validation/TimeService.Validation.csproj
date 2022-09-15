@@ -12,4 +12,28 @@
     <ProjectReference Include="..\TimeService.Models.Dto\TimeService.Models.Dto.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="LeaveTime\Resources\LeaveTimeValidatorResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>LeaveTimeValidatorResource.resx</DependentUpon>
+    </Compile>
+    <Compile Update="WorkTime\Resources\WorkTimeValidationResource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>WorkTimeValidationResource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="LeaveTime\Resources\LeaveTimeValidatorResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>LeaveTimeValidatorResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="WorkTime\Resources\WorkTimeValidationResource.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>WorkTimeValidationResource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
 </Project>

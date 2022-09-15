@@ -38,14 +38,17 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         return null;
       }
 
-      List<PositionData> positionsData = await _globalCache.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheHashCode());
+      object request = IGetPositionsRequest.CreateObj(usersIds);
+
+      List<PositionData> positionsData =
+        await _globalCache.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
 
       if (positionsData is null)
       {
         positionsData =
           (await RequestHandler.ProcessRequest<IGetPositionsRequest, IGetPositionsResponse>(
             _rcRequestClient,
-            IGetPositionsRequest.CreateObj(usersIds),
+            request,
             errors,
             _logger))
           ?.Positions;
