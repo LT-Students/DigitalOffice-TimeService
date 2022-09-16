@@ -9,7 +9,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
   [AutoInject]
   public interface IUserService
   {
-    Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors);
+    Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors, bool includeBaseEmail = false);
 
     Task<(List<UserData> usersData, int totalCount)> GetFilteredUsersDataAsync(
       List<Guid> usersIds,

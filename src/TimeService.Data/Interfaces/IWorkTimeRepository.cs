@@ -21,6 +21,8 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<DbWorkTime> GetAsync(Guid id);
 
+    Task<List<Guid>> GetUsersWithNullWorktimeAsync();
+
     Task<bool> DoesExistAsync(Guid id);
 
     Task<bool> DoesEmptyWorkTimeExistAsync(Guid userId, int month, int year);

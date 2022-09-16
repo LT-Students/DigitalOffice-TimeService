@@ -13,7 +13,9 @@ using LT.DigitalOffice.Kernel.EFSupport.Helpers;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.TimeService.Broker.Consumers;
+using LT.DigitalOffice.TimeService.Business.Helpers.Emails;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
+using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -119,6 +121,7 @@ namespace LT.DigitalOffice.TimeService
       services.AddMemoryCache();
       services.AddTransient<WorkTimeCreator>();
       services.AddTransient<WorkTimeLimitCreator>();
+      services.AddTransient<EmailSender>();
 
       services
         .AddHealthChecks()
@@ -226,9 +229,12 @@ namespace LT.DigitalOffice.TimeService
 
       var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreator>();
       var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreator>();
+      var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
       var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
 
       DbWorkTime lastWorkTime = await workTimeRepository.GetLastAsync();
+
+      emailSender.Start();
 
       workTimeCreater.Start(
         _timeConfig.MinutesToRestart,

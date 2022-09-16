@@ -38,14 +38,14 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       _rcCheckUsersExistence = rcCheckUsersExistence;
     }
 
-    public async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors)
+    public async Task<List<UserData>> GetUsersDataAsync(List<Guid> usersIds, List<string> errors, bool includeBaseEmail = false)
     {
       if (usersIds is null || !usersIds.Any())
       {
         return null;
       }
 
-      object request = IGetUsersDataRequest.CreateObj(usersIds);
+      object request = IGetUsersDataRequest.CreateObj(usersIds, includeBaseEmail);
 
       List<UserData> usersData = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
 
