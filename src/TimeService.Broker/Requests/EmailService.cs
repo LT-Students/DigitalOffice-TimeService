@@ -26,10 +26,9 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       if (!await RequestHandler.ProcessRequest<ISendEmailRequest, bool>(
         _rcSendEmail,
         ISendEmailRequest.CreateObj(
-          email,
-          subject,
-          text,
-          null),
+          receiver: email,
+          subject: subject,
+          text: text),
         errors,
         _logger))
       {

@@ -27,7 +27,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     public async Task<IGetTextTemplateResponse> GetAsync(
       TemplateType templateType,
       string locale,
-      List<string> errors,
+      List<string> errors = null,
       Guid? endpointId = null)
     {
       return await RequestHandler.ProcessRequest<IGetTextTemplateRequest, IGetTextTemplateResponse>(

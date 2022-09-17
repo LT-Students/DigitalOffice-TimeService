@@ -25,7 +25,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
       string locale)
     {
       IGetTextTemplateResponse textTemplate = await _textTemplateService
-        .GetAsync(TemplateType.EmptyUserWorktimes, locale, null);
+        .GetAsync(TemplateType.EmptyUserWorktimes, locale);
 
       if (textTemplate is null)
       {
@@ -96,7 +96,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
       {
         while (true)
         {
-          if (DateTime.UtcNow.Day == 17 && DateTime.UtcNow.Hour == 21)
+          if (DateTime.UtcNow.Day == 18 && DateTime.UtcNow.Hour == 15)
           {
             await ExecuteAsync();
           }

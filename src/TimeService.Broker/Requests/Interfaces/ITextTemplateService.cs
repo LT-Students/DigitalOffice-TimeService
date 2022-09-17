@@ -13,7 +13,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
     Task<IGetTextTemplateResponse> GetAsync(
       TemplateType templateType,
       string locale,
-      List<string> errors,
+      List<string> errors = null,
       Guid? endpointId = null);
   }
 }
