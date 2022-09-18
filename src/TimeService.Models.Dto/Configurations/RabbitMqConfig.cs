@@ -3,9 +3,11 @@ using LT.DigitalOffice.Kernel.BrokerSupport.Configurations;
 using LT.DigitalOffice.Models.Broker.Common;
 using LT.DigitalOffice.Models.Broker.Requests.Company;
 using LT.DigitalOffice.Models.Broker.Requests.Department;
+using LT.DigitalOffice.Models.Broker.Requests.Email;
 using LT.DigitalOffice.Models.Broker.Requests.Image;
 using LT.DigitalOffice.Models.Broker.Requests.Position;
 using LT.DigitalOffice.Models.Broker.Requests.Project;
+using LT.DigitalOffice.Models.Broker.Requests.TextTemplate;
 using LT.DigitalOffice.Models.Broker.Requests.User;
 
 namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
@@ -62,5 +64,13 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Configurations
     // position
     [AutoInjectRequest(typeof(IGetPositionsRequest))]
     public string GetPositionsEndpoint { get; set; }
+
+    //Email
+    [AutoInjectRequest(typeof(ISendEmailRequest))]
+    public string SendEmailEndpoint { get; set; }
+
+    //TextTemplate
+    [AutoInjectRequest(typeof(IGetTextTemplateRequest))]
+    public string GetTextTemplateEndpoint { get; set; }
   }
 }
