@@ -36,13 +36,13 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
         new Dictionary<string, string> { 
           { "FirstName", user.FirstName },
           { "LastName", user.LastName },
-          { "FirstLastMonth", new DateTime(year: DateTime.UtcNow.Year, month: DateTime.UtcNow.Month - 1, day: 1).ToString() },
+          { "FirstLastMonth", new DateTime(year: DateTime.UtcNow.Year, month: DateTime.UtcNow.Month, day: 1).ToShortDateString() },
           { "LastLastMonth", new DateTime(year: DateTime.UtcNow.Year,
-            month: DateTime.UtcNow.Month - 1, 
-            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month - 1)).ToString() },
-          { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Year, 
             month: DateTime.UtcNow.Month, 
-            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToString() }
+            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() },
+          { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Year, 
+            month: DateTime.UtcNow.Month + 1, 
+            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month + 1)).ToShortDateString() }
         },
         textTemplate.Text);
 
