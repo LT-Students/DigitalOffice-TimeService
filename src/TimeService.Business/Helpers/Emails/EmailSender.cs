@@ -70,7 +70,10 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
 
       foreach (UserData user in users)
       {
-        await NotifyAsync(user, "ru");
+        if (user.IsActive)
+        {
+          await NotifyAsync(user, "ru");
+        }
       }
 
       return true;
@@ -96,7 +99,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
       {
         while (true)
         {
-          if (DateTime.UtcNow.Day == 18 && DateTime.UtcNow.Hour == 15)
+          if (DateTime.UtcNow.Day == 19 && DateTime.UtcNow.Hour == 23)
           {
             await ExecuteAsync();
           }
