@@ -99,7 +99,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
       {
         while (true)
         {
-          if (DateTime.UtcNow.Day == 19 && DateTime.UtcNow.Hour == 23)
+          if (DateTime.UtcNow.Day == 20 && DateTime.UtcNow.Hour == 23)
           {
             await ExecuteAsync();
           }
