@@ -32,6 +32,10 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
         return;
       }
 
+      int day = DateTime.UtcNow.Month == 12
+        ? DateTime.DaysInMonth(DateTime.UtcNow.Year + 1, month: 1)
+        : DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month + 1);
+
       string parsedText = _parser.Parse(
         new Dictionary<string, string> { 
           { "FirstName", user.FirstName },
@@ -40,9 +44,9 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
           { "LastLastMonth", new DateTime(year: DateTime.UtcNow.Year,
             month: DateTime.UtcNow.Month, 
             day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() },
-          { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Year, 
-            month: DateTime.UtcNow.Month + 1, 
-            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month + 1)).ToShortDateString() }
+          { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Month == 12 ? DateTime.UtcNow.Year + 1 : DateTime.UtcNow.Year, 
+            month: DateTime.UtcNow.Month == 12 ? 1 : DateTime.UtcNow.Month + 1, 
+            day: day).ToShortDateString() }
         },
         textTemplate.Text);
 
@@ -99,7 +103,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
       {
         while (true)
         {
-          if (DateTime.UtcNow.Day == 20 && DateTime.UtcNow.Hour == 23)
+          if (DateTime.UtcNow.Day == DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month) && DateTime.UtcNow.Hour == 23)
           {
             await ExecuteAsync();
           }
