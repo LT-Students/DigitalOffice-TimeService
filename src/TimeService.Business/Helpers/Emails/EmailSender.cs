@@ -32,6 +32,10 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
         return;
       }
 
+      int year = DateTime.UtcNow.Month == 12 ? DateTime.UtcNow.Year + 1 : DateTime.UtcNow.Year;
+
+      int month = DateTime.UtcNow.Month == 12 ? 1 : DateTime.UtcNow.Month + 1;
+
       int day = DateTime.UtcNow.Month == 12
         ? DateTime.DaysInMonth(DateTime.UtcNow.Year + 1, month: 1)
         : DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month + 1);
@@ -44,8 +48,8 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
           { "LastLastMonth", new DateTime(year: DateTime.UtcNow.Year,
             month: DateTime.UtcNow.Month, 
             day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() },
-          { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Month == 12 ? DateTime.UtcNow.Year + 1 : DateTime.UtcNow.Year, 
-            month: DateTime.UtcNow.Month == 12 ? 1 : DateTime.UtcNow.Month + 1, 
+          { "LastCurrentMonth", new DateTime(year: year, 
+            month: month, 
             day: day).ToShortDateString() }
         },
         textTemplate.Text);
