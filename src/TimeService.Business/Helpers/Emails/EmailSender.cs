@@ -41,8 +41,8 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
             month: DateTime.UtcNow.Month, 
             day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() },
           { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Year, 
-            month: DateTime.UtcNow.Month + 1, 
-            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month + 1)).ToShortDateString() }
+            month: DateTime.UtcNow.Month, 
+            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() }
         },
         textTemplate.Text);
 
@@ -99,7 +99,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
       {
         while (true)
         {
-          if (DateTime.UtcNow.Day == 20 && DateTime.UtcNow.Hour == 23)
+          if (DateTime.UtcNow.Day == DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month) - 1 && DateTime.UtcNow.Hour == 0)
           {
             await ExecuteAsync();
           }
