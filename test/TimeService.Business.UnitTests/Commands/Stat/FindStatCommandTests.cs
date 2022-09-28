@@ -127,7 +127,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
 
       _mocker.Verify<IUserService>(x => x.GetUsersDataAsync(
           It.IsAny<List<Guid>>(),
-          It.IsAny<List<string>>()),
+          It.IsAny<List<string>>(),
+          default),
         getUsersDataTimes);
       _mocker.Verify<IUserService>(x => x.GetFilteredUsersDataAsync(
           It.IsAny<List<Guid>>(),
@@ -231,7 +232,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _monthLimit = new DbWorkTimeMonthLimit();
       _filteredUsersData.usersData = new List<UserData>
       {
-        new(Guid.Empty, null, null, null, null, true)
+        new(Guid.Empty, null, null, null, null, true, null)
       };
       _filteredUsersData.totalCount = 1;
       _companyData = new List<CompanyData>();
@@ -300,7 +301,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
 
       _mocker.Setup<IUserService, Task<List<UserData>>>(x => x.GetUsersDataAsync(
           It.IsAny<List<Guid>>(),
-          It.IsAny<List<string>>()))
+          It.IsAny<List<string>>(),
+          default))
         .ReturnsAsync(_usersData);
       _mocker.Setup<IUserService, Task<(List<UserData> usersData, int totalCount)>>(x => x.GetFilteredUsersDataAsync(
           It.IsAny<List<Guid>>(),
