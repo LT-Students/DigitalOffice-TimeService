@@ -89,7 +89,9 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public async Task<List<Guid>> GetUsersWithNullWorktimeAsync()
     {
-      List<Tuple<Guid, float?>> usersWorktime = await _provider.WorkTimes.Select(x => Tuple.Create(x.UserId, x.Hours)).ToListAsync();
+      List<Tuple<Guid, float?>> usersWorktime = await _provider.WorkTimes
+        .Where(x => x.Month == DateTime.UtcNow.Month && x.Year == DateTime.UtcNow.Year)
+        .Select(x => Tuple.Create(x.UserId, x.Hours)).ToListAsync();
 
       List<Guid> usersIds = usersWorktime
         .Where(userWorktime => userWorktime.Item2 is not null)
@@ -97,7 +99,7 @@ namespace LT.DigitalOffice.TimeService.Data
 
       return usersWorktime
         .Where(userWorktime => !usersIds.Contains(userWorktime.Item1))
-        .Select(userWorktime => userWorktime.Item1).ToList();
+        .Select(userWorktime => userWorktime.Item1).Distinct().ToList();
     }
 
     public async Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter)
