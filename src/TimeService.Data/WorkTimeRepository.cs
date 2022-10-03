@@ -98,8 +98,8 @@ namespace LT.DigitalOffice.TimeService.Data
         .Select(userWorktime => userWorktime.Item1).ToList();
 
       return usersWorktime
-        .Where(userWorktime => !usersIds.Contains(userWorktime.Item1))
-        .Select(userWorktime => userWorktime.Item1).Distinct().ToList();
+        .Select(userWorktime => userWorktime.Item1).Distinct()
+        .Except(usersIds).ToList();
     }
 
     public async Task<(List<DbWorkTime>, int totalCount)> FindAsync(FindWorkTimesFilter filter)
