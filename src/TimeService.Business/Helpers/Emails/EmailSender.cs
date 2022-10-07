@@ -100,7 +100,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
         while (true)
         {
          // if (DateTime.UtcNow.Day == DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month) - 1 && DateTime.UtcNow.Hour == 0)
-            if (DateTime.UtcNow.Day == 5 && DateTime.UtcNow.Hour == 13)
+            if (DateTime.UtcNow.Day == 7 && DateTime.UtcNow.Hour == 15)
           {
             await ExecuteAsync();
           }
