@@ -50,7 +50,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       if (!isOwner && await _ltAccessValidationHelper.HasRightsAsync(ltOwnerId: oldLeaveTime.UserId))
       {
-        _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
+        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
       if (!_validator.ValidateCustom((oldLeaveTime, request), out List<string> errors))
