@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Helpers;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
@@ -35,16 +34,16 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     private Dictionary<object, object> _items;
 
     private void Verifiable(
-      Times accessValidatorTimes,
+      Times ltAccessValidationHelperTimes,
       Times validatorTimes,
       Times responseCreatorTimes,
       Times repositoryTimes,
       Times mapperTimes,
       Times httpContextAccessorItemsTimes)
     {
-      _mocker.Verify<IAccessValidator>(x =>
-        x.HasRightsAsync(Rights.AddEditRemoveTime),
-        accessValidatorTimes);
+      _mocker.Verify<ILeaveTimeAccessValidationHelper>(x =>
+        x.HasRightsAsync(It.IsAny<Guid>()),
+        ltAccessValidationHelperTimes);
 
       _mocker.Verify<ICreateLeaveTimeRequestValidator, bool>(x =>
           x.ValidateAsync(_request, default).Result.IsValid,
@@ -118,8 +117,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
       _mocker = new AutoMocker();
       _command = _mocker.CreateInstance<CreateLeaveTimeCommand>();
 
-      _mocker.Setup<IAccessValidator, Task<bool>>(x =>
-          x.HasRightsAsync(Rights.AddEditRemoveTime))
+      _mocker.Setup<ILeaveTimeAccessValidationHelper, Task<bool>>(x =>
+          x.HasRightsAsync(It.IsAny<Guid>()))
         .ReturnsAsync(true);
 
       _mocker.Setup<ICreateLeaveTimeRequestValidator, bool>(x =>
@@ -156,8 +155,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
       _mocker.Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
           x.HttpContext.Items)
         .Returns(items);
-      _mocker.Setup<IAccessValidator, Task<bool>>(x =>
-          x.HasRightsAsync(Rights.AddEditRemoveTime))
+      _mocker.Setup<ILeaveTimeAccessValidationHelper, Task<bool>>(x =>
+          x.HasRightsAsync(It.IsAny<Guid>()))
         .ReturnsAsync(false);
 
       SerializerAssert.AreEqual(_badResponse, await _command.ExecuteAsync(_request));

@@ -2,12 +2,11 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
-using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
-using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
+using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Helpers;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Patch.Interfaces;
@@ -24,32 +23,32 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     private readonly IEditLeaveTimeRequestValidator _validator;
     private readonly ILeaveTimeRepository _repository;
     private readonly IPatchDbLeaveTimeMapper _mapper;
-    private readonly IAccessValidator _accessValidator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IResponseCreator _responseCreator;
+    private readonly ILeaveTimeAccessValidationHelper _ltAccessValidationHelper;
 
     public EditLeaveTimeCommand(
       IEditLeaveTimeRequestValidator validator,
       ILeaveTimeRepository repository,
       IPatchDbLeaveTimeMapper mapper,
-      IAccessValidator accessValidator,
       IHttpContextAccessor httpContextAccessor,
-      IResponseCreator responseCreator)
+      IResponseCreator responseCreator,
+      ILeaveTimeAccessValidationHelper ltAccessValidationHelper)
     {
       _validator = validator;
       _repository = repository;
       _mapper = mapper;
-      _accessValidator = accessValidator;
       _httpContextAccessor = httpContextAccessor;
       _responseCreator = responseCreator;
+      _ltAccessValidationHelper = ltAccessValidationHelper;
     }
 
     public async Task<OperationResultResponse<bool>> ExecuteAsync(Guid leaveTimeId, JsonPatchDocument<EditLeaveTimeRequest> request)
     {
       DbLeaveTime oldLeaveTime = await _repository.GetAsync(leaveTimeId);
+      bool isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldLeaveTime.UserId;
 
-      if (_httpContextAccessor.HttpContext.GetUserId() != oldLeaveTime.UserId
-        && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+      if (!isOwner && await _ltAccessValidationHelper.HasRightsAsync(ltOwnerId: oldLeaveTime.UserId))
       {
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
