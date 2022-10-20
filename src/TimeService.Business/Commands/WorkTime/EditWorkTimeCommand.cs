@@ -83,7 +83,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         }
       }
 
-      if (!_validator.ValidateCustom((oldDbWorkTime.ProjectId, request), out List<string> errors))
+      if (!_validator.ValidateCustom((oldDbWorkTime, request), out List<string> errors))
       {
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }

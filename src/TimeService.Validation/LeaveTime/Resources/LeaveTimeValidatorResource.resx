@@ -117,8 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CommentIsEmpty" xml:space="preserve">
+    <value>Comment can't be empty</value>
+  </data>
+  <data name="EndTimeInProlonged" xml:space="preserve">
+    <value>EndTime can be edited only when prolonged leave time is closing</value>
+  </data>
   <data name="IncorrectFormat" xml:space="preserve">
     <value>Incorrect format of</value>
+  </data>
+  <data name="IsClosedFailure" xml:space="preserve">
+    <value>Field IsCLosed can be edited only in prolonged leave times</value>
   </data>
   <data name="LeaveTimeIntervalIsNotCorrect" xml:space="preserve">
     <value>Incorrect interval for leave time</value>

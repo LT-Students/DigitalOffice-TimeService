@@ -15,30 +15,14 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
   public class CreateWorkTimeRequestValidator : AbstractValidator<CreateWorkTimeRequest>, ICreateWorkTimeRequestValidator
   {
-    private bool IsMonthValid(int month, sbyte offset)
+    private bool IsDateValid(int month, int year)
     {
-      DateTime dateTimeNow = DateTime.UtcNow.AddHours(offset);
+      DateTime dateTimeNow = DateTime.UtcNow;
 
-      if (month == dateTimeNow.Month
-        || (dateTimeNow.Day <= 5 && dateTimeNow.AddMonths(-1).Month == month))
-      {
-        return true;
-      }
+      DateTime thisMonthFirstDay = new DateTime(dateTimeNow.Year, dateTimeNow.Month, 1);
+      DateTime workTimeMonthFirstDay = new DateTime(year, month, 1);
 
-      return false;
-    }
-
-    private bool IsYearValid(int year, int month, sbyte offset)
-    {
-      DateTime dateTimeNow = DateTime.UtcNow.AddHours(offset);
-
-      if (dateTimeNow.Year == year
-        || (dateTimeNow.AddMonths(-1).Year == year && month == 1))
-      {
-        return true;
-      }
-
-      return false;
+      return thisMonthFirstDay == workTimeMonthFirstDay || (thisMonthFirstDay.AddMonths(-1) == workTimeMonthFirstDay && dateTimeNow.Day <= 5);
     }
 
     public CreateWorkTimeRequestValidator(
@@ -57,8 +41,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 
       RuleFor(request => request)
         .Must(request => request.Offset >= -12 && request.Offset <= 12).WithMessage(WorkTimeValidationResource.OffsetIsIncorrect)
-        .Must(request => IsMonthValid(request.Month, request.Offset)).WithMessage(WorkTimeValidationResource.MonthIsIncorrect)
-        .Must(request => IsYearValid(request.Year, request.Month, request.Offset)).WithMessage(WorkTimeValidationResource.YearIsIncorrect)
+        .Must(request => IsDateValid(month: request.Month, year: request.Offset)).WithMessage(WorkTimeValidationResource.DateIsIncorrect)
         .MustAsync(async (x, _) =>
           !await workTimeRepository.DoesEmptyWorkTimeExistAsync(httpContextAccessor.HttpContext.GetUserId(), x.Month, x.Year))
         .WithMessage(WorkTimeValidationResource.WorkTimeAlreadyExists);

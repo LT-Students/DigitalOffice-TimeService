@@ -62,11 +62,38 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Comment can&apos;t be empty.
+        /// </summary>
+        internal static string CommentIsEmpty {
+            get {
+                return ResourceManager.GetString("CommentIsEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to EndTime can be edited only when prolonged leave time is closing.
+        /// </summary>
+        internal static string EndTimeInProlonged {
+            get {
+                return ResourceManager.GetString("EndTimeInProlonged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Incorrect format of.
         /// </summary>
         internal static string IncorrectFormat {
             get {
                 return ResourceManager.GetString("IncorrectFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Field IsCLosed can be edited only in prolonged leave times.
+        /// </summary>
+        internal static string IsClosedFailure {
+            get {
+                return ResourceManager.GetString("IsClosedFailure", resourceCulture);
             }
         }
         

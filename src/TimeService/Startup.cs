@@ -14,8 +14,8 @@ using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Middlewares.ApiInformation;
 using LT.DigitalOffice.TimeService.Broker.Consumers;
 using LT.DigitalOffice.TimeService.Business.Helpers.Emails;
+using LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
-using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
@@ -121,6 +121,7 @@ namespace LT.DigitalOffice.TimeService
       services.AddMemoryCache();
       services.AddTransient<WorkTimeCreator>();
       services.AddTransient<WorkTimeLimitCreator>();
+      services.AddTransient<ProlongedLeaveTimeHelper>();
       services.AddTransient<EmailSender>();
 
       services
@@ -227,8 +228,9 @@ namespace LT.DigitalOffice.TimeService
     {
       var scope = app.ApplicationServices.CreateScope();
 
-      var workTimeCreater = scope.ServiceProvider.GetRequiredService<WorkTimeCreator>();
-      var workTimeLimitCreater = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreator>();
+      var workTimeCreator = scope.ServiceProvider.GetRequiredService<WorkTimeCreator>();
+      var workTimeLimitCreator = scope.ServiceProvider.GetRequiredService<WorkTimeLimitCreator>();
+      var prolongedLeaveTimeHelper = scope.ServiceProvider.GetRequiredService<ProlongedLeaveTimeHelper>();
       var emailSender = scope.ServiceProvider.GetRequiredService<EmailSender>();
       var workTimeRepository = scope.ServiceProvider.GetRequiredService<IWorkTimeRepository>();
 
@@ -236,15 +238,19 @@ namespace LT.DigitalOffice.TimeService
 
       emailSender.Start();
 
-      workTimeCreater.Start(
+      workTimeCreator.Start(
         _timeConfig.MinutesToRestart,
         lastWorkTime != null
           ? new DateTime(year: lastWorkTime.Year, month: lastWorkTime.Month, day: 1)
           : default);
 
-      workTimeLimitCreater.Start(
+      workTimeLimitCreator.Start(
         _timeConfig.MinutesToRestart,
         _timeConfig.CountNeededNextMonth);
+
+      prolongedLeaveTimeHelper.Start(
+        _timeConfig.MinutesToRestart,
+        default);
     }
 
     #endregion
