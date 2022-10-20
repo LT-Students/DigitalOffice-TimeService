@@ -145,21 +145,5 @@ namespace LT.DigitalOffice.TimeService.Data
         || (end >= dbLeaveTime.StartTime && end <= dbLeaveTime.EndTime)
         || (start <= dbLeaveTime.StartTime && end >= dbLeaveTime.EndTime)));
     }
-
-    public async Task<bool> UpdateProlongedAsync(DateTime endTime)
-    {
-      List<DbLeaveTime> leaveTimes = await _provider.LeaveTimes
-        .Where(lt => lt.LeaveType == (int)LeaveType.Prolonged && lt.EndTime == endTime && lt.IsActive)
-        .ToListAsync();
-
-      foreach (DbLeaveTime leaveTime in leaveTimes)
-      {
-        leaveTime.EndTime = endTime.AddMonths(1);
-      }
-
-      await _provider.SaveAsync();
-
-      return true;
-    }
   }
 }

@@ -25,11 +25,6 @@ namespace LT.DigitalOffice.TimeService.Data
       _httpContextAccessor = httpContextAccessor;
     }
 
-    public async Task<bool> DoesExistAsync(Guid id)
-    {
-      return await _provider.WorkTimeDayJobs.AnyAsync(dj => dj.Id == id);
-    }
-
     public async Task<Guid?> CreateAsync(DbWorkTimeDayJob dayJob)
     {
       if (dayJob == null)

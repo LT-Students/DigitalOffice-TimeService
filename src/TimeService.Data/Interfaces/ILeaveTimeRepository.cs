@@ -29,7 +29,5 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
     Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end);
 
     Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime? end);
-
-    Task<bool> UpdateProlongedAsync(DateTime endTime);
   }
 }
