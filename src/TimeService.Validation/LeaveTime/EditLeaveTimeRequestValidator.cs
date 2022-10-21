@@ -31,6 +31,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
           nameof(EditLeaveTimeRequest.EndTime),
           nameof(EditLeaveTimeRequest.Minutes),
           nameof(EditLeaveTimeRequest.LeaveType),
+          nameof(EditLeaveTimeRequest.IsClosed),
           nameof(EditLeaveTimeRequest.IsActive),
           nameof(EditLeaveTimeRequest.Comment)
         });
@@ -39,6 +40,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       AddСorrectOperations(nameof(EditLeaveTimeRequest.EndTime), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Minutes), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.LeaveType), new List<OperationType> { OperationType.Replace });
+      AddСorrectOperations(nameof(EditLeaveTimeRequest.IsClosed), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.IsActive), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Comment), new List<OperationType> { OperationType.Replace });
 
@@ -68,6 +70,21 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       #endregion
 
+      #region IsClosed
+
+      AddFailureForPropertyIf(
+        nameof(EditLeaveTimeRequest.IsClosed),
+        x => x == OperationType.Replace,
+        new()
+        {
+          {
+            x => bool.TryParse(x.value.ToString(), out _),
+            $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.IsClosed)}"
+          },
+        });
+
+      #endregion
+
       #region IsActive
 
       AddFailureForPropertyIf(
@@ -93,6 +110,56 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       #endregion
     }
 
+    private void ValidateProlongedFailures(DbLeaveTime dbLeaveTime, List<Operation<EditLeaveTimeRequest>> operations, CustomContext context)
+    {
+      Operation<EditLeaveTimeRequest> isCLosedOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.IsClosed), StringComparison.OrdinalIgnoreCase));
+      Operation<EditLeaveTimeRequest> leaveTypeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.LeaveType), StringComparison.OrdinalIgnoreCase));
+      Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+
+      bool isValid;
+
+      // isClosed field can be edited only in prolonged leave times, in others it is always true
+      if (isCLosedOperation is not null)
+      {
+        isValid = leaveTypeOperation is null
+          ? dbLeaveTime.LeaveType == (int)LeaveType.Prolonged
+          : Enum.TryParse(typeof(LeaveType), leaveTypeOperation.value.ToString(), true, out object leaveType)
+            && (LeaveType)leaveType == LeaveType.Prolonged;
+
+        if (!isValid)
+        {
+          context.AddFailure(LeaveTimeValidatorResource.IsClosedFailure);
+        }
+      }
+      else // if leaveType is edited, isClosed field in not prolonged leave times must be true
+      {
+        isValid = leaveTypeOperation is null
+          ? true
+          : dbLeaveTime.IsClosed || (Enum.TryParse(typeof(LeaveType), leaveTypeOperation.value.ToString(), true, out object leaveType)
+            && (LeaveType)leaveType == LeaveType.Prolonged);
+
+        if (!isValid)
+        {
+          context.AddFailure(LeaveTimeValidatorResource.IsClosedFailure);
+        }
+      }
+
+      // end time can't be edited in prolonged leave time without closing it
+      if (isValid && endTimeOperation is not null)
+      {
+        isValid = dbLeaveTime.LeaveType != (int)LeaveType.Prolonged && leaveTypeOperation is null
+          || leaveTypeOperation is not null && (LeaveType)Enum.Parse(typeof(LeaveType), leaveTypeOperation.value.ToString(), true) != LeaveType.Prolonged;
+
+        if (!isValid)
+        {
+          context.AddFailure(LeaveTimeValidatorResource.EndTimeInProlonged);
+        }
+      }
+    }
+
     private bool ValidateTimeVariables(List<Operation<EditLeaveTimeRequest>> operations)
     {
       Operation<EditLeaveTimeRequest> startTimeOperation = operations.FirstOrDefault(
@@ -105,7 +172,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
     }
 
     //user id is always null here, it is used for time validation in createLeaveTimeRequest
-    private (DateTimeOffset startTime, DateTimeOffset endTime, DbLeaveTime leaveTime, Guid? userId) GetItems(
+    private (DateTimeOffset? startTime, DateTimeOffset? endTime, DbLeaveTime leaveTime, Guid? userId) GetItems(
       DbLeaveTime oldLeaveTime,
       List<Operation<EditLeaveTimeRequest>> operations)
     {
@@ -114,26 +181,12 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
         o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
 
-      DateTimeOffset startTime;
-      DateTimeOffset endTime;
-
-      if (startTimeOperation is null && endTimeOperation is null)
-      {
-        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified));
-        endTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified));
-      }
-      else if (startTimeOperation is null)
-      {
-        endTime = DateTimeOffset.Parse(endTimeOperation?.value.ToString());
-        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified), endTime.Offset);
-      }
-      else
-      {
-        startTime = DateTimeOffset.Parse(startTimeOperation.value.ToString());
-        endTime = endTimeOperation is null
-          ? new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified), startTime.Offset)
-          : DateTimeOffset.Parse(endTimeOperation.value.ToString());
-      }
+      DateTimeOffset? startTime = startTimeOperation is not null
+        ? DateTimeOffset.Parse(startTimeOperation.value.ToString())
+        : null;
+      DateTimeOffset? endTime = endTimeOperation is not null
+        ? DateTimeOffset.Parse(endTimeOperation?.value.ToString())
+        : null;
 
       return (startTime: startTime, endTime: endTime, leaveTime: oldLeaveTime, userId: null);
     }
@@ -153,6 +206,9 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
           RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
             .SetValidator(validator);
         });
+
+      RuleFor(x => x)
+        .Custom((x, context) => ValidateProlongedFailures(x.Item1, x.Item2.Operations, context));
     }
   }
 }

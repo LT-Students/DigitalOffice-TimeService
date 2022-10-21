@@ -22,7 +22,10 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     private DbLeaveTime _firstLeaveTime;
     private DbLeaveTime _secondLeaveTime;
     private DbLeaveTime _thirdLeaveTime;
+    private DbLeaveTime _fourthLeaveTime;
     private DbLeaveTime _editableLeaveTime;
+    private DbLeaveTime _openedProlongedLeaveTime;
+    private DbLeaveTime _closedProlongedLeaveTime;
 
     [OneTimeSetUp]
     public void OneTimeSetUp()
@@ -44,6 +47,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         StartTime = new DateTime(2020, 7, 5),
         EndTime = new DateTime(2020, 7, 25),
         UserId = _firstWorkerId,
+        IsClosed = true,
         IsActive = true
       };
       _secondLeaveTime = new DbLeaveTime
@@ -54,6 +58,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         StartTime = new DateTime(2020, 7, 10),
         EndTime = new DateTime(2020, 7, 20),
         UserId = _secondWorkerId,
+        IsClosed = true,
         IsActive = true
       };
       _thirdLeaveTime = new DbLeaveTime
@@ -64,6 +69,18 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         StartTime = new DateTime(2020, 7, 5),
         EndTime = new DateTime(2020, 7, 25),
         UserId = _firstWorkerId,
+        IsClosed = true,
+        IsActive = true
+      };
+      _fourthLeaveTime = new DbLeaveTime
+      {
+        Id = Guid.NewGuid(),
+        LeaveType = (int)LeaveType.SickLeave,
+        Comment = "SickLeave 4",
+        StartTime = new DateTime(2020, 6, 5),
+        EndTime = new DateTime(2020, 6, 25),
+        UserId = _firstWorkerId,
+        IsClosed = true,
         IsActive = true
       };
       _editableLeaveTime = new DbLeaveTime
@@ -74,6 +91,29 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         StartTime = new DateTime(2020, 7, 5),
         EndTime = new DateTime(2020, 7, 25),
         UserId = _firstWorkerId,
+        IsClosed = true,
+        IsActive = true
+      };
+      _openedProlongedLeaveTime = new()
+      {
+        Id = Guid.NewGuid(),
+        LeaveType = (int)LeaveType.Prolonged,
+        Comment = "Opened prolonged",
+        StartTime = new DateTime(2020, 7, 6),
+        EndTime = new DateTime(2020, 7, 1).AddMonths(1).AddMilliseconds(-1),
+        UserId = _firstWorkerId,
+        IsClosed = false,
+        IsActive = true
+      };
+      _closedProlongedLeaveTime = new()
+      {
+        Id = Guid.NewGuid(),
+        LeaveType = (int)LeaveType.Prolonged,
+        Comment = "Opened prolonged",
+        StartTime = new DateTime(2020, 6, 5),
+        EndTime = new DateTime(2020, 6, 1).AddMonths(1).AddMilliseconds(-1),
+        UserId = _firstWorkerId,
+        IsClosed = true,
         IsActive = true
       };
     }
@@ -202,7 +242,9 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      Assert.IsNull(await _repository.GetAsync(null, 2020, null));
+      List<DbLeaveTime> result = await _repository.GetAsync(null, 2020, null);
+
+      Assert.IsNull(result);
     }
 
     [Test]
@@ -236,15 +278,51 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     }
 
     [Test]
+    public async Task HasOverlapByUserWithProlongedAsync()
+    {
+      await _dbContext.AddRangeAsync(_openedProlongedLeaveTime);
+      await _dbContext.SaveChangesAsync();
+
+      Assert.IsTrue(await _repository.HasOverlapAsync(
+        _firstLeaveTime.UserId,
+        _firstLeaveTime.StartTime,
+        _firstLeaveTime.EndTime));
+    }
+
+    [Test]
     public async Task DoNotHaveOverlapByUserAsync()
     {
-      await _dbContext.AddRangeAsync(_firstLeaveTime, _thirdLeaveTime);
+      await _dbContext.AddRangeAsync(_firstLeaveTime, _thirdLeaveTime, _closedProlongedLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       Assert.IsFalse(await _repository.HasOverlapAsync(
         _secondLeaveTime.UserId,
         _firstLeaveTime.StartTime,
         _firstLeaveTime.EndTime));
+    }
+
+    [Test]
+    public async Task DoNotHaveOverlapByUserWithClosedProlongedAsync()
+    {
+      await _dbContext.AddRangeAsync(_secondLeaveTime, _closedProlongedLeaveTime);
+      await _dbContext.SaveChangesAsync();
+
+      Assert.IsFalse(await _repository.HasOverlapAsync(
+        _firstLeaveTime.UserId,
+        _firstLeaveTime.StartTime,
+        _firstLeaveTime.EndTime));
+    }
+
+    [Test]
+    public async Task DoNotHaveOverlapByUserWithOpenedProlongedAsync()
+    {
+      await _dbContext.AddRangeAsync(_secondLeaveTime, _openedProlongedLeaveTime);
+      await _dbContext.SaveChangesAsync();
+
+      Assert.IsFalse(await _repository.HasOverlapAsync(
+        _fourthLeaveTime.UserId,
+        _fourthLeaveTime.StartTime,
+        _fourthLeaveTime.EndTime));
     }
 
     [Test]

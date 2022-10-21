@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
+using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using Microsoft.AspNetCore.JsonPatch;
 
@@ -27,6 +28,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
 
     Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end);
 
-    Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime end);
+    Task<bool> HasOverlapAsync(Guid userId, DateTime start, DateTime? end);
   }
 }

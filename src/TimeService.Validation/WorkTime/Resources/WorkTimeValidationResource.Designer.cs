@@ -62,6 +62,15 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Incorrect month or year values.
+        /// </summary>
+        internal static string DateIsIncorrect {
+            get {
+                return ResourceManager.GetString("DateIsIncorrect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to value can not be empty.
         /// </summary>
         internal static string EmptyValue {
