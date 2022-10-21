@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
             _mapper = new DbLeaveTimeMapper();
         }*/
 
-        [SetUp]
+        /*[SetUp]
         public void SetUp()
         {
             _createdBy = Guid.NewGuid();
@@ -47,7 +47,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.UnitTests
                 UserId = _request.UserId,
                 IsActive = true
             };
-        }
+        }*/
 
         /*[Test]
         public void ShouldThrowArgumentNullExceptionWhenCreateLeaveTimeRequestIsNull()

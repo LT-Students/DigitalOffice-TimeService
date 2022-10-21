@@ -89,7 +89,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         LeaveType = (int)_request.LeaveType,
         Comment = _request.Comment,
         StartTime = _request.StartTime.UtcDateTime,
-        EndTime = _request.EndTime.UtcDateTime,
+        EndTime = _request.EndTime?.UtcDateTime
+          ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1).AddMonths(1).AddMilliseconds(-1),
         UserId = _createdBy
       };
 

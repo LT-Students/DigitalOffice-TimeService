@@ -46,9 +46,9 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Workdays
         using (var dbContext = scope.ServiceProvider.GetRequiredService<TimeServiceDbContext>())
         {
           DbWorkTimeMonthLimit last = await dbContext.WorkTimeMonthLimits
-        .OrderByDescending(l => l.Year)
-        .ThenByDescending(l => l.Month)
-        .FirstOrDefaultAsync();
+            .OrderByDescending(l => l.Year)
+            .ThenByDescending(l => l.Month)
+            .FirstOrDefaultAsync();
 
           DateTime now = DateTime.UtcNow;
 

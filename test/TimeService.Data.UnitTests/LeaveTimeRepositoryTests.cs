@@ -202,7 +202,9 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      Assert.IsNull(await _repository.GetAsync(null, 2020, null));
+      List<DbLeaveTime> result = await _repository.GetAsync(null, 2020, null);
+
+      Assert.IsNull(result);
     }
 
     [Test]

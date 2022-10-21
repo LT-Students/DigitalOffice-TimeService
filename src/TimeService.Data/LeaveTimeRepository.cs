@@ -85,7 +85,7 @@ namespace LT.DigitalOffice.TimeService.Data
     {
       if (usersIds == null)
       {
-        return null;
+        return Task.FromResult<List<DbLeaveTime>>(null);
       }
 
       IQueryable<DbLeaveTime> dbLeaveTimes = _provider.LeaveTimes.Where(lt => usersIds.Contains(lt.UserId));
@@ -124,13 +124,13 @@ namespace LT.DigitalOffice.TimeService.Data
       return end.HasValue
         ? _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
             dbLeaveTime.IsActive && dbLeaveTime.UserId == userId
-            && (dbLeaveTime.LeaveType == (int)LeaveType.Prolonged && !dbLeaveTime.IsClosed
+            && (dbLeaveTime.LeaveType == (int)LeaveType.Prolonged && !dbLeaveTime.IsClosed && dbLeaveTime.StartTime <= end
              || start >= dbLeaveTime.StartTime && start <= dbLeaveTime.EndTime
              || end >= dbLeaveTime.StartTime && end <= dbLeaveTime.EndTime
              || start <= dbLeaveTime.StartTime && end >= dbLeaveTime.EndTime))
         : _provider.LeaveTimes.AnyAsync(dbLeaveTime =>
             dbLeaveTime.IsActive && dbLeaveTime.UserId == userId
-            && (dbLeaveTime.LeaveType == (int)LeaveType.Prolonged && !dbLeaveTime.IsClosed
+            && (dbLeaveTime.LeaveType == (int)LeaveType.Prolonged && !dbLeaveTime.IsClosed // if user already has prolonged leave time, can't add another
               || start <= dbLeaveTime.EndTime));
     }
 
