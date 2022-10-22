@@ -198,13 +198,18 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
-      RuleFor(x => x.Item2.Operations)
-        .Must(ops => ValidateTimeVariables(ops))
-        .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
-        .DependentRules(() =>
+      When(x => x.Item2.Operations.Any(op => op.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase)
+        || op.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase)),
+        () =>
         {
-          RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
-            .SetValidator(validator);
+          RuleFor(x => x.Item2.Operations)
+            .Must(ops => ValidateTimeVariables(ops))
+            .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
+            .DependentRules(() =>
+            {
+              RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
+                .SetValidator(validator);
+            });
         });
 
       RuleFor(x => x)

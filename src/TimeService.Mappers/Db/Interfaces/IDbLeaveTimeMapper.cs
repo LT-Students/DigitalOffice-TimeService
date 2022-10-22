@@ -7,6 +7,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
   [AutoInject]
   public interface IDbLeaveTimeMapper
   {
-    DbLeaveTime Map(CreateLeaveTimeRequest leaveTime);
+    DbLeaveTime Map(CreateLeaveTimeRequest request, double? rate = null, string holidays = null);
   }
 }
