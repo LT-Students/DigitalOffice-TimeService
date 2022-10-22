@@ -47,7 +47,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         }
         catch (Exception ex)
         {
-          _logger.LogError(ex, "An exception occurred while trying to update prolonged leave times.");
+          _logger.LogError(ex, $"An exception occurred while trying get holidays for month: {month}, year: {year}.");
         }
       }
 
