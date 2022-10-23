@@ -9,7 +9,6 @@ using LT.DigitalOffice.Kernel.Responses;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Helpers;
 using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
-using LT.DigitalOffice.TimeService.Business.Helpers.Workdays;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
@@ -63,6 +62,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       IResponseCreator responseCreator,
       ILeaveTimeAccessValidationHelper ltAccessValidationHelper,
       ICompanyService companyService,
+      ICalendar calendar,
       ILogger<CreateLeaveTimeCommand> logger)
     {
       _validator = validator;
@@ -73,9 +73,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       _responseCreator = responseCreator;
       _ltAccessValidationHelper = ltAccessValidationHelper;
       _companyService = companyService;
+      _calendar = calendar;
       _logger = logger;
-
-      _calendar = new IsDayOffIntegration();
     }
 
     public async Task<OperationResultResponse<Guid?>> ExecuteAsync(CreateLeaveTimeRequest request)

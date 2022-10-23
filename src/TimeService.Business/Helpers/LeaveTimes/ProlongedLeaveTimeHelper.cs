@@ -132,15 +132,15 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
     public ProlongedLeaveTimeHelper(
       ILogger<ProlongedLeaveTimeHelper> logger,
       IServiceScopeFactory scopeFactory,
+      ICalendar calendar,
       ICompanyService companyService,
       IDbWorkTimeMonthLimitMapper mapper)
     {
       _logger = logger;
       _scopeFactory = scopeFactory;
+      _calendar = calendar;
       _companyService = companyService;
       _mapper = mapper;
-
-      _calendar = new IsDayOffIntegration();
     }
 
     public void Start(
