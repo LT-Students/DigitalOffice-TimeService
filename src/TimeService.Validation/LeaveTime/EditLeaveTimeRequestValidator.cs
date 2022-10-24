@@ -150,8 +150,8 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       // end time can't be edited in prolonged leave time without closing it
       if (isValid && endTimeOperation is not null)
       {
-        isValid = dbLeaveTime.LeaveType != (int)LeaveType.Prolonged && leaveTypeOperation is null
-          || leaveTypeOperation is not null && (LeaveType)Enum.Parse(typeof(LeaveType), leaveTypeOperation.value.ToString(), true) != LeaveType.Prolonged;
+        isValid = dbLeaveTime.IsClosed
+          || isCLosedOperation is not null && bool.TryParse(isCLosedOperation.value.ToString(), out bool isClosed) && isClosed;
 
         if (!isValid)
         {
@@ -198,18 +198,13 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       RuleForEach(x => x.Item2.Operations)
         .Custom(HandleInternalPropertyValidation);
 
-      When(x => x.Item2.Operations.Any(op => op.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase)
-        || op.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase)),
-        () =>
+      RuleFor(x => x.Item2.Operations)
+        .Must(ops => ValidateTimeVariables(ops))
+        .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
+        .DependentRules(() =>
         {
-          RuleFor(x => x.Item2.Operations)
-            .Must(ops => ValidateTimeVariables(ops))
-            .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
-            .DependentRules(() =>
-            {
-              RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
-                .SetValidator(validator);
-            });
+          RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
+            .SetValidator(validator);
         });
 
       RuleFor(x => x)

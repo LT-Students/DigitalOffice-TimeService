@@ -15,7 +15,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
     {
       if (startTime is null && endTime is null)
       {
-        return false;
+        return true;
       }
 
       DateTime userTimeNow = DateTime.UtcNow.Add(startTime?.Offset ?? endTime.Value.Offset);
@@ -39,8 +39,8 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       bool isEndTimeValid = endTime is null  //endTime is valid if it is not edited
         || (dbLeaveTime is null || dbLeaveTime.EndTime.Add(endTime.Value.Offset) >= thisMonthFirstDay  //checks that end time was in correct interval if leaveTime is edited
-          || (dbLeaveTime.EndTime.Add(endTime.Value.Offset) >= thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5)
-        && (endMonthFirstDay == thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5)  //checks that new end time is in correct interval
+          || (dbLeaveTime.EndTime.Add(endTime.Value.Offset) >= thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5))
+        && ((endMonthFirstDay == thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5)  //checks that new end time is in correct interval
           || endMonthFirstDay == thisMonthFirstDay || endMonthFirstDay == thisMonthFirstDay.AddMonths(1));
 
       return isStartTimeValid && isEndTimeValid;

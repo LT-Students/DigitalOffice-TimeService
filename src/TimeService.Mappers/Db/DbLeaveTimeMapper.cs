@@ -28,7 +28,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
         return null;
       }
 
-      int thisMonthWorkDays = holidays.Substring(request.StartTime.Day).Count(x => x == '0');
+      int? thisMonthWorkDays = holidays?.Substring(request.StartTime.Day).Count(x => x == '0');
 
       return new DbLeaveTime
       {
