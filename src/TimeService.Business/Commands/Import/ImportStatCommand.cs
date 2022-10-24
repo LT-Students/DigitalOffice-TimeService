@@ -50,7 +50,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         { LeaveType.SickLeave, "Больничный" },
         { LeaveType.Training, "Обучение" },
         { LeaveType.Idle, "За свой счет" },
-        { LeaveType.Prolonged, "Длительное отсутствие"}
+        { LeaveType.Prolonged, "Длительное отсутствие" }
       };
 
     private readonly IProjectService _projectService;
