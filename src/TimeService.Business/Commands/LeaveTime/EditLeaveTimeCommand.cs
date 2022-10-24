@@ -48,7 +48,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       DbLeaveTime oldLeaveTime = await _repository.GetAsync(leaveTimeId);
       bool isOwner = _httpContextAccessor.HttpContext.GetUserId() == oldLeaveTime.UserId;
 
-      if (!isOwner && await _ltAccessValidationHelper.HasRightsAsync(ltOwnerId: oldLeaveTime.UserId))
+      // will uncomment it after implementing manager's leave times
+      if (!isOwner/* && !await _ltAccessValidationHelper.HasRightsAsync(ltOwnerId: oldLeaveTime.UserId)*/)
       {
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
