@@ -11,11 +11,13 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
   public class LeaveTimeIntervalValidator : AbstractValidator<(DateTimeOffset? startTime, DateTimeOffset? endTime, DbLeaveTime leaveTime, Guid? userId)>, ILeaveTimeIntervalValidator
   {
+    private const int LastDayToEditPreviousMonth = 5;
+
     private bool ValidateInterval(DateTimeOffset? startTime, DateTimeOffset? endTime, DbLeaveTime dbLeaveTime)
     {
       if (startTime is null && endTime is null)
       {
-        return false;
+        return true;
       }
 
       DateTime userTimeNow = DateTime.UtcNow.Add(startTime?.Offset ?? endTime.Value.Offset);
@@ -33,14 +35,14 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       //if start time and end time are edited or created, they and old times from db must be in previous (if today is the 5th or less day), current or next month
       bool isStartTimeValid = startTime is null  //startTime is valid if it is not edited
         || (dbLeaveTime is null || dbLeaveTime.StartTime.Add(startTime.Value.Offset) >= thisMonthFirstDay  //checks that start time was in correct interval if leaveTime is edited
-          || (dbLeaveTime.StartTime.Add(startTime.Value.Offset) >= thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5))
-        && ((startMonthFirstDay == thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5)  //checks that new start time is in correct interval
+          || (dbLeaveTime.StartTime.Add(startTime.Value.Offset) >= thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= LastDayToEditPreviousMonth))
+        && ((startMonthFirstDay == thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= LastDayToEditPreviousMonth)  //checks that new start time is in correct interval
           || startMonthFirstDay == thisMonthFirstDay || startMonthFirstDay == thisMonthFirstDay.AddMonths(1));
 
       bool isEndTimeValid = endTime is null  //endTime is valid if it is not edited
         || (dbLeaveTime is null || dbLeaveTime.EndTime.Add(endTime.Value.Offset) >= thisMonthFirstDay  //checks that end time was in correct interval if leaveTime is edited
-          || (dbLeaveTime.EndTime.Add(endTime.Value.Offset) >= thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5)
-        && (endMonthFirstDay == thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= 5)  //checks that new end time is in correct interval
+          || (dbLeaveTime.EndTime.Add(endTime.Value.Offset) >= thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= LastDayToEditPreviousMonth))
+        && ((endMonthFirstDay == thisMonthFirstDay.AddMonths(-1) && userTimeNow.Day <= LastDayToEditPreviousMonth)  //checks that new end time is in correct interval
           || endMonthFirstDay == thisMonthFirstDay || endMonthFirstDay == thisMonthFirstDay.AddMonths(1));
 
       return isStartTimeValid && isEndTimeValid;

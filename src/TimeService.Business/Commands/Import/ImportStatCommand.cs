@@ -32,6 +32,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
   public class ImportStatCommand : IImportStatCommand
   {
+    private const int MonthsInYearCount = 12;
+
     private XLColor FirstHeaderColor => XLColor.LavenderBlue;
     private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
     private XLColor MainProjectColor => XLColor.LightGreen;
@@ -47,7 +49,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         { LeaveType.Vacation, "Оплачиваемый отпуск" },
         { LeaveType.SickLeave, "Больничный" },
         { LeaveType.Training, "Обучение" },
-        { LeaveType.Idle, "За свой счет" }
+        { LeaveType.Idle, "За свой счет" },
+        { LeaveType.Prolonged, "Длительное отсутствие" }
       };
 
     private readonly IProjectService _projectService;
@@ -81,45 +84,40 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     {
       List<DbWorkTimeMonthLimit> limits = await _workTimeMonthLimitRepository.GetAsync(start.Year, start.Month, end.Year, end.Month);
 
-      int countNeededMonth = (end.Year * 12 + end.Month) - (start.Year * 12 + start.Month) + 1 - limits.Count;
+      int countNeededMonth = (end.Year * MonthsInYearCount + end.Month) - (start.Year * MonthsInYearCount + start.Month) + 1 - limits.Count;
 
       if (countNeededMonth < 1)
       {
         return limits;
       }
 
-      int requestedYear = end.Year;
-      int requestedMonth = end.Month;
       List<DbWorkTimeMonthLimit> newLimits = new();
 
-      while (countNeededMonth > 0)
+      DateTime startMonthFirstDay = new DateTime(start.Year, start.Month, 1);
+      DateTime endMonthFirstDay = new DateTime(end.Year, end.Month, 1);
+
+      for (DateTime dateTime = startMonthFirstDay; dateTime <= endMonthFirstDay && countNeededMonth > 0; dateTime = dateTime.AddMonths(1))
       {
-        string holidays = await _calendar.GetWorkCalendarByMonthAsync(requestedMonth, requestedYear); // TODO rework
-
-        if (holidays is null)
+        if (limits.FirstOrDefault(ml => ml.Year == dateTime.Year && ml.Month == dateTime.Month) is null)
         {
-          errors?.Add("Cannot get holidays.");
+          string holidays = await _calendar.GetWorkCalendarByMonthAsync(dateTime.Month, dateTime.Year);
 
-          return null;
-        }
-
-        newLimits.Add(
-          new DbWorkTimeMonthLimit
+          if (holidays is null)
           {
-            Id = Guid.NewGuid(),
-            Year = requestedYear,
-            Month = requestedMonth,
-            Holidays = holidays,
-            NormHours = holidays.ToCharArray().Count(h => h == '0') * 8
-          });
+            errors?.Add("Cannot get holidays.");
 
-        countNeededMonth--;
-        requestedMonth--;
+            return null;
+          }
 
-        if (requestedMonth == 0)
-        {
-          requestedMonth = 12;
-          requestedYear--;
+          newLimits.Add(
+            new DbWorkTimeMonthLimit
+            {
+              Id = Guid.NewGuid(),
+              Year = dateTime.Year,
+              Month = dateTime.Month,
+              Holidays = holidays,
+              NormHours = holidays.ToCharArray().Count(h => h == '0') * 8
+            });
         }
       }
 
