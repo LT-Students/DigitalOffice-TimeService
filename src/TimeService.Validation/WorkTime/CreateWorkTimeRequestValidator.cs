@@ -41,7 +41,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 
       RuleFor(request => request)
         .Must(request => request.Offset >= -12 && request.Offset <= 12).WithMessage(WorkTimeValidationResource.OffsetIsIncorrect)
-        .Must(request => IsDateValid(month: request.Month, year: request.Offset)).WithMessage(WorkTimeValidationResource.DateIsIncorrect)
+        .Must(request => IsDateValid(month: request.Month, year: request.Year)).WithMessage(WorkTimeValidationResource.DateIsIncorrect)
         .MustAsync(async (x, _) =>
           !await workTimeRepository.DoesEmptyWorkTimeExistAsync(httpContextAccessor.HttpContext.GetUserId(), x.Month, x.Year))
         .WithMessage(WorkTimeValidationResource.WorkTimeAlreadyExists);
