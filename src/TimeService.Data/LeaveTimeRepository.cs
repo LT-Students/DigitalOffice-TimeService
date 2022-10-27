@@ -178,7 +178,7 @@ namespace LT.DigitalOffice.TimeService.Data
         && (lt.ManagerLeaveTime == null && lt.IsActive && lt.Id != leaveTime.Id
           || lt.ManagerLeaveTime != null && lt.ManagerLeaveTime.IsActive && lt.Id != leaveTime.Id && lt.ManagerLeaveTime.Id != leaveTime.Id));
 
-      return _provider.LeaveTimes.AnyAsync(lt =>
+      return leaveTimesQuery.AnyAsync(lt =>
         lt.ManagerLeaveTime == null
           && (start >= lt.StartTime && start <= lt.EndTime
             || end >= lt.StartTime && end <= lt.EndTime
