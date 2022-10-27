@@ -29,7 +29,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     private ICreateLeaveTimeCommand _command;
 
     private const string Holidays = "1100000110000011000001100000110";
-    private const string NullString = null;
 
     private CreateLeaveTimeRequest _request;
     private CreateLeaveTimeRequest _prolongedRequest;
