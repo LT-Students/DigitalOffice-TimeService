@@ -279,15 +279,15 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     }
 
     [Test]
-    public async Task SholdReturnBadGatewayIfProlongedAndHolidaysIsNullAsync()
+    public async Task SholdReturnBadGatewayIfICalendarThrowsExceptionAsync()
     {
       _mocker.Setup<IWorkTimeMonthLimitRepository, Task<DbWorkTimeMonthLimit>>(x =>
           x.GetAsync(It.IsAny<int>(), It.IsAny<int>()))
-        .ReturnsAsync(default(DbWorkTimeMonthLimit));
+        .ReturnsAsync(null as DbWorkTimeMonthLimit);
 
       _mocker.Setup<ICalendar, Task<string>>(x =>
           x.GetWorkCalendarByMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
-        .ReturnsAsync(null as string);
+        .ThrowsAsync(new Exception());
 
       SerializerAssert.AreEqual(_badGatewayResponse, await _command.ExecuteAsync(_prolongedRequest));
 
