@@ -23,7 +23,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
 
     public DbLeaveTime Map(CreateLeaveTimeRequest request, double? rate = null, string holidays = null)
     {
-      if (request == null)
+      if (request is null)
       {
         return null;
       }
@@ -35,7 +35,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
         Id = Guid.NewGuid(),
         ParentId = null,
         UserId = request.UserId,
-        CreatedBy = _httpContextAccessor.HttpContext.GetUserId(),
         LeaveType = (int)request.LeaveType,
         Minutes = request.LeaveType == LeaveType.Prolonged
           ? (int)(thisMonthWorkDays * WorkingDayDurationInMinutes * (decimal)(rate ?? DefaultRate))
@@ -43,12 +42,37 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db
         StartTime = request.StartTime.UtcDateTime,
         EndTime = request.EndTime?.UtcDateTime //creates the dateTime with last day of start time's month if it is null
           ?? new DateTime(request.StartTime.UtcDateTime.Year, request.StartTime.UtcDateTime.Month, 1).AddMonths(1).AddMilliseconds(-1),
+        CreatedBy = _httpContextAccessor.HttpContext.GetUserId(),
         CreatedAtUtc = DateTime.UtcNow,
         Comment = !string.IsNullOrEmpty(request.Comment?.Trim()) ? request.Comment.Trim() : null,
         IsClosed = request.LeaveType == LeaveType.Prolonged
           ? false
           : true,
         IsActive = true
+      };
+    }
+
+    public DbLeaveTime Map(DbLeaveTime parent, Guid managerId)
+    {
+      if (parent is null)
+      {
+        return null;
+      }
+
+      return new DbLeaveTime
+      {
+        Id = Guid.NewGuid(),
+        ParentId = parent.Id,
+        UserId = parent.UserId,
+        Minutes = parent.Minutes,
+        StartTime = parent.StartTime,
+        EndTime = parent.EndTime,
+        LeaveType = parent.LeaveType,
+        Comment = parent.Comment,
+        IsClosed = parent.IsClosed,
+        IsActive = parent.IsActive,
+        CreatedAtUtc = DateTime.UtcNow,
+        CreatedBy = managerId
       };
     }
   }

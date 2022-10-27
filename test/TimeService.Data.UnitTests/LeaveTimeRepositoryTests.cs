@@ -6,14 +6,17 @@ using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using Moq.AutoMock;
 using NUnit.Framework;
 
 namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
   public class LeaveTimeRepositoryTests
   {
+    private AutoMocker _mocker;
     private TimeServiceDbContext _dbContext;
     private ILeaveTimeRepository _repository;
 
@@ -30,11 +33,21 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
+      _mocker = new AutoMocker();
+
+      _mocker
+        .Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
+          x.HttpContext.Items)
+        .Returns(new Dictionary<object, object>()
+        {
+          { "UserId", Guid.NewGuid() }
+        });
+
       var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
         .UseInMemoryDatabase("InMemoryDatabase")
         .Options;
       _dbContext = new TimeServiceDbContext(dbOptions);
-      _repository = new LeaveTimeRepository(_dbContext);
+      _repository = new LeaveTimeRepository(_dbContext, _mocker.GetMock<IHttpContextAccessor>().Object);
 
       _firstWorkerId = Guid.NewGuid();
       _secondWorkerId = Guid.NewGuid();

@@ -117,6 +117,9 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="CannotBeEdited" xml:space="preserve">
+    <value>Отсутствие не может быть отредактировано</value>
+  </data>
   <data name="EndTimeInProlonged" xml:space="preserve">
     <value>Время окончания длительного отсутсвия может быть отредактировано только при условии его закрытия</value>
   </data>

@@ -71,7 +71,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
 
       (List<DbLeaveTime> dbLeaveTimes, int totalCount) = await _repository.FindAsync(filter);
 
-      List<Guid> usersIds = dbLeaveTimes.Select(lt => lt.UserId).ToList();
+      List<Guid> usersIds = dbLeaveTimes.Select(lt => lt.UserId)
+        .Concat(dbLeaveTimes.Where(lt => lt.ManagerLeaveTime != null).Select(lt => lt.ManagerLeaveTime.CreatedBy))
+        .Distinct().ToList();
 
       Task<List<UserData>> usersTask = _userService.GetUsersDataAsync(usersIds, errors);
 
@@ -81,7 +83,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
       return new()
       {
         TotalCount = totalCount,
-        Body = dbLeaveTimes.Select(lt => _leaveTimeResponseMapper.Map(lt, users?.FirstOrDefault(u => u.Id == lt.UserId))).ToList(),
+        Body = dbLeaveTimes.Select(
+          lt => _leaveTimeResponseMapper.Map(
+            dbLeaveTime: lt,
+            user: users?.FirstOrDefault(u => u.Id == lt.UserId),
+            manager: lt.ManagerLeaveTime is not null
+              ? users.FirstOrDefault(u => u.Id == lt.ManagerLeaveTime.CreatedBy)
+              : null))
+          .ToList(),
         Errors = errors
       };
     }

@@ -235,9 +235,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         .ReturnsAsync(Holidays);
     }
 
-    // will uncomment this after implementing manager's leave times
-    /*[Test]
-    public async Task FailUserCheckAsync()
+    [Test]
+    public async Task ShouldReturnForbiddenWhenUserHasNoRights()
     {
       Dictionary<object, object> items = new()
       {
@@ -250,7 +249,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
           x.HasRightsAsync(It.IsAny<Guid>()))
         .ReturnsAsync(false);
 
-      SerializerAssert.AreEqual(_badResponse, await _command.ExecuteAsync(_request));
+      SerializerAssert.AreEqual(_forbiddenResponse, await _command.ExecuteAsync(_request));
 
       Verifiable(
         Times.Once(),
@@ -258,8 +257,10 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         Times.Once(),
         Times.Never(),
         Times.Never(),
-        Times.Exactly(2));
-    }*/
+        Times.Exactly(2),
+        Times.Never(),
+        Times.Never());
+    }
 
     [Test]
     public async Task ShouldThrowBadResponseIfUserIsNotOwner()

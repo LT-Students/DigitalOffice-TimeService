@@ -92,6 +92,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 
       if (!isOwner)
       {
+        // checks that user's (not manager's) leave time is edited
         if (oldDbWorkTime.ParentId is null && oldDbWorkTime.ManagerWorkTime is null)
         {
           DbWorkTime managerWorkTime = _dbMapper.Map(oldDbWorkTime, senderId);

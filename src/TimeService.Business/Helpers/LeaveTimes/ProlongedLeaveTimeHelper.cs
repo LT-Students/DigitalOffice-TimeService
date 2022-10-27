@@ -78,14 +78,23 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
         {
           DateTime thisMonthFirstDay = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, FirstDayInMonth);
 
-          List<DbLeaveTime> leaveTimes = await dbContext.LeaveTimes
+          List<DbLeaveTime> leaveTimes = (await dbContext.LeaveTimes
+            .Where(lt => lt.ParentId == null).Include(lt => lt.ManagerLeaveTime)
             .Where(lt =>
-              lt.LeaveType == (int)LeaveType.Prolonged
-              && !lt.IsClosed
-              && lt.EndTime < thisMonthFirstDay
-              && lt.IsActive)
+              (lt.ManagerLeaveTime == null
+                && lt.LeaveType == (int)LeaveType.Prolonged
+                && !lt.IsClosed
+                && lt.EndTime < thisMonthFirstDay
+                && lt.IsActive)
+              || (lt.ManagerLeaveTime != null
+                && lt.ManagerLeaveTime.LeaveType == (int)LeaveType.Prolonged
+                && !lt.ManagerLeaveTime.IsClosed
+                && lt.ManagerLeaveTime.EndTime < thisMonthFirstDay
+                && lt.ManagerLeaveTime.IsActive))
+            .ToListAsync())
+            .Select(lt => lt.ManagerLeaveTime ?? lt)
             .OrderBy(lt => lt.EndTime.Year).ThenBy(lt => lt.EndTime.Month)
-            .ToListAsync();
+            .ToList();
 
           if (!leaveTimes.Any())
           {

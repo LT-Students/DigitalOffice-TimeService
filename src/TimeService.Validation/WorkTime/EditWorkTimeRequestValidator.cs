@@ -5,11 +5,13 @@ using System.Linq;
 using System.Threading;
 using FluentValidation;
 using FluentValidation.Validators;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Interfaces;
 using LT.DigitalOffice.TimeService.Validation.WorkTime.Resources;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTime
@@ -78,24 +80,31 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       #endregion
     }
 
-    public EditWorkTimeRequestValidator()
+    public EditWorkTimeRequestValidator(
+      IHttpContextAccessor httpContextAccessor)
     {
       Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
 
-      RuleForEach(x => x.Item2.Operations)
-        .Custom(HandleInternalPropertyValidation);
-
       RuleFor(x => x.Item1)
-        .Must(x => IsDateValid(x))
-        .WithMessage(WorkTimeValidationResource.DateIsIncorrect);
-
-      When(x => x.Item1.ProjectId == Guid.Empty
-        && x.Item2.Operations.Any(op => op.path.EndsWith(nameof(EditWorkTimeRequest.Description), StringComparison.OrdinalIgnoreCase)),
-        () =>
+        .Must(wt => wt.ManagerWorkTime is null || wt.UserId != httpContextAccessor.HttpContext.GetUserId())
+        .WithMessage(WorkTimeValidationResource.CannotBeEdited)
+        .DependentRules(() =>
         {
-          RuleFor(x => x.Item2.Operations.FirstOrDefault(op => op.path.EndsWith(nameof(EditWorkTimeRequest.Description), StringComparison.OrdinalIgnoreCase)))
-            .Must(op => !string.IsNullOrWhiteSpace(op.value?.ToString()))
-            .WithMessage($"{nameof(EditWorkTimeRequest.Description)} {WorkTimeValidationResource.EmptyValue}");
+          RuleForEach(x => x.Item2.Operations)
+            .Custom(HandleInternalPropertyValidation);
+
+          RuleFor(x => x.Item1)
+            .Must(x => IsDateValid(x))
+            .WithMessage(WorkTimeValidationResource.DateIsIncorrect);
+
+          When(x => x.Item1.ProjectId == Guid.Empty
+            && x.Item2.Operations.Any(op => op.path.EndsWith(nameof(EditWorkTimeRequest.Description), StringComparison.OrdinalIgnoreCase)),
+            () =>
+            {
+              RuleFor(x => x.Item2.Operations.FirstOrDefault(op => op.path.EndsWith(nameof(EditWorkTimeRequest.Description), StringComparison.OrdinalIgnoreCase)))
+                .Must(op => !string.IsNullOrWhiteSpace(op.value?.ToString()))
+                .WithMessage($"{nameof(EditWorkTimeRequest.Description)} {WorkTimeValidationResource.EmptyValue}");
+            });
         });
     }
   }

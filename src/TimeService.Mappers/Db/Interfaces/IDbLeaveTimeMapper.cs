@@ -1,4 +1,5 @@
-﻿using LT.DigitalOffice.Kernel.Attributes;
+﻿using System;
+using LT.DigitalOffice.Kernel.Attributes;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 
@@ -8,5 +9,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Db.Interfaces
   public interface IDbLeaveTimeMapper
   {
     DbLeaveTime Map(CreateLeaveTimeRequest request, double? rate = null, string holidays = null);
+
+    DbLeaveTime Map(DbLeaveTime dbLeaveTime, Guid managerId);
   }
 }

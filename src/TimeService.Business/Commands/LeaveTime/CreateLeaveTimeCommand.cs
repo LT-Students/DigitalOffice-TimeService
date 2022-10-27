@@ -12,6 +12,7 @@ using LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Business.Helpers.Workdays.Intergations.Interface;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Mappers.Db.Interfaces;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -81,8 +82,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
     {
       bool isOwner = request.UserId == _httpContextAccessor.HttpContext.GetUserId();
 
-      // will uncomment it after implementing manager's leave times
-      if (!isOwner /*&& !await _ltAccessValidationHelper.HasRightsAsync(ltOwnerId: request.UserId)*/)
+      if (!isOwner && !await _ltAccessValidationHelper.HasRightsAsync(ltOwnerId: request.UserId))
       {
         return _responseCreator.CreateFailureResponse<Guid?>(HttpStatusCode.Forbidden);
       }
@@ -113,7 +113,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         }
       }
 
-      response.Body = await _leaveTimeRepository.CreateAsync(_mapper.Map(request, rate, holidays));
+      DbLeaveTime dbLeaveTime = _mapper.Map(request, rate, holidays);
+
+      if (!isOwner)
+      {
+        dbLeaveTime.ManagerLeaveTime = _mapper.Map(dbLeaveTime, _httpContextAccessor.HttpContext.GetUserId());
+      }
+
+      response.Body = await _leaveTimeRepository.CreateAsync(dbLeaveTime);
 
       _httpContextAccessor.HttpContext.Response.StatusCode = (int)HttpStatusCode.Created;
 

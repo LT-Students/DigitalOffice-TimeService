@@ -149,7 +149,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
       dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
 
-      managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).Distinct().ToList();
+      managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value)
+        .Concat(dbLeaveTimes.Where(lt => lt.ManagerLeaveTime is not null).Select(lt => lt.ManagerLeaveTime.CreatedBy))
+        .Distinct().ToList();
 
       List<string> errors = new();
 

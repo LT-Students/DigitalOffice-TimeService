@@ -8,6 +8,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response.Interfaces
   [AutoInject]
   public interface ILeaveTimeResponseMapper
   {
-    LeaveTimeResponse Map(DbLeaveTime dbLeaveTime, UserInfo user);
+    LeaveTimeResponse Map(DbLeaveTime dbLeaveTime, UserInfo user, UserInfo manager);
   }
 }
