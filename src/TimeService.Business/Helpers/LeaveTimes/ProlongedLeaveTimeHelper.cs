@@ -101,7 +101,6 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
             return;
           }
 
-          // TODO - add new consumer to company service for searching only needed users
           Task<List<CompanyData>> companyUsersTask = _companyService.GetCompaniesDataAsync(
             usersIds: leaveTimes.Select(x => x.UserId).ToList(),
             errors: default);
