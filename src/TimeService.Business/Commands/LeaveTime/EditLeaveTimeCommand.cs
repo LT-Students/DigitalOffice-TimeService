@@ -62,7 +62,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
       }
 
-      var response = new OperationResultResponse<bool>();
+      OperationResultResponse<bool> response = new OperationResultResponse<bool>();
 
       if (!isOwner)
       {
