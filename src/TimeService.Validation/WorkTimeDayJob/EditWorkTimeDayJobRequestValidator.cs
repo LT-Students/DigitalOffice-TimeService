@@ -7,6 +7,7 @@ using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Data.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTimeDayJob.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.WorkTimeDayJob
@@ -15,7 +16,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTimeDayJob
   {
     private readonly IWorkTimeRepository _repository;
 
-    private async Task HandleInternalPropertyValidationAsync(Operation<EditWorkTimeDayJobRequest> requestedOperation, CustomContext context)
+    private async Task HandleInternalPropertyValidationAsync(
+      Operation<EditWorkTimeDayJobRequest> requestedOperation,
+      ValidationContext<JsonPatchDocument<EditWorkTimeDayJobRequest>> context)
     {
       Context = context;
       RequestedOperation = requestedOperation;

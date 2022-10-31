@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.BrokerSupport.AccessValidatorEngine.Interfaces;
 using LT.DigitalOffice.Kernel.Constants;
 using LT.DigitalOffice.Kernel.Extensions;
-using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
 using LT.DigitalOffice.Kernel.Responses;
-using LT.DigitalOffice.Kernel.Validators.Interfaces;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
@@ -26,7 +24,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
 {
   public class FindWorkTimesCommand : IFindWorkTimesCommand
   {
-    private readonly IBaseFindFilterValidator _validator;
     private readonly IWorkTimeRepository _workTimeRepository;
     private readonly IWorkTimeMonthLimitRepository _monthLimitRepository;
     private readonly IAccessValidator _accessValidator;
@@ -39,7 +36,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
     private readonly IResponseCreator _responseCreator;
 
     public FindWorkTimesCommand(
-      IBaseFindFilterValidator validator,
       IWorkTimeResponseMapper workTimeResponseMapper,
       IWorkTimeRepository repository,
       IWorkTimeMonthLimitRepository monthLimitRepository,
@@ -51,7 +47,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
       IUserInfoMapper userInfoMapper,
       IResponseCreator responseCreator)
     {
-      _validator = validator;
       _workTimeResponseMapper = workTimeResponseMapper;
       _workTimeRepository = repository;
       _monthLimitRepository = monthLimitRepository;
@@ -73,10 +68,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.WorkTime
         return _responseCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.Forbidden);
       }
 
-      if (!_validator.ValidateCustom(filter, out List<string> errors))
-      {
-        return _responseCreator.CreateFailureFindResponse<WorkTimeResponse>(HttpStatusCode.BadRequest, errors);
-      }
+      List<string> errors = new();
 
       (List<DbWorkTime> dbWorkTimes, int totalCount) = await _workTimeRepository.FindAsync(filter);
 

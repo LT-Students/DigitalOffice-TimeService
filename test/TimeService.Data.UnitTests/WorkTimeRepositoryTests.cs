@@ -197,7 +197,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.WorkTimes.AddRangeAsync(_firstWorkTime, _secondWorkTime);
       await _dbContext.SaveChangesAsync();
 
-      FindWorkTimesFilter filter = new() { Year = 2022 };
+      FindWorkTimesFilter filter = new() { Year = 2022, TakeCount = int.MaxValue };
       (List<DbWorkTime> workTimes, int totalCount) expectedWorkTimes = new()
       {
         workTimes = new List<DbWorkTime>

@@ -6,14 +6,17 @@ using LT.DigitalOffice.TimeService.Data.Provider.MsSql.Ef;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Filters;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.EntityFrameworkCore;
+using Moq.AutoMock;
 using NUnit.Framework;
 
 namespace LT.DigitalOffice.TimeService.Data.UnitTests
 {
   public class LeaveTimeRepositoryTests
   {
+    private AutoMocker _mocker;
     private TimeServiceDbContext _dbContext;
     private ILeaveTimeRepository _repository;
 
@@ -22,6 +25,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     private DbLeaveTime _firstLeaveTime;
     private DbLeaveTime _secondLeaveTime;
     private DbLeaveTime _thirdLeaveTime;
+    private DbLeaveTime _thirdManagerLeaveTime;
     private DbLeaveTime _fourthLeaveTime;
     private DbLeaveTime _editableLeaveTime;
     private DbLeaveTime _openedProlongedLeaveTime;
@@ -30,11 +34,21 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
+      _mocker = new AutoMocker();
+
+      _mocker
+        .Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
+          x.HttpContext.Items)
+        .Returns(new Dictionary<object, object>()
+        {
+          { "UserId", Guid.NewGuid() }
+        });
+
       var dbOptions = new DbContextOptionsBuilder<TimeServiceDbContext>()
         .UseInMemoryDatabase("InMemoryDatabase")
         .Options;
       _dbContext = new TimeServiceDbContext(dbOptions);
-      _repository = new LeaveTimeRepository(_dbContext);
+      _repository = new LeaveTimeRepository(_dbContext, _mocker.GetMock<IHttpContextAccessor>().Object);
 
       _firstWorkerId = Guid.NewGuid();
       _secondWorkerId = Guid.NewGuid();
@@ -64,6 +78,18 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       _thirdLeaveTime = new DbLeaveTime
       {
         Id = Guid.NewGuid(),
+        LeaveType = (int)LeaveType.SickLeave,
+        Comment = "SickLeave 3",
+        StartTime = new DateTime(2022, 7, 5),
+        EndTime = new DateTime(2022, 7, 25),
+        UserId = _firstWorkerId,
+        IsClosed = true,
+        IsActive = true
+      };
+      _thirdManagerLeaveTime = new()
+      {
+        Id = Guid.NewGuid(),
+        ParentId = _thirdLeaveTime.Id,
         LeaveType = (int)LeaveType.SickLeave,
         Comment = "SickLeave 3",
         StartTime = new DateTime(2020, 7, 5),
@@ -164,15 +190,36 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     }
 
     [Test]
-    public async Task FindSuccessfullyAsync()
+    public async Task FindByUserIdSuccessfullyAsync()
     {
-      await _dbContext.AddRangeAsync(_firstLeaveTime, _secondLeaveTime, _thirdLeaveTime);
+      await _dbContext.AddRangeAsync(_firstLeaveTime, _secondLeaveTime, _thirdLeaveTime, _thirdManagerLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       FindLeaveTimesFilter filter = new() { UserId = _firstLeaveTime.UserId, TakeCount = 2 };
       List<DbLeaveTime> expectedLeaveTimes = new() { _firstLeaveTime, _thirdLeaveTime };
 
-      Assert.AreEqual(3, await _dbContext.LeaveTimes.CountAsync());
+      var leaveTimes = await _repository.FindAsync(filter);
+
+      Assert.AreEqual(4, await _dbContext.LeaveTimes.CountAsync());
+      CollectionAssert.AreEquivalent(expectedLeaveTimes, leaveTimes.Item1);
+    }
+
+    [Test]
+    public async Task FindByStartTimeAndEndTimeSuccessfullyAsync()
+    {
+      await _dbContext.AddRangeAsync(_firstLeaveTime, _secondLeaveTime, _thirdLeaveTime, _thirdManagerLeaveTime);
+      await _dbContext.SaveChangesAsync();
+
+      FindLeaveTimesFilter filter = new()
+      {
+        StartTime = new DateTime(2020, 7, 1),
+        EndTime = new DateTime(2021, 7, 1),
+        TakeCount = int.MaxValue
+      };
+
+      List<DbLeaveTime> expectedLeaveTimes = new() { _firstLeaveTime, _secondLeaveTime, _thirdLeaveTime };
+
+      Assert.AreEqual(4, await _dbContext.LeaveTimes.CountAsync());
       CollectionAssert.AreEquivalent(expectedLeaveTimes, (await _repository.FindAsync(filter)).Item1);
     }
 
@@ -196,12 +243,12 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task GetByYearSuccessfullyAsync()
     {
-      await _dbContext.AddAsync(_firstLeaveTime);
+      await _dbContext.AddRangeAsync(_thirdLeaveTime, _thirdManagerLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       Assert.AreEqual(
-        new List<DbLeaveTime> { _firstLeaveTime },
-        await _repository.GetAsync(new List<Guid> { _firstLeaveTime.UserId }, 2020, null));
+        new List<DbLeaveTime> { _thirdLeaveTime },
+        await _repository.GetAsync(new List<Guid> { _thirdLeaveTime.UserId }, 2020, null, true));
     }
 
     [Test]
@@ -227,12 +274,12 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task GetByYearNothingAsync()
     {
-      await _dbContext.AddAsync(_firstLeaveTime);
+      await _dbContext.AddRangeAsync(_thirdLeaveTime, _thirdManagerLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       Assert.IsEmpty(await _repository.GetAsync(
-        new List<Guid> { _secondLeaveTime.UserId },
-        2020,
+        new List<Guid> { _thirdLeaveTime.UserId },
+        2022,
         null));
     }
 
@@ -242,9 +289,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
       await _dbContext.AddAsync(_firstLeaveTime);
       await _dbContext.SaveChangesAsync();
 
-      List<DbLeaveTime> result = await _repository.GetAsync(null, 2020, null);
-
-      Assert.IsNull(result);
+      Assert.IsNull(await _repository.GetAsync(null, 2020, null));
     }
 
     [Test]
@@ -268,7 +313,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task HasOverlapByUserAsync()
     {
-      await _dbContext.AddRangeAsync(_firstLeaveTime, _thirdLeaveTime);
+      await _dbContext.AddRangeAsync(_thirdLeaveTime, _thirdManagerLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       Assert.IsTrue(await _repository.HasOverlapAsync(
@@ -278,7 +323,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     }
 
     [Test]
-    public async Task HasOverlapByUserWithProlongedAsync()
+    public async Task HasOverlapByUserWithProlongedInDatabaseAsync()
     {
       await _dbContext.AddRangeAsync(_openedProlongedLeaveTime);
       await _dbContext.SaveChangesAsync();
@@ -287,6 +332,18 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
         _firstLeaveTime.UserId,
         _firstLeaveTime.StartTime,
         _firstLeaveTime.EndTime));
+    }
+
+    [Test]
+    public async Task HasOverlapByUserWithNullEndTimeAsync()
+    {
+      await _dbContext.AddRangeAsync(_firstLeaveTime);
+      await _dbContext.SaveChangesAsync();
+
+      Assert.IsTrue(await _repository.HasOverlapAsync(
+        _openedProlongedLeaveTime.UserId,
+        _openedProlongedLeaveTime.StartTime,
+        null));
     }
 
     [Test]
@@ -328,7 +385,7 @@ namespace LT.DigitalOffice.TimeService.Data.UnitTests
     [Test]
     public async Task HasOverlapByLeaveTimeAsync()
     {
-      await _dbContext.AddAsync(_thirdLeaveTime);
+      await _dbContext.AddRangeAsync(_thirdLeaveTime, _thirdManagerLeaveTime);
       await _dbContext.SaveChangesAsync();
 
       Assert.IsTrue(await _repository.HasOverlapAsync(

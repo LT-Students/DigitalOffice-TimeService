@@ -29,7 +29,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     private ICreateLeaveTimeCommand _command;
 
     private const string Holidays = "1100000110000011000001100000110";
-    private const string NullString = null;
 
     private CreateLeaveTimeRequest _request;
     private CreateLeaveTimeRequest _prolongedRequest;
@@ -235,47 +234,20 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         .ReturnsAsync(Holidays);
     }
 
-    // will uncomment this after implementing manager's leave times
-    /*[Test]
-    public async Task FailUserCheckAsync()
+    [Test]
+    public async Task ShouldReturnForbiddenWhenUserHasNoRights()
     {
-      Dictionary<object, object> items = new()
-      {
-        { "UserId", Guid.NewGuid() }
-      };
       _mocker.Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
           x.HttpContext.Items)
-        .Returns(items);
+        .Returns(_itemsWithNotOwner);
       _mocker.Setup<ILeaveTimeAccessValidationHelper, Task<bool>>(x =>
           x.HasRightsAsync(It.IsAny<Guid>()))
         .ReturnsAsync(false);
 
-      SerializerAssert.AreEqual(_badResponse, await _command.ExecuteAsync(_request));
-
-      Verifiable(
-        Times.Once(),
-        Times.Never(),
-        Times.Once(),
-        Times.Never(),
-        Times.Never(),
-        Times.Exactly(2));
-    }*/
-
-    [Test]
-    public async Task ShouldThrowBadResponseIfUserIsNotOwner()
-    {
-      _mocker.Setup<IResponseCreator, OperationResultResponse<Guid?>>(x =>
-          x.CreateFailureResponse<Guid?>(It.IsAny<HttpStatusCode>(), It.IsAny<List<string>>()))
-        .Returns(_forbiddenResponse);
-
-      _mocker.Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
-          x.HttpContext.Items)
-        .Returns(_itemsWithNotOwner);
-
       SerializerAssert.AreEqual(_forbiddenResponse, await _command.ExecuteAsync(_request));
 
       Verifiable(
-        Times.Never(),
+        Times.Once(),
         Times.Never(),
         Times.Once(),
         Times.Never(),
@@ -286,7 +258,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     }
 
     [Test]
-    public async Task FailValidationAsync()
+    public async Task ShouldReturnBadRequestWhenRequestIsNotValidAsync()
     {
       _mocker.Setup<ICreateLeaveTimeRequestValidator, bool>(x =>
           x.ValidateAsync(_request, default).Result.IsValid)
@@ -306,15 +278,15 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     }
 
     [Test]
-    public async Task SholdReturnBadGatewayIfProlongedAndHolidaysIsNull()
+    public async Task SholdReturnBadGatewayIfICalendarThrowsExceptionAsync()
     {
       _mocker.Setup<IWorkTimeMonthLimitRepository, Task<DbWorkTimeMonthLimit>>(x =>
           x.GetAsync(It.IsAny<int>(), It.IsAny<int>()))
-        .ReturnsAsync(default(DbWorkTimeMonthLimit));
+        .ReturnsAsync(null as DbWorkTimeMonthLimit);
 
       _mocker.Setup<ICalendar, Task<string>>(x =>
           x.GetWorkCalendarByMonthAsync(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<bool>()))
-        .ReturnsAsync(null as string);
+        .ThrowsAsync(new Exception());
 
       SerializerAssert.AreEqual(_badGatewayResponse, await _command.ExecuteAsync(_prolongedRequest));
 
@@ -330,7 +302,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     }
 
     [Test]
-    public async Task FailRepositoryCreateAsync()
+    public async Task ShouldReturnBadRequestWhenRepositoryReturnNullAsync()
     {
       _mocker.Setup<ILeaveTimeRepository, Task<Guid?>>(x =>
           x.CreateAsync(It.IsAny<DbLeaveTime>()))
@@ -350,8 +322,12 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
     }
 
     [Test]
-    public async Task CreateLeaveTimeSuccessfullyAsync()
+    public async Task ShouldCreateLeaveTimeSuccessfullyIfOwnerAsync()
     {
+      _mocker.Setup<ILeaveTimeAccessValidationHelper, Task<bool>>(x =>
+          x.HasRightsAsync(It.IsAny<Guid>()))
+        .ReturnsAsync(false);
+
       SerializerAssert.AreEqual(_goodResponse, await _command.ExecuteAsync(_request));
 
       Verifiable(
@@ -361,6 +337,29 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.LeaveTime
         Times.Once(),
         Times.Once(),
         Times.Exactly(2),
+        Times.Never(),
+        Times.Never());
+    }
+
+    [Test]
+    public async Task ShouldCreateLeaveTimeSuccessfullyIfNotOwnerAndHasRightsAsync()
+    {
+      _mocker.Setup<IHttpContextAccessor, IDictionary<object, object>>(x =>
+          x.HttpContext.Items)
+        .Returns(_itemsWithNotOwner);
+      _mocker.Setup<ILeaveTimeAccessValidationHelper, Task<bool>>(x =>
+          x.HasRightsAsync(It.IsAny<Guid>()))
+        .ReturnsAsync(true);
+
+      SerializerAssert.AreEqual(_goodResponse, await _command.ExecuteAsync(_request));
+
+      Verifiable(
+        Times.Once(),
+        Times.Once(),
+        Times.Never(),
+        Times.Once(),
+        Times.Once(),
+        Times.Exactly(4),
         Times.Never(),
         Times.Never());
     }

@@ -4,9 +4,9 @@ using LT.DigitalOffice.TimeService.Models.Dto.Models;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
 {
-    [AutoInject]
-    public interface ILeaveTimeInfoMapper
-    {
-        LeaveTimeInfo Map(DbLeaveTime dbLeaveTime, UserInfo managerInfo);
-    }
+  [AutoInject]
+  public interface IManagerLeaveTimeInfoMapper
+  {
+    ManagerLeaveTimeInfo Map(DbLeaveTime managerLeaveTime);
+  }
 }

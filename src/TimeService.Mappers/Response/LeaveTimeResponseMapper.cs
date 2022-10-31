@@ -17,16 +17,16 @@ namespace LT.DigitalOffice.TimeService.Mappers.Response
       _leaveTimeInfoMapper = leaveTimeInfoMapper;
     }
 
-    public LeaveTimeResponse Map(DbLeaveTime dbLeaveTime, UserInfo user)
+    public LeaveTimeResponse Map(DbLeaveTime dbLeaveTime, UserInfo user, UserInfo manager)
     {
-      if (dbLeaveTime == null)
+      if (dbLeaveTime is null)
       {
-        throw new ArgumentNullException(nameof(dbLeaveTime));
+        return null;
       }
 
       return new LeaveTimeResponse
       {
-        LeaveTime = _leaveTimeInfoMapper.Map(dbLeaveTime),
+        LeaveTime = _leaveTimeInfoMapper.Map(dbLeaveTime, manager),
         User = user ?? new UserInfo { Id = dbLeaveTime.UserId },
       };
     }

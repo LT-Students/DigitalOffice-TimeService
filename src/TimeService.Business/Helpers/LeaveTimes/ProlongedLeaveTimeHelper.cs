@@ -22,6 +22,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
     private const int MinutesInHourCount = 60;
     private const int FirstDayInMonth = 1;
     private const int DefaultUpdateRateInHours = 24;
+    private const int MonthsInYearCount = 12;
     private const double DefaultRate = 1;
 
     private readonly IServiceScopeFactory _scopeFactory;
@@ -36,11 +37,12 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
       DateTime startDate,
       DateTime endDate)
     {
+      int startDateCountMonths = startDate.Year * MonthsInYearCount + startDate.Month;
+      int endDateCountMonths = endDate.Year * MonthsInYearCount + endDate.Month;
+
       Dictionary<DateTime, DbWorkTimeMonthLimit> monthLimitsDictionary = (await dbContext.WorkTimeMonthLimits
-        .Where(ml => ml.Year == startDate.Year && ml.Month >= startDate.Month
-          || ml.Year == endDate.Year && ml.Month <= endDate.Month
-          || ml.Year > startDate.Year && ml.Year < endDate.Year)
-        .OrderBy(ml => ml.Year).ThenBy(ml => ml.Month)
+        .Where(ml => ml.Year * MonthsInYearCount + ml.Month >= startDateCountMonths
+          && ml.Year * MonthsInYearCount + ml.Month <= endDateCountMonths)
         .ToListAsync())
         .ToDictionary(ml => new DateTime(ml.Year, ml.Month, FirstDayInMonth));
 
@@ -53,7 +55,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
         {
           _logger.LogError($"Can't find WorkTimeMonthLimit with month: {dateTime.Month}, year: {dateTime.Year} in database.");
 
-          var ml = _mapper.Map(
+          DbWorkTimeMonthLimit ml = _mapper.Map(
               year: dateTime.Year,
               month: dateTime.Month,
               holidays: await _calendar.GetWorkCalendarByMonthAsync(
@@ -78,21 +80,29 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
         {
           DateTime thisMonthFirstDay = new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, FirstDayInMonth);
 
-          List<DbLeaveTime> leaveTimes = await dbContext.LeaveTimes
+          List<DbLeaveTime> leaveTimes = (await dbContext.LeaveTimes
+            .Where(lt => lt.ParentId == null).Include(lt => lt.ManagerLeaveTime)
             .Where(lt =>
-              lt.LeaveType == (int)LeaveType.Prolonged
-              && !lt.IsClosed
-              && lt.EndTime < thisMonthFirstDay
-              && lt.IsActive)
+              (lt.ManagerLeaveTime == null
+                && lt.LeaveType == (int)LeaveType.Prolonged
+                && !lt.IsClosed
+                && lt.EndTime < thisMonthFirstDay
+                && lt.IsActive)
+              || (lt.ManagerLeaveTime != null
+                && lt.ManagerLeaveTime.LeaveType == (int)LeaveType.Prolonged
+                && !lt.ManagerLeaveTime.IsClosed
+                && lt.ManagerLeaveTime.EndTime < thisMonthFirstDay
+                && lt.ManagerLeaveTime.IsActive))
+            .ToListAsync())
+            .Select(lt => lt.ManagerLeaveTime ?? lt)
             .OrderBy(lt => lt.EndTime.Year).ThenBy(lt => lt.EndTime.Month)
-            .ToListAsync();
+            .ToList();
 
           if (!leaveTimes.Any())
           {
             return;
           }
 
-          // TODO - add new consumer to company service for searching only needed users
           Task<List<CompanyData>> companyUsersTask = _companyService.GetCompaniesDataAsync(
             usersIds: leaveTimes.Select(x => x.UserId).ToList(),
             errors: default);

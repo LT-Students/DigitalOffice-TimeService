@@ -3,6 +3,7 @@ using FluentValidation.Validators;
 using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit.Interfaces;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -14,7 +15,9 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTimeMonthLimit
     {
         private static Regex _holidayRegex = new("^[10]+$");
 
-        private void HandleInternalPropertyValidation(Operation<EditWorkTimeMonthLimitRequest> requestedOperation, CustomContext context)
+        private void HandleInternalPropertyValidation(
+          Operation<EditWorkTimeMonthLimitRequest> requestedOperation,
+          ValidationContext<JsonPatchDocument<EditWorkTimeMonthLimitRequest>> context)
         {
             Context = context;
             RequestedOperation = requestedOperation;

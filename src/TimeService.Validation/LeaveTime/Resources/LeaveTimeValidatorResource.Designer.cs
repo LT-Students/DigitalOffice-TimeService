@@ -62,6 +62,15 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to LeaveTime cannot be edited.
+        /// </summary>
+        internal static string CannotBeEdited {
+            get {
+                return ResourceManager.GetString("CannotBeEdited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comment can&apos;t be empty.
         /// </summary>
         internal static string CommentIsEmpty {

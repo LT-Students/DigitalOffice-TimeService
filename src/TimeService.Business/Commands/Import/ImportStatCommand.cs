@@ -504,7 +504,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", shortName: "Другое", default, default, default));
       }
 
-      List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
+      List<DbLeaveTime> leaveTimes = (await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true))?
+        .Select(lt => lt.ManagerLeaveTime ?? lt).ToList();
 
       List<UserImportStatInfo> sortedUsers = _mapper.Map(usersInfos, companies)
         .GroupBy(x => x.CompanyUserData?.ContractSubject?.Name).OrderByDescending(x => x.Key).SelectMany(x => x).ToList();
