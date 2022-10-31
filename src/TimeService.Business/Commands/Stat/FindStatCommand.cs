@@ -99,8 +99,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<ProjectUserData> projectUsersData = default;
       List<DepartmentData> departmentsData = default;
       List<DepartmentUserExtendedData> departmentsUsers = default;
-      List<Guid> usersIds = new();
-      List<Guid> managersIds = new();
+      List<Guid> usersIds;
+      List<Guid> managersIds;
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
@@ -131,8 +131,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           departmentsIds: filter.DepartmentsIds,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
-        departmentsData = await departmentsDataTask;
-
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           && !(filter.DepartmentsIds?.Count == 1
             && await _departmentService.GetDepartmentUserRoleAsync(
@@ -143,7 +141,14 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
         departmentsUsers = await departmentsUsersTask;
 
-        usersIds.AddRange(departmentsUsers?.Select(u => u.UserId));
+        departmentsData = await departmentsDataTask;
+
+        usersIds = departmentsUsers?.Select(u => u.UserId).ToList();
+      }
+
+      if (usersIds is null)
+      {
+        return null;
       }
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);

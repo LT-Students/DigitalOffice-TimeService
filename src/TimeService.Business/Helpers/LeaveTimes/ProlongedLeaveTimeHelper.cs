@@ -22,6 +22,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
     private const int MinutesInHourCount = 60;
     private const int FirstDayInMonth = 1;
     private const int DefaultUpdateRateInHours = 24;
+    private const int MonthsInYearCount = 12;
     private const double DefaultRate = 1;
 
     private readonly IServiceScopeFactory _scopeFactory;
@@ -36,11 +37,12 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
       DateTime startDate,
       DateTime endDate)
     {
+      int startDateCountMonths = startDate.Year * MonthsInYearCount + startDate.Month;
+      int endDateCountMonths = endDate.Year * MonthsInYearCount + endDate.Month;
+
       Dictionary<DateTime, DbWorkTimeMonthLimit> monthLimitsDictionary = (await dbContext.WorkTimeMonthLimits
-        .Where(ml => ml.Year == startDate.Year && ml.Month >= startDate.Month
-          || ml.Year == endDate.Year && ml.Month <= endDate.Month
-          || ml.Year > startDate.Year && ml.Year < endDate.Year)
-        .OrderBy(ml => ml.Year).ThenBy(ml => ml.Month)
+        .Where(ml => ml.Year * MonthsInYearCount + ml.Month >= startDateCountMonths
+          && ml.Year * MonthsInYearCount + ml.Month <= endDateCountMonths)
         .ToListAsync())
         .ToDictionary(ml => new DateTime(ml.Year, ml.Month, FirstDayInMonth));
 
@@ -53,7 +55,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.LeaveTimes
         {
           _logger.LogError($"Can't find WorkTimeMonthLimit with month: {dateTime.Month}, year: {dateTime.Year} in database.");
 
-          var ml = _mapper.Map(
+          DbWorkTimeMonthLimit ml = _mapper.Map(
               year: dateTime.Year,
               month: dateTime.Month,
               holidays: await _calendar.GetWorkCalendarByMonthAsync(

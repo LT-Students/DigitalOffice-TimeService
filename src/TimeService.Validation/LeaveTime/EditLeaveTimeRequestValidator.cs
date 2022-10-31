@@ -13,13 +13,16 @@ using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
   public class EditLeaveTimeRequestValidator : ExtendedEditRequestValidator<DbLeaveTime, EditLeaveTimeRequest>, IEditLeaveTimeRequestValidator
   {
-    private void HandleInternalPropertyValidation(Operation<EditLeaveTimeRequest> requestedOperation, CustomContext context)
+    private void HandleInternalPropertyValidation(
+      Operation<EditLeaveTimeRequest> requestedOperation,
+      ValidationContext<(DbLeaveTime, JsonPatchDocument<EditLeaveTimeRequest>)> context)
     {
       Context = context;
       RequestedOperation = requestedOperation;
@@ -112,7 +115,10 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       #endregion
     }
 
-    private void ValidateProlongedFailures(DbLeaveTime dbLeaveTime, List<Operation<EditLeaveTimeRequest>> operations, CustomContext context)
+    private void ValidateProlongedFailures(
+      DbLeaveTime dbLeaveTime,
+      List<Operation<EditLeaveTimeRequest>> operations,
+      ValidationContext<(DbLeaveTime, JsonPatchDocument<EditLeaveTimeRequest>)> context)
     {
       Operation<EditLeaveTimeRequest> isCLosedOperation = operations.FirstOrDefault(
         o => o.path.EndsWith(nameof(EditLeaveTimeRequest.IsClosed), StringComparison.OrdinalIgnoreCase));

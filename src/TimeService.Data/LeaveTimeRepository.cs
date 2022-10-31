@@ -152,10 +152,10 @@ namespace LT.DigitalOffice.TimeService.Data
               || end >= lt.StartTime && end <= lt.EndTime
               || start <= lt.StartTime && end >= lt.EndTime)
           || lt.ManagerLeaveTime != null
-            && (lt.LeaveType == (int)LeaveType.Prolonged && !lt.IsClosed && lt.StartTime <= end
-              || start >= lt.StartTime && start <= lt.EndTime
-              || end >= lt.StartTime && end <= lt.EndTime
-              || start <= lt.StartTime && end >= lt.EndTime));
+            && (lt.ManagerLeaveTime.LeaveType == (int)LeaveType.Prolonged && !lt.ManagerLeaveTime.IsClosed && lt.ManagerLeaveTime.StartTime <= end
+              || start >= lt.ManagerLeaveTime.StartTime && start <= lt.ManagerLeaveTime.EndTime
+              || end >= lt.ManagerLeaveTime.StartTime && end <= lt.ManagerLeaveTime.EndTime
+              || start <= lt.ManagerLeaveTime.StartTime && end >= lt.ManagerLeaveTime.EndTime));
       }
       else
       {

@@ -32,12 +32,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Helpers
       _accessValidator = accessValidator;
     }
 
-    public async Task<bool> HasRightsAsync(Guid ltOwnerId)
+    public async Task<bool> HasRightsAsync(Guid? ltOwnerId)
     {
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
-      Task<List<DepartmentData>> leaveTimeOwnerDepartmentTask = _departmentService.GetDepartmentsDataAsync(usersIds: new() { ltOwnerId });
-      Task<List<ProjectUserData>> projectsUsersTask = _projectService.GetProjectsUsersAsync(usersIds: new() { senderId, ltOwnerId });
+      Task<List<DepartmentData>> leaveTimeOwnerDepartmentTask = ltOwnerId.HasValue
+        ? _departmentService.GetDepartmentsDataAsync(usersIds: new() { ltOwnerId.Value })
+        : Task.FromResult(null as List<DepartmentData>);
+
+      Task<List<ProjectUserData>> projectsUsersTask = ltOwnerId.HasValue
+        ? _projectService.GetProjectsUsersAsync(usersIds: new() { senderId, ltOwnerId.Value })
+        : Task.FromResult(null as List<ProjectUserData>);
 
       Task<bool> hasRightsTask = _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime);
 

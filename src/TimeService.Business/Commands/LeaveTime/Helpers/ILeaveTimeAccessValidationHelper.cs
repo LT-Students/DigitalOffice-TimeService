@@ -7,6 +7,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Helpers
   [AutoInject]
   public interface ILeaveTimeAccessValidationHelper
   {
-    Task<bool> HasRightsAsync(Guid ltOwnerId);
+    Task<bool> HasRightsAsync(Guid? ltOwnerId);
   }
 }
