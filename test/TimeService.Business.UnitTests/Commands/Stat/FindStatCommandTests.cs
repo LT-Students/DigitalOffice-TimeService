@@ -73,7 +73,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       Times getUsersDataTimes,
       Times getFilteredUsersDataTimes,
       Times companyServiceTimes,
-      Times imageServiceTimes,
       Times positionServiceTimes,
       Times workTimeRepositoryTimes,
       Times leaveTimeRepositoryTimes,
@@ -145,11 +144,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<List<string>>()),
         companyServiceTimes);
 
-      _mocker.Verify<IImageService>(x => x.GetUsersImagesAsync(
-          It.IsAny<List<Guid>>(),
-          It.IsAny<List<string>>()),
-        imageServiceTimes);
-
       _mocker.Verify<IPositionService>(x => x.GetPositionsAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<List<string>>()),
@@ -175,9 +169,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<int>()),
         workTimeMonthLimitRepositoryTimes);
 
-      _mocker.Verify<IUserInfoMapper>(x => x.Map(
-          It.IsAny<UserData>(),
-          It.IsAny<ImageData>()),
+      _mocker.Verify<IUserInfoMapper>(x => x.Map(It.IsAny<UserData>()),
         userInfoMapperTimes);
 
       _mocker.Verify<IProjectInfoMapper>(x => x.Map(It.IsAny<ProjectData>()),
@@ -319,11 +311,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<List<string>>()))
         .ReturnsAsync(_companyData);
 
-      _mocker.Setup<IImageService, Task<List<ImageData>>>(x => x.GetUsersImagesAsync(
-          It.IsAny<List<Guid>>(),
-          It.IsAny<List<string>>()))
-        .ReturnsAsync(_imageData);
-
       _mocker.Setup<IPositionService, Task<List<PositionData>>>(x => x.GetPositionsAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<List<string>>()))
@@ -349,13 +336,9 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<int>()))
         .ReturnsAsync(_monthLimit);
 
-      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(
-          It.IsAny<UserData>(),
-          null))
+      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(It.IsAny<UserData>()))
         .Returns(_userInfo);
-      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(
-          It.IsAny<UserData>(),
-          It.IsAny<ImageData>()))
+      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(It.IsAny<UserData>()))
         .Returns(_managerInfo);
 
       _mocker.Setup<IProjectInfoMapper, ProjectInfo>(x =>
@@ -410,7 +393,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Never(),
         Times.Never(),
         Times.Never(),
-        Times.Never(),
         Times.Once());
     }
 
@@ -431,7 +413,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Exactly(2),
         Times.Never(),
         Times.Once(),
-        Times.Never(),
         Times.Never(),
         Times.Never(),
         Times.Never(),
@@ -482,7 +463,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Never(),
         Times.Never(),
         Times.Never(),
-        Times.Never(),
         Times.Once());
     }
 
@@ -500,7 +480,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Once(),
         Times.Never(),
         Times.Never(),
-        Times.Once(),
         Times.Once(),
         Times.Once(),
         Times.Once(),
@@ -542,7 +521,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Never(),
         Times.Never(),
         Times.Never(),
-        Times.Never(),
         Times.Once());
     }
 
@@ -557,7 +535,6 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Once(),
         Times.Never(),
         Times.Never(),
-        Times.Once(),
         Times.Once(),
         Times.Once(),
         Times.Once(),
