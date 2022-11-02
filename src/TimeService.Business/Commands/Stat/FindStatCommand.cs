@@ -196,26 +196,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         isActive: null,
         errors: errors);
 
-      _logger.LogInformation("Filtered users task completed. Starting companies, images and positions tasks");
+      _logger.LogInformation("Filtered users task completed. Starting managers, projects positions and companies tasks awaiting and mapping.");
 
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
       Task<List<ImageData>> imagesTask = _imageService.GetUsersImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
-
-      _logger.LogInformation("Starting images task awaiting.");
-
-      List<ImageData> images = await imagesTask;
-
-      _logger.LogInformation("Images task completed. Starting usersInfos mapping.");
-
-      List<UserInfo> usersInfos = usersData?
-        .Select(u => _userInfoMapper.Map(
-          u,
-          images?.FirstOrDefault(i => i.ImageId == u.ImageId))).ToList();
-
-      _logger.LogInformation("UserInfos mappig completed. Starting managers, projects positions and companies tasks awaiting and mapping.");
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
@@ -226,7 +213,18 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<PositionData> positionsData = await positionsTask;
       List<CompanyUserData> companiesUsersData = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
-      _logger.LogInformation("Data collection ended. Starting response creating.");
+      _logger.LogInformation("Managers, projects positions and companies tasks awaiting and mapping completed. Starting images task awaiting.");
+
+      List<ImageData> images = await imagesTask;
+
+      _logger.LogInformation("Images task completed. Starting usersInfos mapping.");
+
+      List<UserInfo> usersInfos = usersData?
+        .Select(u => _userInfoMapper.Map(
+          u,
+          images?.FirstOrDefault(i => i.ImageId == u.ImageId))).ToList();
+
+      _logger.LogInformation("UserInfos mapping completed. Data collection ended. Starting response creating.");
 
       FindResultResponse<UserStatInfo> response = new FindResultResponse<UserStatInfo>
       {
