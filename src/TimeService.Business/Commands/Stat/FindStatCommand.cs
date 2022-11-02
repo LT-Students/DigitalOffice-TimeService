@@ -177,8 +177,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
-      List<UserInfo> usersInfos = usersData?
-        .Select(user => _userInfoMapper.Map(user)).ToList();
+      List<UserInfo> usersInfos = usersData?.Select(_userInfoMapper.Map).ToList();
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
