@@ -25,6 +25,7 @@ using LT.DigitalOffice.TimeService.Models.Dto.Filters;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 using LT.DigitalOffice.TimeService.Validation.Stat.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
 
 namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 {
@@ -46,6 +47,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IFindStatFilterValidator _validator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IAccessValidator _accessValidator;
+    private readonly ILogger<FindStatCommand> _logger;
 
     public FindStatCommand(
       IDepartmentService departmentService,
@@ -63,7 +65,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IResponseCreator responseCreator,
       IFindStatFilterValidator validator,
       IHttpContextAccessor httpContextAccessor,
-      IAccessValidator accessValidator)
+      IAccessValidator accessValidator,
+      ILogger<FindStatCommand> logger)
     {
       _departmentService = departmentService;
       _userService = userService;
@@ -81,10 +84,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _validator = validator;
       _httpContextAccessor = httpContextAccessor;
       _accessValidator = accessValidator;
+      _logger = logger;
     }
 
     public async Task<FindResultResponse<UserStatInfo>> ExecuteAsync(FindStatFilter filter)
     {
+      _logger.LogInformation("Find stat command execution started.");
+
       ValidationResult validationResult = await _validator.ValidateAsync(filter);
       if (!validationResult.IsValid)
       {
@@ -106,6 +112,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (filter.ProjectId.HasValue)
       {
+        _logger.LogInformation("Starting access validation.");
+
         projectUsersData = await _projectService.GetProjectsUsersAsync(
           projectsIds: new() { filter.ProjectId.Value },
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
@@ -122,9 +130,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         }
 
         usersIds = projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
+
+        _logger.LogInformation("Access validation ended.");
       }
       else
       {
+        _logger.LogInformation("Starting access validation.");
+
         Task<List<DepartmentData>> departmentsDataTask = _departmentService.GetDepartmentsDataAsync(departmentsIds: filter.DepartmentsIds);
 
         Task<List<DepartmentUserExtendedData>> departmentsUsersTask = _departmentService.GetDepartmentsUsersAsync(
@@ -144,12 +156,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         departmentsData = await departmentsDataTask;
 
         usersIds = departmentsUsers?.Select(u => u.UserId).ToList();
+
+        _logger.LogInformation("Access validation ended.");
       }
 
       if (usersIds is null)
       {
         return null;
       }
+
+      _logger.LogInformation("Starting data collection.");
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
       dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
@@ -160,12 +176,16 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       List<string> errors = new();
 
+      _logger.LogInformation("Starting manager and project tasks.");
+
       Task<List<UserData>> managersDataTask = _userService.GetUsersDataAsync(managersIds, errors);
 
       Task<List<ProjectData>> projectsTask = _projectService.GetProjectsDataAsync(
         projectsIds: dbWorkTimes.Select(wt => wt.ProjectId).Distinct().ToList());
 
       DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
+
+      _logger.LogInformation("Starting filtered users tasks awaiting.");
 
       (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
         usersIds: usersIds,
@@ -176,18 +196,26 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         isActive: null,
         errors: errors);
 
+      _logger.LogInformation("Filtered users task completed. Starting companies, images and positions tasks");
+
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
       Task<List<ImageData>> imagesTask = _imageService.GetUsersImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
+      _logger.LogInformation("Starting images task awaiting.");
+
       List<ImageData> images = await imagesTask;
+
+      _logger.LogInformation("Images task completed. Starting usersInfos mapping.");
 
       List<UserInfo> usersInfos = usersData?
         .Select(u => _userInfoMapper.Map(
           u,
           images?.FirstOrDefault(i => i.ImageId == u.ImageId))).ToList();
+
+      _logger.LogInformation("UserInfos mappig completed. Starting managers, projects positions and companies tasks awaiting and mapping.");
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
@@ -198,7 +226,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<PositionData> positionsData = await positionsTask;
       List<CompanyUserData> companiesUsersData = (await companiesTask)?.SelectMany(p => p.Users).ToList();
 
-      return new FindResultResponse<UserStatInfo>
+      _logger.LogInformation("Data collection ended. Starting response creating.");
+
+      FindResultResponse<UserStatInfo> response = new FindResultResponse<UserStatInfo>
       {
         TotalCount = totalCount,
         Body = usersInfos?.Select(user => _userStatInfoMapper.Map(
@@ -213,6 +243,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           companyUser: companiesUsersData?.FirstOrDefault(cu => cu.UserId == user.Id))).ToList(),
         Errors = errors
       };
+
+      _logger.LogInformation("Response creating ended.");
+
+      return response;
     }
   }
 }
