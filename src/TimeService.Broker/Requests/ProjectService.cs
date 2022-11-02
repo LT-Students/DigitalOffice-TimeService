@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         includeDepartment: includeDepartments);
 
       List<ProjectData> projectsData = await _globalCache.GetAsync<List<ProjectData>>(
-        Cache.Projects, allGuids.GetRedisCacheKey(request.GetBasicProperties()));
+        Cache.Projects, allGuids.GetRedisCacheKey(nameof(IGetProjectsRequest), request.GetBasicProperties()));
 
       if (projectsData is null)
       {
