@@ -8,6 +8,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
   [AutoInject]
   public interface IUserInfoMapper
   {
-    UserInfo Map(UserData userData, ImageData imageData = null);
+    UserInfo Map(UserData userData);
   }
 }

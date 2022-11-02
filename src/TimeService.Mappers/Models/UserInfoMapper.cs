@@ -7,14 +7,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
   public class UserInfoMapper : IUserInfoMapper
   {
-    private readonly IImageMapper _imageMapper;
-
-    public UserInfoMapper(IImageMapper imageMapper)
-    {
-      _imageMapper = imageMapper;
-    }
-
-    public UserInfo Map(UserData userData, ImageData imageData = null)
+    public UserInfo Map(UserData userData)
     {
       if (userData == null)
       {
@@ -28,9 +21,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         MiddleName = userData.MiddleName,
         LastName = userData.LastName,
         IsActive = userData.IsActive,
-        Image = imageData is null
-          ? null
-          : _imageMapper.Map(imageData)
+        ImageId = userData.ImageId
       };
     }
   }

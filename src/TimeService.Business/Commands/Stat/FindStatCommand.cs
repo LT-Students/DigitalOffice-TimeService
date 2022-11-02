@@ -13,7 +13,6 @@ using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
-using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.Models.Broker.Models.Position;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
@@ -34,7 +33,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IUserService _userService;
     private readonly ICompanyService _companyService;
     private readonly IProjectService _projectService;
-    private readonly IImageService _imageService;
     private readonly IPositionService _positionService;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
@@ -52,7 +50,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IUserService userService,
       ICompanyService companyService,
       IProjectService projectService,
-      IImageService imageService,
       IPositionService positionService,
       IUserInfoMapper userInfoMapper,
       IProjectInfoMapper projectInfoMapper,
@@ -69,7 +66,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _userService = userService;
       _companyService = companyService;
       _projectService = projectService;
-      _imageService = imageService;
       _positionService = positionService;
       _userInfoMapper = userInfoMapper;
       _projectInfoMapper = projectInfoMapper;
@@ -179,15 +175,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
-      Task<List<ImageData>> imagesTask = _imageService.GetUsersImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
-      List<ImageData> images = await imagesTask;
-
-      List<UserInfo> usersInfos = usersData?
-        .Select(u => _userInfoMapper.Map(
-          u,
-          images?.FirstOrDefault(i => i.ImageId == u.ImageId))).ToList();
+      List<UserInfo> usersInfos = usersData?.Select(_userInfoMapper.Map).ToList();
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
