@@ -112,7 +112,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       if (filter.ProjectId.HasValue)
       {
-        _logger.LogInformation("Starting access validation.");
+        _logger.LogInformation("Starting access validation by projectId.");
 
         projectUsersData = await _projectService.GetProjectsUsersAsync(
           projectsIds: new() { filter.ProjectId.Value },
@@ -135,7 +135,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       }
       else
       {
-        _logger.LogInformation("Starting access validation.");
+        _logger.LogInformation("Starting access validation by deaprtmentId.");
 
         Task<List<DepartmentData>> departmentsDataTask = _departmentService.GetDepartmentsDataAsync(departmentsIds: filter.DepartmentsIds);
 
