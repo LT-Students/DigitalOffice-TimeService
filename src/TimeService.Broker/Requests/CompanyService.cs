@@ -40,7 +40,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       object request = IGetCompaniesRequest.CreateObj(usersIds);
 
-      List<CompanyData> companiesData = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
+      List<CompanyData> companiesData = await _globalCache.GetAsync<List<CompanyData>>(Cache.Companies, usersIds.GetRedisCacheKey(
+        nameof(IGetCompaniesRequest), request.GetBasicProperties()));
 
       if (companiesData is null)
       {

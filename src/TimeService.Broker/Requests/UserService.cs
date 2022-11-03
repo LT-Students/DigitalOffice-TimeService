@@ -47,7 +47,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
 
       object request = IGetUsersDataRequest.CreateObj(usersIds, includeBaseEmail);
 
-      List<UserData> usersData = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
+      List<UserData> usersData = await _globalCache.GetAsync<List<UserData>>(Cache.Users, usersIds.GetRedisCacheKey(
+        nameof(IGetUsersDataRequest), request.GetBasicProperties()));
 
       if (usersData is null)
       {
@@ -86,7 +87,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         isActive: isActive);
 
       (List<UserData> usersData, int totalCount) =
-        await _globalCache.GetAsync<(List<UserData>, int)>(Cache.Users, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
+        await _globalCache.GetAsync<(List<UserData>, int)>(Cache.Users, usersIds.GetRedisCacheKey(
+          nameof(IFilteredUsersDataRequest), request.GetBasicProperties()));
 
       if (usersData is null)
       {
