@@ -11,7 +11,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
   public class LeaveTimeIntervalValidator : AbstractValidator<(DateTimeOffset? startTime, DateTimeOffset? endTime, DbLeaveTime leaveTime, Guid? userId)>, ILeaveTimeIntervalValidator
   {
-    private const int LastDayToEditPreviousMonth = 5;
+    private const int LastDayToEditPreviousMonth = 10;
 
     private bool ValidateInterval(DateTimeOffset? startTime, DateTimeOffset? endTime, DbLeaveTime dbLeaveTime)
     {

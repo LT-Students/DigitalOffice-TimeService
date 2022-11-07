@@ -173,10 +173,11 @@ namespace LT.DigitalOffice.TimeService.Data
 
     public Task<bool> HasOverlapAsync(DbLeaveTime leaveTime, DateTime start, DateTime end)
     {
-      IQueryable<DbLeaveTime> leaveTimesQuery = _provider.LeaveTimes.Include(lt => lt.ManagerLeaveTime).Where(lt =>
-        lt.UserId == leaveTime.UserId
-        && (lt.ManagerLeaveTime == null && lt.IsActive && lt.Id != leaveTime.Id
-          || lt.ManagerLeaveTime != null && lt.ManagerLeaveTime.IsActive && lt.Id != leaveTime.Id && lt.ManagerLeaveTime.Id != leaveTime.Id));
+      IQueryable<DbLeaveTime> leaveTimesQuery =
+        _provider.LeaveTimes.Where(lt => lt.ParentId == null).Include(lt => lt.ManagerLeaveTime).Where(lt =>
+          lt.UserId == leaveTime.UserId
+          && (lt.ManagerLeaveTime == null && lt.IsActive && lt.Id != leaveTime.Id
+            || lt.ManagerLeaveTime != null && lt.ManagerLeaveTime.IsActive && lt.Id != leaveTime.Id && lt.ManagerLeaveTime.Id != leaveTime.Id));
 
       return leaveTimesQuery.AnyAsync(lt =>
         lt.ManagerLeaveTime == null
