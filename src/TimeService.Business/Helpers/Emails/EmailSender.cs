@@ -36,13 +36,29 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
         new Dictionary<string, string> { 
           { "FirstName", user.FirstName },
           { "LastName", user.LastName },
-          { "FirstLastMonth", new DateTime(year: DateTime.UtcNow.Year, month: DateTime.UtcNow.Month, day: 1).ToShortDateString() },
-          { "LastLastMonth", new DateTime(year: DateTime.UtcNow.Year,
-            month: DateTime.UtcNow.Month, 
-            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() },
-          { "LastCurrentMonth", new DateTime(year: DateTime.UtcNow.Year, 
-            month: DateTime.UtcNow.Month, 
-            day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month)).ToShortDateString() }
+          {
+            "FirstLastMonth",
+            new DateTime(
+              year: DateTime.UtcNow.Year,
+              month: DateTime.UtcNow.Month,
+              day: 1)
+            .ToString("dd.MM.yyyy")
+          },
+          {
+            "LastLastMonth",
+            new DateTime(
+              year: DateTime.UtcNow.Year,
+              month: DateTime.UtcNow.Month, 
+              day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month))
+            .ToString("dd.MM.yyyy") 
+          },
+          {
+            "LastCurrentMonth", new DateTime(
+              year: DateTime.UtcNow.Year, 
+              month: DateTime.UtcNow.Month, 
+              day: DateTime.DaysInMonth(DateTime.UtcNow.Year, month: DateTime.UtcNow.Month))
+            .ToString("dd.MM.yyyy")
+          }
         },
         textTemplate.Text);
 
@@ -104,7 +120,7 @@ namespace LT.DigitalOffice.TimeService.Business.Helpers.Emails
             await ExecuteAsync();
           }
 
-          Thread.Sleep(3600000);
+          await Task.Delay(TimeSpan.FromMinutes(60));
         }
       });
     }
