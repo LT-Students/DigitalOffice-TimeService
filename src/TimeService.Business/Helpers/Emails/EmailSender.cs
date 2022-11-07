@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using LT.DigitalOffice.Kernel.Helpers.TextHandlers.Interfaces;
 using LT.DigitalOffice.Models.Broker.Enums;
