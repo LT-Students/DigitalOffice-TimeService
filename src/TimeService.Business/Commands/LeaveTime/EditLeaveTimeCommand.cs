@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using FluentValidation.Results;
 using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.FluentValidationExtensions;
 using LT.DigitalOffice.Kernel.Helpers.Interfaces;
@@ -57,9 +59,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime
         return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.Forbidden);
       }
 
-      if (!_validator.ValidateCustom((oldLeaveTime, request), out List<string> errors))
+      ValidationResult validationResult = await _validator.ValidateAsync((oldLeaveTime, request));
+      if (!validationResult.IsValid)
       {
-        return _responseCreator.CreateFailureResponse<bool>(HttpStatusCode.BadRequest, errors);
+        return _responseCreator.CreateFailureResponse<bool>(
+          HttpStatusCode.BadRequest,
+          validationResult.Errors?.Select(vf => vf.ErrorMessage).ToList());
       }
 
       OperationResultResponse<bool> response = new OperationResultResponse<bool>();
