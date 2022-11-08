@@ -41,7 +41,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private XLColor SecondHeaderColor => XLColor.FromHtml("#99CCFF");
     private XLColor MainProjectColor => XLColor.PaleGreen;
     private XLColor OtherProjectColor => XLColor.LightYellow;
-    private XLColor VacantionColor => XLColor.PastelOrange;
+    private XLColor VacantionColor => XLColor.Gold;
     private XLColor LeaveTypesColor => XLColor.FromHtml("#CC99FF");
     private XLColor TimesColor => XLColor.FromHtml("#CCFFCC");
 
@@ -257,10 +257,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
           ws.Cell(row, 2).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
-            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
-          ws.Cell(row, 3).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
-          ws.Cell(row, 4).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
-          ws.Cell(row, 5).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 3).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}")
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 4).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0)
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 5).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0))
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
           ws.Cell(row, 6).SetFormulaR1C1($"=SUM({ws.Cell(row, 7).Address}:{ws.Cell(row, columnsCount).Address})")
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
 
