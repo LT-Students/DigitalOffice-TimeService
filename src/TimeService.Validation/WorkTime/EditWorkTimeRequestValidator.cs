@@ -18,6 +18,8 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
   public class EditWorkTimeRequestValidator : ExtendedEditRequestValidator<DbWorkTime, EditWorkTimeRequest>, IEditWorkTimeRequestValidator
   {
+    private const int LastDayToEditPreviousMonth = 10;
+
     private bool IsDateValid(DbWorkTime dbWorkTime)
     {
       if (dbWorkTime is null)
@@ -30,7 +32,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       DateTime thisMonthFirstDay = new DateTime(dateTimeNow.Year, dateTimeNow.Month, 1);
       DateTime dbWorkTimeMonthFirstDay = new DateTime(dbWorkTime.Year, dbWorkTime.Month, 1);
 
-      return thisMonthFirstDay == dbWorkTimeMonthFirstDay || (thisMonthFirstDay.AddMonths(-1) == dbWorkTimeMonthFirstDay && dateTimeNow.Day <= 5);
+      return thisMonthFirstDay == dbWorkTimeMonthFirstDay || (thisMonthFirstDay.AddMonths(-1) == dbWorkTimeMonthFirstDay && dateTimeNow.Day <= LastDayToEditPreviousMonth);
     }
 
     private void HandleInternalPropertyValidation(
