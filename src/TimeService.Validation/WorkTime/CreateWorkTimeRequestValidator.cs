@@ -15,6 +15,8 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
 {
   public class CreateWorkTimeRequestValidator : AbstractValidator<CreateWorkTimeRequest>, ICreateWorkTimeRequestValidator
   {
+    private const int LastDayToEditPreviousMonth = 10;
+
     private bool IsDateValid(int month, int year)
     {
       DateTime dateTimeNow = DateTime.UtcNow;
@@ -22,7 +24,7 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime
       DateTime thisMonthFirstDay = new DateTime(dateTimeNow.Year, dateTimeNow.Month, 1);
       DateTime workTimeMonthFirstDay = new DateTime(year, month, 1);
 
-      return thisMonthFirstDay == workTimeMonthFirstDay || (thisMonthFirstDay.AddMonths(-1) == workTimeMonthFirstDay && dateTimeNow.Day <= 5);
+      return thisMonthFirstDay == workTimeMonthFirstDay || (thisMonthFirstDay.AddMonths(-1) == workTimeMonthFirstDay && dateTimeNow.Day <= LastDayToEditPreviousMonth);
     }
 
     public CreateWorkTimeRequestValidator(

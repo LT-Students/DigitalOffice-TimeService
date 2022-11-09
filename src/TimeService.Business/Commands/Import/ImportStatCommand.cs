@@ -34,6 +34,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
   {
     private const int MonthsInYearCount = 12;
     private const int DefaultCommentWidth = 40;
+    private const int DefaultCommentHeight = 20;
     private const int WidthToHeightCoef = 12;
     private const int DefaultFontSize = 10;
 
@@ -381,11 +382,18 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours ?? wt.Hours);
 
-        if (wt.Id == default(Guid) && wt.Description is not null)
+        if (wt.ProjectId == default(Guid) && wt.Description is not null)
         {
           ws.Cell(row, column).CreateComment().AddText(wt.Description);
 
-          ws.Cell(row, column).GetComment().Style.Size.SetWidth(DefaultCommentWidth).Size.SetHeight(wt.Description.Length / DefaultCommentWidth * WidthToHeightCoef);
+          int commentHeight = wt.Description.Length / DefaultCommentWidth * WidthToHeightCoef;
+
+          // if height is too small - use default
+          commentHeight = commentHeight < DefaultCommentHeight
+            ? DefaultCommentHeight
+            : commentHeight;
+
+          ws.Cell(row, column).GetComment().Style.Size.SetWidth(DefaultCommentWidth).Size.SetHeight(commentHeight);
         }
       }
     }
