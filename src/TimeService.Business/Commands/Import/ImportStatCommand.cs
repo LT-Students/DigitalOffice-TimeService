@@ -33,14 +33,17 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
   public class ImportStatCommand : IImportStatCommand
   {
     private const int MonthsInYearCount = 12;
+    private const int DefaultCommentWidth = 40;
+    private const int WidthToHeightCoef = 12;
+    private const int DefaultFontSize = 10;
 
-    private XLColor FirstHeaderColor => XLColor.LavenderBlue;
-    private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
-    private XLColor MainProjectColor => XLColor.LightGreen;
+    private XLColor FirstHeaderColor => XLColor.FromHtml("#CCCCFF");
+    private XLColor SecondHeaderColor => XLColor.FromHtml("#99CCFF");
+    private XLColor MainProjectColor => XLColor.PaleGreen;
     private XLColor OtherProjectColor => XLColor.LightYellow;
-    private XLColor VacantionColor => XLColor.PastelOrange;
-    private XLColor LeaveTypesColor => XLColor.LightPastelPurple;
-    private XLColor TimesColor => XLColor.LightGreen;
+    private XLColor VacantionColor => XLColor.Gold;
+    private XLColor LeaveTypesColor => XLColor.FromHtml("#CC99FF");
+    private XLColor TimesColor => XLColor.FromHtml("#CCFFCC");
 
     //ToDo - move to file
     private readonly Dictionary<LeaveType, string> _leaveTypesNamesRu = 
@@ -204,6 +207,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         IXLWorksheet ws = workbook.Worksheets.Add("Hours");
 
+        ws.Style.Font.SetFontSize(DefaultFontSize);
+
         int columnNumber = 1;
 
         foreach (var columnName in headers)
@@ -252,10 +257,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
           ws.Cell(row, 2).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
-            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
-          ws.Cell(row, 3).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
-          ws.Cell(row, 4).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
-          ws.Cell(row, 5).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 3).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}")
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 4).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0)
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 5).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0))
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
           ws.Cell(row, 6).SetFormulaR1C1($"=SUM({ws.Cell(row, 7).Address}:{ws.Cell(row, columnsCount).Address})")
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
 
@@ -372,6 +380,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       if (wt is not null && (wt.ManagerWorkTime?.Hours is not null || wt.Hours.HasValue))
       {
         ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours ?? wt.Hours);
+
+        if (wt.Id == default(Guid) && wt.Description is not null)
+        {
+          ws.Cell(row, column).CreateComment().AddText(wt.Description);
+
+          ws.Cell(row, column).GetComment().Style.Size.SetWidth(DefaultCommentWidth).Size.SetHeight(wt.Description.Length / DefaultCommentWidth * WidthToHeightCoef);
+        }
       }
     }
 
