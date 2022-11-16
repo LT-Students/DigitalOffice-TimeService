@@ -92,10 +92,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<DbWorkTime> dbWorkTimes;
       List<DbLeaveTime> dbLeaveTimes;
       List<ProjectData> projectsData;
-      List<ProjectUserData> projectUsersData = default;
-      List<DepartmentData> departmentsData = default;
-      List<DepartmentUserExtendedData> departmentsUsers = default;
-      List<Guid> usersIds;
+      List<ProjectUserData> projectUsersData = null;
+      List<DepartmentData> departmentsData = null;
+      Dictionary<Guid, DepartmentUserExtendedData> departmentsUsersDictionary = null;
+      List<Guid> usersIds = new();
+      List<Guid> pendingIds = new();
       List<Guid> managersIds;
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
@@ -125,7 +126,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
         Task<List<DepartmentUserExtendedData>> departmentsUsersTask = _departmentService.GetDepartmentsUsersAsync(
           departmentsIds: filter.DepartmentsIds,
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1),
+          includePendingUsers: true);
 
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           && !(filter.DepartmentsIds?.Count == 1
@@ -135,14 +137,24 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
-        departmentsUsers = await departmentsUsersTask;
+        departmentsUsersDictionary = (await departmentsUsersTask).ToDictionary(du => du.UserId);
+
+        foreach (DepartmentUserExtendedData departmentUser in departmentsUsersDictionary?.Values ?? Enumerable.Empty<DepartmentUserExtendedData>())
+        {
+          if (departmentUser.IsActive)
+          {
+            usersIds.Add(departmentUser.UserId);
+          }
+          else
+          {
+            pendingIds.Add(departmentUser.UserId);
+          }
+        }
 
         departmentsData = await departmentsDataTask;
-
-        usersIds = departmentsUsers?.Select(u => u.UserId).ToList();
       }
 
-      if (usersIds is null)
+      if (usersIds is null || !usersIds.Any())
       {
         return null;
       }
@@ -164,7 +176,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
       (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
-        usersIds: usersIds,
+        usersIds: usersIds.Concat(pendingIds).ToList(),
         skipCount: filter.SkipCount,
         takeCount: filter.TakeCount,
         ascendingSort: filter.AscendingSort,
@@ -177,7 +189,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
-      List<UserInfo> usersInfos = usersData?.Select(_userInfoMapper.Map).ToList();
+      List<UserInfo> usersInfos = usersData?.Select(u => _userInfoMapper.Map(u, departmentsUsersDictionary?.GetValueOrDefault(u.Id)?.IsPending)).ToList();
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
@@ -199,7 +211,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           leaveTimes: dbLeaveTimes?.Where(lt => lt.UserId == user.Id).ToList(),
           projects: projectsInfos,
           position: positionsData?.FirstOrDefault(p => p.UsersIds.Contains(user.Id)),
-          department: departmentsData?.FirstOrDefault(d => departmentsUsers.FirstOrDefault(u => u.UserId == user.Id)?.DepartmenId == d.Id),
+          department: departmentsData?.FirstOrDefault(d => departmentsUsersDictionary?.GetValueOrDefault(user.Id)?.DepartmenId == d.Id),
           companyUser: companiesUsersData?.FirstOrDefault(cu => cu.UserId == user.Id))).ToList(),
         Errors = errors
       };

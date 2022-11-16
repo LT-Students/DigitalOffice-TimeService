@@ -440,6 +440,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
 
       List<Guid> usersIds;
+      List<Guid> pendingIds = default;
       List<ProjectData> projects;
       List<ProjectData> otherProjects = new();
 
@@ -454,11 +455,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.Forbidden);
         }
 
-        usersIds = (await
-          _departmentService.GetDepartmentsUsersAsync(
-            new() { filter.DepartmentId.Value },
-            byEntryDate: new DateTime(filter.Year, filter.Month, 1)))?
-          .Select(u => u.UserId).ToList();
+        var departmentUsers = await _departmentService.GetDepartmentsUsersAsync(
+          departmentsIds: new List<Guid>() { filter.DepartmentId.Value },
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1),
+          includePendingUsers: true);
+
+        usersIds = departmentUsers.Where(u => !u.IsPending).Select(u => u.UserId).ToList();
+        pendingIds = departmentUsers.Where(u => u.IsPending).Select(u => u.UserId).ToList();
 
         if (usersIds is null || !usersIds.Any())
         {
@@ -508,7 +511,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList();
       }
 
-      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds, errors);
+      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds.Concat(pendingIds ?? Enumerable.Empty<Guid>()).ToList(), errors);
 
       if (usersInfos is null || projects is null)
       {

@@ -13,6 +13,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
     Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
       List<Guid> departmentsIds,
       DateTime? byEntryDate = null,
+      bool includePendingUsers = false,
       List<string> errors = null);
 
     Task<List<DepartmentData>> GetDepartmentsDataAsync(

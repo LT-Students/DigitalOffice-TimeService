@@ -61,13 +61,15 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     public async Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
       List<Guid> departmentsIds,
       DateTime? byEntryDate = null,
+      bool includePendingUsers = false,
       List<string> errors = null)
     {
       IGetDepartmentsUsersResponse response = await _rcGetDepartmentUsers
         .ProcessRequest<IGetDepartmentsUsersRequest, IGetDepartmentsUsersResponse>(
           IGetDepartmentsUsersRequest.CreateObj(
-            departmentsIds,
-            byEntryDate: byEntryDate),
+            departmentsIds: departmentsIds,
+            byEntryDate: byEntryDate,
+            includePendingUsers: includePendingUsers),
           errors,
           _logger);
 

@@ -1,5 +1,4 @@
 ﻿using LT.DigitalOffice.Models.Broker.Models;
-using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.TimeService.Mappers.Models.Interfaces;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 
@@ -7,7 +6,9 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
   public class UserInfoMapper : IUserInfoMapper
   {
-    public UserInfo Map(UserData userData)
+    public UserInfo Map(
+      UserData userData,
+      bool? isPending = null)
     {
       if (userData == null)
       {
@@ -21,6 +22,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         MiddleName = userData.MiddleName,
         LastName = userData.LastName,
         IsActive = userData.IsActive,
+        IsPending = isPending,
         ImageId = userData.ImageId
       };
     }
