@@ -10,7 +10,6 @@ using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
-using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.Models.Broker.Models.Position;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
@@ -43,6 +42,12 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
     private FindResultResponse<UserStatInfo> _badResponse;
     private Dictionary<object, object> _items;
 
+    private Guid _activeUserId;
+    private Guid _pendingUserId;
+    private Guid _projectId;
+    private Guid _firstDepartmentId;
+    private Guid _secondDepartmentId;
+
     private List<ProjectUserData> _projectUserData;
     private List<DepartmentData> _departmentData;
     private List<DepartmentUserExtendedData> _departmentUserExtendedData;
@@ -53,8 +58,9 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
     private DbWorkTimeMonthLimit _monthLimit;
     private (List<UserData> usersData, int totalCount) _filteredUsersData;
     private List<CompanyData> _companyData;
-    private List<ImageData> _imageData;
     private List<PositionData> _positionData;
+    private UserData _activeUserData;
+    private UserData _pendingUserData;
     private UserInfo _userInfo;
     private UserInfo _managerInfo;
     private ProjectInfo _projectInfo;
@@ -121,6 +127,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _mocker.Verify<IDepartmentService>(x => x.GetDepartmentsUsersAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<DateTime>(),
+          It.IsAny<bool>(),
           It.IsAny<List<string>>()),
         getDepartmentsUsersTimes);
 
@@ -169,7 +176,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<int>()),
         workTimeMonthLimitRepositoryTimes);
 
-      _mocker.Verify<IUserInfoMapper>(x => x.Map(It.IsAny<UserData>()),
+      _mocker.Verify<IUserInfoMapper>(x => x.Map(It.IsAny<UserData>(), It.IsAny<bool?>()),
         userInfoMapperTimes);
 
       _mocker.Verify<IProjectInfoMapper>(x => x.Map(It.IsAny<ProjectData>()),
@@ -198,38 +205,55 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
     [OneTimeSetUp]
     public void OneTimeSetUp()
     {
+      _activeUserId = Guid.NewGuid();
+      _pendingUserId = Guid.NewGuid();
+      _projectId = Guid.NewGuid();
+      _firstDepartmentId = Guid.NewGuid();
+      _secondDepartmentId = Guid.NewGuid();
+
+      _activeUserData = new(_activeUserId, null, "active", "", "", true);
+      _pendingUserData = new(_pendingUserId, null, "pending", "", "", false);
+
       _filter = new FindStatFilter
       {
-        DepartmentsIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() },
-        ProjectId = Guid.NewGuid(),
+        DepartmentsIds = new List<Guid> { _firstDepartmentId, _secondDepartmentId },
+        ProjectId = _projectId,
         Year = 2022,
         Month = 10,
         AscendingSort = true
       };
       _filterWithoutProjectId = new FindStatFilter
       {
-        DepartmentsIds = new List<Guid> { Guid.NewGuid(), Guid.NewGuid() },
+        DepartmentsIds = new List<Guid> { _firstDepartmentId, _secondDepartmentId },
         ProjectId = null,
         Year = 2022,
         Month = 10,
         AscendingSort = true
       };
-      _projectUserData = new List<ProjectUserData>();
-      _departmentData = new List<DepartmentData>();
-      _departmentUserExtendedData = new List<DepartmentUserExtendedData>();
-      _dbWorkTimes = new List<DbWorkTime>();
-      _dbLeaveTimes = new List<DbLeaveTime>();
-      _usersData = new List<UserData>();
-      _projectsData = new List<ProjectData> { new(Guid.Empty, null, null, null, null, null, null)};
+      _projectUserData = new List<ProjectUserData>() { new(_activeUserId, _projectId, true, default), new(_pendingUserId, _projectId, true, default) };
+      _departmentData = new List<DepartmentData>() { new(_firstDepartmentId, default, default) };
+      _departmentUserExtendedData = new List<DepartmentUserExtendedData>()
+      {
+        new(_activeUserId, _firstDepartmentId, true, false),
+        new(_pendingUserId, _secondDepartmentId, false, true)
+      };
+      _dbWorkTimes = new List<DbWorkTime>() { new() };
+      _dbLeaveTimes = new List<DbLeaveTime>() { new() };
+      _usersData = new List<UserData>()
+      {
+        _activeUserData,
+        _pendingUserData        
+      };
+      _projectsData = new List<ProjectData> { new(_projectId, null, null, null, null, null, null)};
       _monthLimit = new DbWorkTimeMonthLimit();
       _filteredUsersData.usersData = new List<UserData>
       {
-        new(Guid.Empty, null, null, null, null, true, null)
+        _activeUserData,
+        _pendingUserData
       };
-      _filteredUsersData.totalCount = 1;
+      _filteredUsersData.totalCount = 2;
       _companyData = new List<CompanyData>();
-      _imageData = new List<ImageData>();
-      _positionData = new List<PositionData>();
+      _positionData = new List<PositionData>() { new(Guid.NewGuid(), "position", new()) };
       _userInfo = new UserInfo();
       _managerInfo = new UserInfo();
       _projectInfo = new ProjectInfo();
@@ -237,8 +261,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _userStatInfo = new UserStatInfo();
       _goodResponse = new FindResultResponse<UserStatInfo>
       {
-        Body = new List<UserStatInfo> { _userStatInfo },
-        TotalCount = 1,
+        Body = new List<UserStatInfo> { _userStatInfo, _userStatInfo },
+        TotalCount = 2,
         Errors = new List<string>()
       };
       _badResponse = new FindResultResponse<UserStatInfo> { Errors = new List<string> { "Errors" }, TotalCount = 0 };
@@ -288,6 +312,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _mocker.Setup<IDepartmentService, Task<List<DepartmentUserExtendedData>>>(x => x.GetDepartmentsUsersAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<DateTime>(),
+          It.IsAny<bool>(),
           It.IsAny<List<string>>()))
         .ReturnsAsync(_departmentUserExtendedData);
 
@@ -336,9 +361,9 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<int>()))
         .ReturnsAsync(_monthLimit);
 
-      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(It.IsAny<UserData>()))
+      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(It.IsAny<UserData>(), It.IsAny<bool?>()))
         .Returns(_userInfo);
-      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(It.IsAny<UserData>()))
+      _mocker.Setup<IUserInfoMapper, UserInfo>(x => x.Map(It.IsAny<UserData>(), It.IsAny<bool?>()))
         .Returns(_managerInfo);
 
       _mocker.Setup<IProjectInfoMapper, ProjectInfo>(x =>
@@ -467,6 +492,40 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
     }
 
     [Test]
+    public async Task ShouldReturnNullWhenUsersIdsListIsEmpty()
+    {
+      _mocker.Setup<IProjectService, Task<List<ProjectUserData>>>(x => x.GetProjectsUsersAsync(
+          It.IsAny<List<Guid>>(),
+          It.IsAny<List<Guid>>(),
+          It.IsAny<DateTime>(),
+          It.IsAny<List<string>>()))
+        .ReturnsAsync(new List<ProjectUserData>());
+
+      SerializerAssert.AreEqual(null, await _command.ExecuteAsync(_filter));
+
+      Verifiable(
+        Times.Never(),
+        Times.Exactly(2),
+        Times.Never(),
+        Times.Once(),
+        Times.Once(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Never(),
+        Times.Once());
+    }
+
+    [Test]
     public async Task SuccessfullyFindUserStatInfoAsync()
     {
       SerializerAssert.AreEqual(_goodResponse, await _command.ExecuteAsync(_filter));
@@ -487,9 +546,9 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Once(),
         Times.Once(),
         Times.Once(),
+        Times.Exactly(4),
         Times.Once(),
-        Times.Once(),
-        Times.Once(),
+        Times.Exactly(2),
         Times.Once());
     }
 
@@ -545,9 +604,9 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Once(),
         Times.Once(),
         Times.Once(),
+        Times.Exactly(4),
         Times.Once(),
-        Times.Once(),
-        Times.Once(),
+        Times.Exactly(2),
         Times.Once());
     }
   }
