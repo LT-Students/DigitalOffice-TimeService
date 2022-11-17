@@ -38,6 +38,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
 
     private FindStatFilter _filter;
     private FindStatFilter _filterWithoutProjectId;
+    private FindStatFilter _filterWithoutDepartmentId;
     private FindResultResponse<UserStatInfo> _goodResponse;
     private FindResultResponse<UserStatInfo> _badResponse;
     private Dictionary<object, object> _items;
@@ -230,6 +231,14 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Month = 10,
         AscendingSort = true
       };
+      _filterWithoutDepartmentId = new FindStatFilter
+      {
+        DepartmentsIds = null,
+        ProjectsIds = new() { _projectId },
+        Year = 2022,
+        Month = 10,
+        AscendingSort = true
+      };
       _projectUserData = new List<ProjectUserData>() { new(_activeUserId, _projectId, true, default), new(_pendingUserId, _projectId, true, default) };
       _departmentData = new List<DepartmentData>() { new(_firstDepartmentId, default, default) };
       _departmentUserExtendedData = new List<DepartmentUserExtendedData>()
@@ -383,7 +392,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         .Returns(_userStatInfo);
 
       _mocker.Setup<IFindStatFilterValidator, bool>(x =>
-          x.ValidateAsync(_filter, default).Result.IsValid)
+          x.ValidateAsync(It.IsAny<FindStatFilter>(), default).Result.IsValid)
         .Returns(true);
       _mocker.Setup<IFindStatFilterValidator, bool>(x =>
           x.ValidateAsync(_filterWithoutProjectId, default).Result.IsValid)
@@ -440,8 +449,8 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
         Times.Once(),
         Times.Never(),
         Times.Never(),
-        Times.Never(),
-        Times.Never(),
+        Times.Once(),
+        Times.Once(),
         Times.Never(),
         Times.Never(),
         Times.Never(),
@@ -467,7 +476,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           x.HasRightsAsync(Rights.AddEditRemoveTime))
         .ReturnsAsync(false);
 
-      SerializerAssert.AreEqual(_badResponse, await _command.ExecuteAsync(_filter));
+      SerializerAssert.AreEqual(_badResponse, await _command.ExecuteAsync(_filterWithoutDepartmentId));
 
       Verifiable(
         Times.Once(),
@@ -501,17 +510,17 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
           It.IsAny<List<string>>()))
         .ReturnsAsync(new List<ProjectUserData>());
 
-      SerializerAssert.AreEqual(null, await _command.ExecuteAsync(_filter));
+      SerializerAssert.AreEqual(new FindResultResponse<UserStatInfo>(), await _command.ExecuteAsync(_filter));
 
       Verifiable(
         Times.Never(),
         Times.Exactly(2),
+        Times.Once(),
+        Times.Once(),
+        Times.Once(),
         Times.Never(),
         Times.Once(),
         Times.Once(),
-        Times.Never(),
-        Times.Never(),
-        Times.Never(),
         Times.Never(),
         Times.Never(),
         Times.Never(),
@@ -533,12 +542,12 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       Verifiable(
         Times.Never(),
         Times.Exactly(2),
-        Times.Never(),
         Times.Once(),
         Times.Once(),
         Times.Once(),
-        Times.Never(),
-        Times.Never(),
+        Times.Once(),
+        Times.Once(),
+        Times.Once(),
         Times.Once(),
         Times.Once(),
         Times.Once(),

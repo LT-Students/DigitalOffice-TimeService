@@ -147,6 +147,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
         }
 
+        // todo - add check for multiple projects role
         if ((filter.DepartmentsIds is null || filter.DepartmentsIds.Any())
           && !(filter.ProjectsIds.Count() == 1
             && await _projectService.GetProjectUserRoleAsync(senderId, filter.ProjectsIds.FirstOrDefault()) == ProjectUserRoleType.Manager)
