@@ -170,11 +170,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return thisMonthVacantionHours;
     }
 
-    private void AddHeaderCell(IXLWorksheet ws, int column, string value, XLColor color)
+    private void AddHeaderCell(IXLWorksheet ws, int column, string value, XLColor color, bool rotateNinetyDegree = false)
     {
       IXLCell cell = ws.Cell(1, column);
       cell.SetValue(value);
-      cell.Style.Alignment.TextRotation = 90;
+      
+      if (rotateNinetyDegree)
+      {
+        cell.Style.Alignment.TextRotation = 90;
+      }
 
       cell.Style
         .Font.SetBold()
@@ -225,11 +229,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         {
           if (leaveType == LeaveType.Vacation)
           {
-            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], VacantionColor);
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], VacantionColor, true);
           }
           else
           {
-            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], LeaveTypesColor);
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], LeaveTypesColor, true);
           }
 
           columnNumber++;
@@ -348,13 +352,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       foreach (var project in mainProjects)
       {
-        AddHeaderCell(ws, mainProjectsColumn, project.ShortName, MainProjectColor);
+        AddHeaderCell(ws, mainProjectsColumn, project.ShortName, MainProjectColor, true);
         mainProjectsColumn++;
       }
 
       foreach (var project in otherProjects)
       {
-        AddHeaderCell(ws, otherProjectsColumn, project.ShortName, OtherProjectColor);
+        AddHeaderCell(ws, otherProjectsColumn, project.ShortName, OtherProjectColor, true);
         otherProjectsColumn++;
       }
 
@@ -440,7 +444,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
 
       List<Guid> usersIds;
-      List<Guid> pendingIds = default;
+      List<Guid> pendingIds = new();
       List<ProjectData> projects;
       List<ProjectData> otherProjects = new();
 
@@ -460,26 +464,18 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           byEntryDate: new DateTime(filter.Year, filter.Month, 1),
           includePendingUsers: true);
 
-        usersIds = departmentUsers.Where(u => !u.IsPending).Select(u => u.UserId).ToList();
-        pendingIds = departmentUsers.Where(u => u.IsPending).Select(u => u.UserId).ToList();
+        usersIds = departmentUsers.Where(u => !u.IsPending).Select(u => u.UserId).ToList() ?? Enumerable.Empty<Guid>().ToList();
+        pendingIds = departmentUsers.Where(u => u.IsPending).Select(u => u.UserId).ToList() ?? Enumerable.Empty<Guid>().ToList();
 
-        if (usersIds is null || !usersIds.Any())
-        {
-          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
-        }
-
-        List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
-          usersIds: usersIds,
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+        List<ProjectUserData> projectsUsers = usersIds.Any()
+          ? await _projectService.GetProjectsUsersAsync(
+              usersIds: usersIds,
+              byEntryDate: new DateTime(filter.Year, filter.Month, 1))
+          : default;
 
         projects = await _projectService.GetProjectsDataAsync(
           projectsIds: projectsUsers?.Select(x => x.ProjectId).Distinct().ToList(),
-          includeDepartments: true);
-
-        if (projects is null)
-        {
-          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
-        }
+          includeDepartments: true) ?? Enumerable.Empty<ProjectData>().ToList();
 
         otherProjects.AddRange(
           projects.Where(p => p.Department is null || p.Department.DepartmentId != filter.DepartmentId.Value)
@@ -506,12 +502,12 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           projectsIds: new() { filter.ProjectId.Value },
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
-        projects = await projectsTask;
+        projects = await projectsTask ?? Enumerable.Empty<ProjectData>().ToList();
 
-        usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList();
+        usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList() ?? Enumerable.Empty<Guid>().ToList();
       }
 
-      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds.Concat(pendingIds ?? Enumerable.Empty<Guid>()).ToList(), errors);
+      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds.Concat(pendingIds).ToList(), errors);
 
       if (usersInfos is null || projects is null)
       {

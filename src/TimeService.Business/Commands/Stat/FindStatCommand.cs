@@ -101,26 +101,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
-      if (filter.ProjectId.HasValue)
-      {
-        projectUsersData = await _projectService.GetProjectsUsersAsync(
-          projectsIds: new() { filter.ProjectId.Value },
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
-
-        if (projectUsersData is null)
-        {
-          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
-        }
-
-        if (await _projectService.GetProjectUserRoleAsync(senderId, filter.ProjectId.Value) != ProjectUserRoleType.Manager
-          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
-        {
-          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
-        }
-
-        usersIds = projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
-      }
-      else
+      if (filter.DepartmentsIds is not null && filter.DepartmentsIds.Any())
       {
         Task<List<DepartmentData>> departmentsDataTask = _departmentService.GetDepartmentsDataAsync(departmentsIds: filter.DepartmentsIds);
 
@@ -129,6 +110,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           byEntryDate: new DateTime(filter.Year, filter.Month, 1),
           includePendingUsers: true);
 
+        //todo - add check for more than 1 department
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           && !(filter.DepartmentsIds?.Count == 1
             && await _departmentService.GetDepartmentUserRoleAsync(
@@ -154,9 +136,33 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
         departmentsData = await departmentsDataTask;
       }
 
+      if (filter.ProjectsIds is not null && filter.ProjectsIds.Any())
+      {
+        projectUsersData = await _projectService.GetProjectsUsersAsync(
+          projectsIds: filter.ProjectsIds,
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        if (projectUsersData is null)
+        {
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
+        }
+
+        if ((filter.DepartmentsIds is null || filter.DepartmentsIds.Any())
+          && !(filter.ProjectsIds.Count() == 1
+            && await _projectService.GetProjectUserRoleAsync(senderId, filter.ProjectsIds.FirstOrDefault()) == ProjectUserRoleType.Manager)
+          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+        {
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
+        }
+
+        usersIds = usersIds is not null && usersIds.Any()
+          ? projectUsersData.Select(pu => pu.UserId).Distinct().Intersect(usersIds).ToList()
+          : projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
+      }
+
       if (usersIds is null || !usersIds.Any())
       {
-        return null;
+        return new();
       }
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);

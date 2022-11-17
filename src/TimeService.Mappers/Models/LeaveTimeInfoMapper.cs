@@ -35,7 +35,7 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         LeaveType = (LeaveType)dbLeaveTime.LeaveType,
         IsClosed = dbLeaveTime.IsClosed,
         IsActive = dbLeaveTime.IsActive,
-        MangerLeaveTime = _managerLeaveTimeInfoMapper.Map(dbLeaveTime.ManagerLeaveTime),
+        ManagerLeaveTime = _managerLeaveTimeInfoMapper.Map(dbLeaveTime.ManagerLeaveTime),
         ManagerInfo = managerInfo
       };
     }

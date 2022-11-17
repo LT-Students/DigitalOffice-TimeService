@@ -217,7 +217,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _filter = new FindStatFilter
       {
         DepartmentsIds = new List<Guid> { _firstDepartmentId, _secondDepartmentId },
-        ProjectId = _projectId,
+        ProjectsIds = new() { _projectId },
         Year = 2022,
         Month = 10,
         AscendingSort = true
@@ -225,7 +225,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _filterWithoutProjectId = new FindStatFilter
       {
         DepartmentsIds = new List<Guid> { _firstDepartmentId, _secondDepartmentId },
-        ProjectId = null,
+        ProjectsIds = null,
         Year = 2022,
         Month = 10,
         AscendingSort = true
@@ -436,7 +436,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       Verifiable(
         Times.Once(),
         Times.Exactly(2),
-        Times.Never(),
+        Times.Once(),
         Times.Once(),
         Times.Never(),
         Times.Never(),
