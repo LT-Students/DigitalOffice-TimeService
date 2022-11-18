@@ -38,8 +38,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private const int WidthToHeightCoef = 12;
     private const int DefaultFontSize = 10;
     private const int DefaultUserColumnWidth = 5;
-    private const int DefaultContractColumnWidth = 12;
-    private const int HorizontalHeadersCount = 3;
+    private const int DefaultContractColumnWidth = 5;
+    private const int HorizontalHeadersCount = 1;
 
     private XLColor FirstHeaderColor => XLColor.FromHtml("#CCCCFF");
     private XLColor SecondHeaderColor => XLColor.FromHtml("#99CCFF");
