@@ -37,6 +37,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     private const int DefaultCommentHeight = 20;
     private const int WidthToHeightCoef = 12;
     private const int DefaultFontSize = 10;
+    private const int DefaultUserColumnWidth = 5;
+    private const int DefaultContractColumnWidth = 12;
+    private const int HorizontalHeadersCount = 3;
 
     private XLColor FirstHeaderColor => XLColor.FromHtml("#CCCCFF");
     private XLColor SecondHeaderColor => XLColor.FromHtml("#99CCFF");
@@ -218,7 +221,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         foreach (var columnName in headers)
         {
-          AddHeaderCell(ws, columnNumber, columnName, FirstHeaderColor);
+          AddHeaderCell(
+            ws: ws,
+            column: columnNumber,
+            value: columnName,
+            color: FirstHeaderColor,
+            rotateNinetyDegree: columnNumber > HorizontalHeadersCount);
+
           columnNumber++;
         }
 
@@ -251,8 +260,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           ws.Cell(2, currentColumn).FormulaA1 = $"=_xlfn.SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})";
         }
 
-        int maxUserNameLength = 5;
-        int maxUserContractSubjectLength = 5;
+        int maxUserNameLength = DefaultUserColumnWidth;
+        int maxUserContractSubjectLength = DefaultContractColumnWidth;
 
         for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
