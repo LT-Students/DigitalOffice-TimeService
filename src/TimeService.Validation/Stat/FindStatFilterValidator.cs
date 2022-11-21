@@ -11,7 +11,7 @@ namespace LT.DigitalOffice.TimeService.Validation.Stat
     {
       RuleFor(f => f)
         .Must(f => (f.DepartmentsIds is not null && f.DepartmentsIds.Any())
-        || f.ProjectId.HasValue)
+        || (f.ProjectsIds is not null && f.ProjectsIds.Any()))
         .WithMessage("The request must contain either the id of the department or the project.");
     }
   }

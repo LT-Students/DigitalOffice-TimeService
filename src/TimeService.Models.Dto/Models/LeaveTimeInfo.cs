@@ -16,7 +16,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
     public bool IsClosed { get; set; }
     public bool IsActive { get; set; }
 
-    public ManagerLeaveTimeInfo MangerLeaveTime { get; set; }
+    public ManagerLeaveTimeInfo ManagerLeaveTime { get; set; }
     public UserInfo ManagerInfo { get; set; }
   }
 }
