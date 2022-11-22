@@ -140,6 +140,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       {
         projectUsersData = await _projectService.GetProjectsUsersAsync(
           projectsIds: filter.ProjectsIds,
+          isActive: true,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
         if (projectUsersData is null)
@@ -156,7 +157,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
-        usersIds = usersIds is not null && usersIds.Any()
+        usersIds = filter.DepartmentsIds is not null && filter.DepartmentsIds.Any()
           ? projectUsersData.Select(pu => pu.UserId).Distinct().Intersect(usersIds).ToList()
           : projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
       }

@@ -35,7 +35,6 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
           nameof(EditLeaveTimeRequest.StartTime),
           nameof(EditLeaveTimeRequest.EndTime),
           nameof(EditLeaveTimeRequest.Minutes),
-          nameof(EditLeaveTimeRequest.LeaveType),
           nameof(EditLeaveTimeRequest.IsClosed),
           nameof(EditLeaveTimeRequest.IsActive),
           nameof(EditLeaveTimeRequest.Comment)
@@ -44,7 +43,6 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       AddСorrectOperations(nameof(EditLeaveTimeRequest.StartTime), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.EndTime), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Minutes), new List<OperationType> { OperationType.Replace });
-      AddСorrectOperations(nameof(EditLeaveTimeRequest.LeaveType), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.IsClosed), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.IsActive), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Comment), new List<OperationType> { OperationType.Replace });
@@ -59,18 +57,6 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         new()
         {
           { x => int.TryParse(x.value.ToString(), out int count) && count > 0, $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.Minutes)}" },
-        });
-
-      #endregion
-
-      #region LeaveType
-
-      AddFailureForPropertyIf(
-        nameof(EditLeaveTimeRequest.LeaveType),
-        x => x == OperationType.Replace,
-        new()
-        {
-          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.LeaveType)}" },
         });
 
       #endregion
@@ -122,37 +108,19 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
     {
       Operation<EditLeaveTimeRequest> isCLosedOperation = operations.FirstOrDefault(
         o => o.path.EndsWith(nameof(EditLeaveTimeRequest.IsClosed), StringComparison.OrdinalIgnoreCase));
-      Operation<EditLeaveTimeRequest> leaveTypeOperation = operations.FirstOrDefault(
-        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.LeaveType), StringComparison.OrdinalIgnoreCase));
       Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
         o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
 
       bool isValid;
 
       // isClosed field can be edited only in prolonged leave times, in others it is always true
-      if (isCLosedOperation is not null)
-      {
-        isValid = leaveTypeOperation is null
-          ? dbLeaveTime.LeaveType == (int)LeaveType.Prolonged
-          : Enum.TryParse(typeof(LeaveType), leaveTypeOperation.value.ToString(), true, out object leaveType)
-            && (LeaveType)leaveType == LeaveType.Prolonged;
+      isValid = isCLosedOperation is not null
+        ? dbLeaveTime.LeaveType == (int)LeaveType.Prolonged
+        : true;
 
-        if (!isValid)
-        {
-          context.AddFailure(LeaveTimeValidatorResource.IsClosedFailure);
-        }
-      }
-      else // if leaveType is edited, isClosed field in not prolonged leave times must be true
+      if (!isValid)
       {
-        isValid = leaveTypeOperation is null
-          ? true
-          : dbLeaveTime.IsClosed || (Enum.TryParse(typeof(LeaveType), leaveTypeOperation.value.ToString(), true, out object leaveType)
-            && (LeaveType)leaveType == LeaveType.Prolonged);
-
-        if (!isValid)
-        {
-          context.AddFailure(LeaveTimeValidatorResource.IsClosedFailure);
-        }
+        context.AddFailure(LeaveTimeValidatorResource.IsClosedFailure);
       }
 
       // end time can't be edited in prolonged leave time without closing it

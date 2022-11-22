@@ -104,6 +104,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _mocker.Verify<IProjectService>(x => x.GetProjectsUsersAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<List<Guid>>(),
+          It.IsAny<bool?>(),
           It.IsAny<DateTime>(),
           It.IsAny<List<string>>()),
         getProjectUsersTimes);
@@ -297,6 +298,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _mocker.Setup<IProjectService, Task<List<ProjectUserData>>>(x => x.GetProjectsUsersAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<List<Guid>>(),
+          It.IsAny<bool?>(),
           It.IsAny<DateTime>(),
           It.IsAny<List<string>>()))
         .ReturnsAsync(_projectUserData);
@@ -436,6 +438,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _mocker.Setup<IProjectService, Task<List<ProjectUserData>>>(x => x.GetProjectsUsersAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<List<Guid>>(),
+          It.IsAny<bool?>(),
           It.IsAny<DateTime>(),
           It.IsAny<List<string>>()))
         .ReturnsAsync(_nullProjectUserData);
@@ -506,6 +509,7 @@ namespace LT.DigitalOffice.TimeService.Business.UnitTests.Commands.Stat
       _mocker.Setup<IProjectService, Task<List<ProjectUserData>>>(x => x.GetProjectsUsersAsync(
           It.IsAny<List<Guid>>(),
           It.IsAny<List<Guid>>(),
+          It.IsAny<bool?>(),
           It.IsAny<DateTime>(),
           It.IsAny<List<string>>()))
         .ReturnsAsync(new List<ProjectUserData>());

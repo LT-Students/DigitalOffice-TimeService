@@ -41,7 +41,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.LeaveTime.Helpers
         : Task.FromResult(null as List<DepartmentData>);
 
       Task<List<ProjectUserData>> projectsUsersTask = ltOwnerId.HasValue
-        ? _projectService.GetProjectsUsersAsync(usersIds: new() { senderId, ltOwnerId.Value })
+        ? _projectService.GetProjectsUsersAsync(usersIds: new() { senderId, ltOwnerId.Value }, isActive: true)
         : Task.FromResult(null as List<ProjectUserData>);
 
       Task<bool> hasRightsTask = _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime);
