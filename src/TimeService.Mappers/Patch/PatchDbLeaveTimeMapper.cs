@@ -21,13 +21,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Patch
 
       foreach (var item in request.Operations)
       {
-        if (item.path.EndsWith(nameof(EditLeaveTimeRequest.LeaveType), StringComparison.OrdinalIgnoreCase))
-        {
-          dbRequest.Operations.Add(new Operation<DbLeaveTime>(
-            item.op, item.path, item.from, (int)Enum.Parse(typeof(LeaveType), item.value.ToString())));
-          continue;
-        }
-
         if (item.path.EndsWith(nameof(EditLeaveTimeRequest.StartTime), StringComparison.OrdinalIgnoreCase) ||
           item.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase))
         {

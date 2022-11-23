@@ -87,17 +87,19 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     public async Task<List<ProjectUserData>> GetProjectsUsersAsync(
       List<Guid> projectsIds = null,
       List<Guid> usersIds = null,
+      bool? isActive = null,
       DateTime? byEntryDate = null,
       List<string> errors = null)
     {
-      IGetProjectsUsersResponse response =
-          (await _rcGetProjectsUsers.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
-            IGetProjectsUsersRequest.CreateObj(
-              projectsIds: projectsIds,
-              usersIds: usersIds,
-              byEntryDate: byEntryDate),
-            errors,
-            _logger));
+      IGetProjectsUsersResponse response = 
+        (await _rcGetProjectsUsers.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
+          IGetProjectsUsersRequest.CreateObj(
+            projectsIds: projectsIds,
+            usersIds: usersIds,
+            isActive: isActive,
+            byEntryDate: byEntryDate),
+          errors,
+          _logger));
 
       return response?.Users;
     }

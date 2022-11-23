@@ -479,6 +479,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         List<ProjectUserData> projectsUsers = usersIds.Any()
           ? await _projectService.GetProjectsUsersAsync(
               usersIds: usersIds,
+              isActive: true,
               byEntryDate: new DateTime(filter.Year, filter.Month, 1))
           : default;
 
@@ -509,6 +510,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
           projectsIds: new() { filter.ProjectId.Value },
+          isActive: true,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
         projects = await projectsTask ?? Enumerable.Empty<ProjectData>().ToList();

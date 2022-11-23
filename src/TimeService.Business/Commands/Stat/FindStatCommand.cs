@@ -96,8 +96,10 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<DepartmentData> departmentsData = null;
       Dictionary<Guid, DepartmentUserExtendedData> departmentsUsersDictionary = null;
       List<Guid> usersIds = new();
-      List<Guid> pendingIds = new();
       List<Guid> managersIds;
+      List<Guid> pendingIds = filter.ProjectsIds is not null && filter.ProjectsIds.Any()
+        ? null
+        : new();
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
@@ -129,7 +131,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           }
           else
           {
-            pendingIds.Add(departmentUser.UserId);
+            pendingIds?.Add(departmentUser.UserId);
           }
         }
 
@@ -140,6 +142,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       {
         projectUsersData = await _projectService.GetProjectsUsersAsync(
           projectsIds: filter.ProjectsIds,
+          isActive: true,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
         if (projectUsersData is null)
@@ -156,7 +159,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
-        usersIds = usersIds is not null && usersIds.Any()
+        usersIds = filter.DepartmentsIds is not null && filter.DepartmentsIds.Any()
           ? projectUsersData.Select(pu => pu.UserId).Distinct().Intersect(usersIds).ToList()
           : projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
       }
@@ -183,7 +186,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
       (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
-        usersIds: usersIds.Concat(pendingIds).ToList(),
+        usersIds: usersIds.Concat(pendingIds ?? Enumerable.Empty<Guid>()).ToList(),
         skipCount: filter.SkipCount,
         takeCount: filter.TakeCount,
         ascendingSort: filter.AscendingSort,
