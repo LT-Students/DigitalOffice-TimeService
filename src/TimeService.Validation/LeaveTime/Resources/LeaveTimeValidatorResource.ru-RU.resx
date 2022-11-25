@@ -132,6 +132,9 @@
   <data name="LeaveTimesOverlap" xml:space="preserve">
     <value>Отсутствие не должно пересекаться с другими</value>
   </data>
+  <data name="MinutesAreZeroOrLess" xml:space="preserve">
+    <value>В заданном диапазоне отсутствуют рабочие часы</value>
+  </data>
   <data name="StartTimeAfterEndTime" xml:space="preserve">
     <value>Время начала должно быть не больше времени окончания отсутствия</value>
   </data>

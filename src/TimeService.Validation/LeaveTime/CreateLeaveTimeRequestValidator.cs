@@ -38,7 +38,8 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
         .IsInEnum();
 
       RuleFor(lt => lt.Minutes)
-        .GreaterThan(0);
+        .GreaterThan(0)
+        .WithMessage(LeaveTimeValidatorResource.MinutesAreZeroOrLess);
 
       RuleFor(lt => lt)
         .Must(lt => lt.EndTime.HasValue && lt.LeaveType != LeaveType.Prolonged || !lt.EndTime.HasValue && lt.LeaveType == LeaveType.Prolonged)
