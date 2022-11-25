@@ -142,7 +142,7 @@
     <value>value is too long</value>
   </data>
   <data name="MinutesAreZeroOrLess" xml:space="preserve">
-    <value>LeaveTimes' interval must be greater than 0 minutes</value>
+    <value>Selected number of hours must be greater than 0</value>
   </data>
   <data name="OffsetsAreNotSame" xml:space="preserve">
     <value>Start time and end time offsets must be same</value>
