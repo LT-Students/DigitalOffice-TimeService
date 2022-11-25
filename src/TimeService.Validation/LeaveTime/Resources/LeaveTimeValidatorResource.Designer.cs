@@ -134,7 +134,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Selected number of hours must be greater than 0.
+        ///   Looks up a localized string similar to There are no working hours in the given interval.
         /// </summary>
         internal static string MinutesAreZeroOrLess {
             get {

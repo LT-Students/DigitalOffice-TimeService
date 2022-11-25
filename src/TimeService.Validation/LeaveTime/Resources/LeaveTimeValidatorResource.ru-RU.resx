@@ -133,7 +133,7 @@
     <value>Отсутствие не должно пересекаться с другими</value>
   </data>
   <data name="MinutesAreZeroOrLess" xml:space="preserve">
-    <value>Выбранное количество часов должно быть больше 0</value>
+    <value>В заданном диапазоне отсутствуют рабочие часы</value>
   </data>
   <data name="StartTimeAfterEndTime" xml:space="preserve">
     <value>Время начала должно быть не больше времени окончания отсутствия</value>
