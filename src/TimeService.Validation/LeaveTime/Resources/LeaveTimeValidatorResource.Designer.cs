@@ -98,7 +98,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Field IsCLosed can be edited only in prolonged leave times.
+        ///   Looks up a localized string similar to Field IsClosed can be edited only in prolonged leave times.
         /// </summary>
         internal static string IsClosedFailure {
             get {
@@ -130,6 +130,15 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources {
         internal static string LongPropertyValue {
             get {
                 return ResourceManager.GetString("LongPropertyValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to LeaveTimes&apos; interval must be greater than 0 minutes.
+        /// </summary>
+        internal static string MinutesAreZeroOrLess {
+            get {
+                return ResourceManager.GetString("MinutesAreZeroOrLess", resourceCulture);
             }
         }
         

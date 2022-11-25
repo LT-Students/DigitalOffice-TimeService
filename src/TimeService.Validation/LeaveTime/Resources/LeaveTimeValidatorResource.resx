@@ -130,7 +130,7 @@
     <value>Incorrect format of</value>
   </data>
   <data name="IsClosedFailure" xml:space="preserve">
-    <value>Field IsCLosed can be edited only in prolonged leave times</value>
+    <value>Field IsClosed can be edited only in prolonged leave times</value>
   </data>
   <data name="LeaveTimeIntervalIsNotCorrect" xml:space="preserve">
     <value>Incorrect interval for leave time</value>
@@ -140,6 +140,9 @@
   </data>
   <data name="LongPropertyValue" xml:space="preserve">
     <value>value is too long</value>
+  </data>
+  <data name="MinutesAreZeroOrLess" xml:space="preserve">
+    <value>LeaveTimes' interval must be greater than 0 minutes</value>
   </data>
   <data name="OffsetsAreNotSame" xml:space="preserve">
     <value>Start time and end time offsets must be same</value>
