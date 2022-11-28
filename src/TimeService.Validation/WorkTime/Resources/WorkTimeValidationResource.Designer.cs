@@ -62,6 +62,24 @@ namespace LT.DigitalOffice.TimeService.Validation.WorkTime.Resources {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to WorkTime cannot be edited.
+        /// </summary>
+        internal static string CannotBeEdited {
+            get {
+                return ResourceManager.GetString("CannotBeEdited", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Incorrect month or year values.
+        /// </summary>
+        internal static string DateIsIncorrect {
+            get {
+                return ResourceManager.GetString("DateIsIncorrect", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to value can not be empty.
         /// </summary>
         internal static string EmptyValue {

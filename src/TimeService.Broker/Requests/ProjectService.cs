@@ -69,7 +69,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         includeDepartment: includeDepartments);
 
       List<ProjectData> projectsData = await _globalCache.GetAsync<List<ProjectData>>(
-        Cache.Projects, allGuids.GetRedisCacheKey(request.GetBasicProperties()));
+        Cache.Projects, allGuids.GetRedisCacheKey(nameof(IGetProjectsRequest), request.GetBasicProperties()));
 
       if (projectsData is null)
       {
@@ -87,17 +87,19 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     public async Task<List<ProjectUserData>> GetProjectsUsersAsync(
       List<Guid> projectsIds = null,
       List<Guid> usersIds = null,
+      bool? isActive = null,
       DateTime? byEntryDate = null,
       List<string> errors = null)
     {
-      IGetProjectsUsersResponse response =
-          (await _rcGetProjectsUsers.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
-            IGetProjectsUsersRequest.CreateObj(
-              projectsIds: projectsIds,
-              usersIds: usersIds,
-              byEntryDate: byEntryDate),
-            errors,
-            _logger));
+      IGetProjectsUsersResponse response = 
+        (await _rcGetProjectsUsers.ProcessRequest<IGetProjectsUsersRequest, IGetProjectsUsersResponse>(
+          IGetProjectsUsersRequest.CreateObj(
+            projectsIds: projectsIds,
+            usersIds: usersIds,
+            isActive: isActive,
+            byEntryDate: byEntryDate),
+          errors,
+          _logger));
 
       return response?.Users;
     }

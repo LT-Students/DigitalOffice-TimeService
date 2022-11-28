@@ -7,6 +7,6 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
     [AutoInject]
     public interface ILeaveTimeInfoMapper
     {
-        LeaveTimeInfo Map(DbLeaveTime dbLeaveTime);
+        LeaveTimeInfo Map(DbLeaveTime dbLeaveTime, UserInfo managerInfo);
     }
 }

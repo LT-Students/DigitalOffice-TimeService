@@ -51,7 +51,13 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Position = _positionInfoMapper.Map(position),
         Department = _departmentInfoMapper.Map(department),
         CompanyUser = _companyUserInfoMapper.Map(companyUser),
-        LeaveTimes = leaveTimes?.Select(lt => _leaveTimeInfoMapper.Map(lt)).ToList(),
+        LeaveTimes = leaveTimes?.Select(
+          lt => _leaveTimeInfoMapper.Map(
+            dbLeaveTime: lt,
+            managerInfo: lt.ManagerLeaveTime is not null
+              ? managersInfos?.FirstOrDefault(m => m.Id == lt.ManagerLeaveTime.CreatedBy)
+              : null))
+          .ToList(),
         WorkTimes = workTimes?.Select(wt => _workTimeInfoMapper.Map(
           dbWorkTime: wt,
           project: projects?.FirstOrDefault(p => p.Id == wt.ProjectId),

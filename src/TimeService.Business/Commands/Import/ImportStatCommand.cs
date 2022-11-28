@@ -32,13 +32,22 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 {
   public class ImportStatCommand : IImportStatCommand
   {
-    private XLColor FirstHeaderColor => XLColor.LavenderBlue;
-    private XLColor SecondHeaderColor => XLColor.LightSkyBlue;
-    private XLColor MainProjectColor => XLColor.LightGreen;
+    private const int MonthsInYearCount = 12;
+    private const int DefaultCommentWidth = 40;
+    private const int DefaultCommentHeight = 20;
+    private const int WidthToHeightCoef = 12;
+    private const int DefaultFontSize = 10;
+    private const int DefaultUserColumnWidth = 5;
+    private const int DefaultContractColumnWidth = 5;
+    private const int HorizontalHeadersCount = 1;
+
+    private XLColor FirstHeaderColor => XLColor.FromHtml("#CCCCFF");
+    private XLColor SecondHeaderColor => XLColor.FromHtml("#99CCFF");
+    private XLColor MainProjectColor => XLColor.PaleGreen;
     private XLColor OtherProjectColor => XLColor.LightYellow;
-    private XLColor VacantionColor => XLColor.PastelOrange;
-    private XLColor LeaveTypesColor => XLColor.LightPastelPurple;
-    private XLColor TimesColor => XLColor.LightGreen;
+    private XLColor VacantionColor => XLColor.Gold;
+    private XLColor LeaveTypesColor => XLColor.FromHtml("#CC99FF");
+    private XLColor TimesColor => XLColor.FromHtml("#CCFFCC");
 
     //ToDo - move to file
     private readonly Dictionary<LeaveType, string> _leaveTypesNamesRu = 
@@ -47,7 +56,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         { LeaveType.Vacation, "Оплачиваемый отпуск" },
         { LeaveType.SickLeave, "Больничный" },
         { LeaveType.Training, "Обучение" },
-        { LeaveType.Idle, "За свой счет" }
+        { LeaveType.Idle, "За свой счет" },
+        { LeaveType.Prolonged, "Длительное отсутствие" }
       };
 
     private readonly IProjectService _projectService;
@@ -81,45 +91,40 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
     {
       List<DbWorkTimeMonthLimit> limits = await _workTimeMonthLimitRepository.GetAsync(start.Year, start.Month, end.Year, end.Month);
 
-      int countNeededMonth = (end.Year * 12 + end.Month) - (start.Year * 12 + start.Month) + 1 - limits.Count;
+      int countNeededMonth = (end.Year * MonthsInYearCount + end.Month) - (start.Year * MonthsInYearCount + start.Month) + 1 - limits.Count;
 
       if (countNeededMonth < 1)
       {
         return limits;
       }
 
-      int requestedYear = end.Year;
-      int requestedMonth = end.Month;
       List<DbWorkTimeMonthLimit> newLimits = new();
 
-      while (countNeededMonth > 0)
+      DateTime startMonthFirstDay = new DateTime(start.Year, start.Month, 1);
+      DateTime endMonthFirstDay = new DateTime(end.Year, end.Month, 1);
+
+      for (DateTime dateTime = startMonthFirstDay; dateTime <= endMonthFirstDay && countNeededMonth > 0; dateTime = dateTime.AddMonths(1))
       {
-        string holidays = await _calendar.GetWorkCalendarByMonthAsync(requestedMonth, requestedYear); // TODO rework
-
-        if (holidays is null)
+        if (limits.FirstOrDefault(ml => ml.Year == dateTime.Year && ml.Month == dateTime.Month) is null)
         {
-          errors?.Add("Cannot get holidays.");
+          string holidays = await _calendar.GetWorkCalendarByMonthAsync(dateTime.Month, dateTime.Year);
 
-          return null;
-        }
-
-        newLimits.Add(
-          new DbWorkTimeMonthLimit
+          if (holidays is null)
           {
-            Id = Guid.NewGuid(),
-            Year = requestedYear,
-            Month = requestedMonth,
-            Holidays = holidays,
-            NormHours = holidays.ToCharArray().Count(h => h == '0') * 8
-          });
+            errors?.Add("Cannot get holidays.");
 
-        countNeededMonth--;
-        requestedMonth--;
+            return null;
+          }
 
-        if (requestedMonth == 0)
-        {
-          requestedMonth = 12;
-          requestedYear--;
+          newLimits.Add(
+            new DbWorkTimeMonthLimit
+            {
+              Id = Guid.NewGuid(),
+              Year = dateTime.Year,
+              Month = dateTime.Month,
+              Holidays = holidays,
+              NormHours = holidays.ToCharArray().Count(h => h == '0') * 8
+            });
         }
       }
 
@@ -168,11 +173,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       return thisMonthVacantionHours;
     }
 
-    private void AddHeaderCell(IXLWorksheet ws, int column, string value, XLColor color)
+    private void AddHeaderCell(IXLWorksheet ws, int column, string value, XLColor color, bool rotateNinetyDegree = false)
     {
       IXLCell cell = ws.Cell(1, column);
       cell.SetValue(value);
-      cell.Style.Alignment.TextRotation = 90;
+      
+      if (rotateNinetyDegree)
+      {
+        cell.Style.Alignment.TextRotation = 90;
+      }
 
       cell.Style
         .Font.SetBold()
@@ -206,11 +215,19 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       {
         IXLWorksheet ws = workbook.Worksheets.Add("Hours");
 
+        ws.Style.Font.SetFontSize(DefaultFontSize);
+
         int columnNumber = 1;
 
         foreach (var columnName in headers)
         {
-          AddHeaderCell(ws, columnNumber, columnName, FirstHeaderColor);
+          AddHeaderCell(
+            ws: ws,
+            column: columnNumber,
+            value: columnName,
+            color: FirstHeaderColor,
+            rotateNinetyDegree: columnNumber > HorizontalHeadersCount);
+
           columnNumber++;
         }
 
@@ -221,11 +238,11 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         {
           if (leaveType == LeaveType.Vacation)
           {
-            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], VacantionColor);
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], VacantionColor, true);
           }
           else
           {
-            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], LeaveTypesColor);
+            AddHeaderCell(ws, columnNumber, _leaveTypesNamesRu[leaveType], LeaveTypesColor, true);
           }
 
           columnNumber++;
@@ -243,8 +260,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           ws.Cell(2, currentColumn).FormulaA1 = $"=_xlfn.SUM({ws.Cell(3, currentColumn).Address}:{ws.Cell(2 + sortedUsers.Count(), currentColumn).Address})";
         }
 
-        int maxUserNameLength = 5;
-        int maxUserContractSubjectLength = 5;
+        int maxUserNameLength = DefaultUserColumnWidth;
+        int maxUserContractSubjectLength = DefaultContractColumnWidth;
 
         for (int userNumber = 0; userNumber < sortedUsers.Count(); userNumber++)
         {
@@ -254,10 +271,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
           ws.Cell(row, 1).SetValue(userNumber + 1);
           ws.Cell(row, 2).SetValue(currentUserStatInfo.CompanyUserData?.ContractSubject?.Name)
-            .Style.Fill.SetBackgroundColor(FirstHeaderColor);
-          ws.Cell(row, 3).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}");
-          ws.Cell(row, 4).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0);
-          ws.Cell(row, 5).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0));
+            .Style.Fill.SetBackgroundColor(FirstHeaderColor).Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 3).SetValue($"{currentUserStatInfo.UserData.LastName} {currentUserStatInfo.UserData.FirstName}")
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 4).SetValue(currentUserStatInfo.CompanyUserData?.Rate ?? 0)
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
+          ws.Cell(row, 5).SetValue(thisMonthLimit.NormHours * (currentUserStatInfo.CompanyUserData?.Rate ?? 0))
+            .Style.Alignment.SetHorizontal(XLAlignmentHorizontalValues.Left);
           ws.Cell(row, 6).SetFormulaR1C1($"=SUM({ws.Cell(row, 7).Address}:{ws.Cell(row, columnsCount).Address})")
             .Style.Fill.SetBackgroundColor(FirstHeaderColor);
 
@@ -341,13 +361,13 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
       foreach (var project in mainProjects)
       {
-        AddHeaderCell(ws, mainProjectsColumn, project.ShortName, MainProjectColor);
+        AddHeaderCell(ws, mainProjectsColumn, project.ShortName, MainProjectColor, true);
         mainProjectsColumn++;
       }
 
       foreach (var project in otherProjects)
       {
-        AddHeaderCell(ws, otherProjectsColumn, project.ShortName, OtherProjectColor);
+        AddHeaderCell(ws, otherProjectsColumn, project.ShortName, OtherProjectColor, true);
         otherProjectsColumn++;
       }
 
@@ -374,6 +394,20 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       if (wt is not null && (wt.ManagerWorkTime?.Hours is not null || wt.Hours.HasValue))
       {
         ws.Cell(row, column).SetValue(wt.ManagerWorkTime?.Hours ?? wt.Hours);
+
+        if (wt.ProjectId == default(Guid) && wt.Description is not null)
+        {
+          ws.Cell(row, column).CreateComment().AddText(wt.Description);
+
+          int commentHeight = wt.Description.Length / DefaultCommentWidth * WidthToHeightCoef;
+
+          // if height is too small - use default
+          commentHeight = commentHeight < DefaultCommentHeight
+            ? DefaultCommentHeight
+            : commentHeight;
+
+          ws.Cell(row, column).GetComment().Style.Size.SetWidth(DefaultCommentWidth).Size.SetHeight(commentHeight);
+        }
       }
     }
 
@@ -419,6 +453,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
       }
 
       List<Guid> usersIds;
+      List<Guid> pendingIds = new();
       List<ProjectData> projects;
       List<ProjectData> otherProjects = new();
 
@@ -433,29 +468,24 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
           return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.Forbidden);
         }
 
-        usersIds = (await
-          _departmentService.GetDepartmentsUsersAsync(
-            new() { filter.DepartmentId.Value },
-            byEntryDate: new DateTime(filter.Year, filter.Month, 1)))?
-          .Select(u => u.UserId).ToList();
+        var departmentUsers = await _departmentService.GetDepartmentsUsersAsync(
+          departmentsIds: new List<Guid>() { filter.DepartmentId.Value },
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1),
+          includePendingUsers: true);
 
-        if (usersIds is null || !usersIds.Any())
-        {
-          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
-        }
+        usersIds = departmentUsers.Where(u => !u.IsPending).Select(u => u.UserId).ToList() ?? Enumerable.Empty<Guid>().ToList();
+        pendingIds = departmentUsers.Where(u => u.IsPending).Select(u => u.UserId).ToList() ?? Enumerable.Empty<Guid>().ToList();
 
-        List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
-          usersIds: usersIds,
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+        List<ProjectUserData> projectsUsers = usersIds.Any()
+          ? await _projectService.GetProjectsUsersAsync(
+              usersIds: usersIds,
+              isActive: true,
+              byEntryDate: new DateTime(filter.Year, filter.Month, 1))
+          : default;
 
         projects = await _projectService.GetProjectsDataAsync(
           projectsIds: projectsUsers?.Select(x => x.ProjectId).Distinct().ToList(),
-          includeDepartments: true);
-
-        if (projects is null)
-        {
-          return _responseCreator.CreateFailureResponse<byte[]>(HttpStatusCode.NotFound);
-        }
+          includeDepartments: true) ?? Enumerable.Empty<ProjectData>().ToList();
 
         otherProjects.AddRange(
           projects.Where(p => p.Department is null || p.Department.DepartmentId != filter.DepartmentId.Value)
@@ -480,14 +510,15 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
 
         List<ProjectUserData> projectsUsers = await _projectService.GetProjectsUsersAsync(
           projectsIds: new() { filter.ProjectId.Value },
+          isActive: true,
           byEntryDate: new DateTime(filter.Year, filter.Month, 1));
 
-        projects = await projectsTask;
+        projects = await projectsTask ?? Enumerable.Empty<ProjectData>().ToList();
 
-        usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList();
+        usersIds = projectsUsers?.Select(x => x.UserId).Distinct().ToList() ?? Enumerable.Empty<Guid>().ToList();
       }
 
-      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds, errors);
+      List<UserData> usersInfos = await _userService.GetUsersDataAsync(usersIds.Concat(pendingIds).ToList(), errors);
 
       if (usersInfos is null || projects is null)
       {
@@ -506,7 +537,8 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Import
         otherProjects.Add(new ProjectData(id: Guid.Empty, name: "Другое", status: "Active", shortName: "Другое", default, default, default));
       }
 
-      List<DbLeaveTime> leaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
+      List<DbLeaveTime> leaveTimes = (await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true))?
+        .Select(lt => lt.ManagerLeaveTime ?? lt).ToList();
 
       List<UserImportStatInfo> sortedUsers = _mapper.Map(usersInfos, companies)
         .GroupBy(x => x.CompanyUserData?.ContractSubject?.Name).OrderByDescending(x => x.Key).SelectMany(x => x).ToList();

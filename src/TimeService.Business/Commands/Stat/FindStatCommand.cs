@@ -13,7 +13,6 @@ using LT.DigitalOffice.Models.Broker.Enums;
 using LT.DigitalOffice.Models.Broker.Models;
 using LT.DigitalOffice.Models.Broker.Models.Company;
 using LT.DigitalOffice.Models.Broker.Models.Department;
-using LT.DigitalOffice.Models.Broker.Models.Image;
 using LT.DigitalOffice.Models.Broker.Models.Position;
 using LT.DigitalOffice.Models.Broker.Models.Project;
 using LT.DigitalOffice.TimeService.Broker.Requests.Interfaces;
@@ -34,7 +33,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
     private readonly IUserService _userService;
     private readonly ICompanyService _companyService;
     private readonly IProjectService _projectService;
-    private readonly IImageService _imageService;
     private readonly IPositionService _positionService;
     private readonly IUserInfoMapper _userInfoMapper;
     private readonly IProjectInfoMapper _projectInfoMapper;
@@ -52,7 +50,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       IUserService userService,
       ICompanyService companyService,
       IProjectService projectService,
-      IImageService imageService,
       IPositionService positionService,
       IUserInfoMapper userInfoMapper,
       IProjectInfoMapper projectInfoMapper,
@@ -69,7 +66,6 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       _userService = userService;
       _companyService = companyService;
       _projectService = projectService;
-      _imageService = imageService;
       _positionService = positionService;
       _userInfoMapper = userInfoMapper;
       _projectInfoMapper = projectInfoMapper;
@@ -96,43 +92,27 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       List<DbWorkTime> dbWorkTimes;
       List<DbLeaveTime> dbLeaveTimes;
       List<ProjectData> projectsData;
-      List<ProjectUserData> projectUsersData = default;
-      List<DepartmentData> departmentsData = default;
-      List<DepartmentUserExtendedData> departmentsUsers = default;
+      List<ProjectUserData> projectUsersData = null;
+      List<DepartmentData> departmentsData = null;
+      Dictionary<Guid, DepartmentUserExtendedData> departmentsUsersDictionary = null;
       List<Guid> usersIds = new();
-      List<Guid> managersIds = new();
+      List<Guid> managersIds;
+      List<Guid> pendingIds = filter.ProjectsIds is not null && filter.ProjectsIds.Any()
+        ? null
+        : new();
 
       Guid senderId = _httpContextAccessor.HttpContext.GetUserId();
 
-      if (filter.ProjectId.HasValue)
-      {
-        projectUsersData = await _projectService.GetProjectsUsersAsync(
-          projectsIds: new() { filter.ProjectId.Value },
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
-
-        if (projectUsersData is null)
-        {
-          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
-        }
-
-        if (await _projectService.GetProjectUserRoleAsync(senderId, filter.ProjectId.Value) != ProjectUserRoleType.Manager
-          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
-        {
-          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
-        }
-
-        usersIds = projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
-      }
-      else
+      if (filter.DepartmentsIds is not null && filter.DepartmentsIds.Any())
       {
         Task<List<DepartmentData>> departmentsDataTask = _departmentService.GetDepartmentsDataAsync(departmentsIds: filter.DepartmentsIds);
 
         Task<List<DepartmentUserExtendedData>> departmentsUsersTask = _departmentService.GetDepartmentsUsersAsync(
           departmentsIds: filter.DepartmentsIds,
-          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1),
+          includePendingUsers: true);
 
-        departmentsData = await departmentsDataTask;
-
+        //todo - add check for more than 1 department
         if (!await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime)
           && !(filter.DepartmentsIds?.Count == 1
             && await _departmentService.GetDepartmentUserRoleAsync(
@@ -141,15 +121,60 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
         }
 
-        departmentsUsers = await departmentsUsersTask;
+        departmentsUsersDictionary = (await departmentsUsersTask).ToDictionary(du => du.UserId);
 
-        usersIds.AddRange(departmentsUsers?.Select(u => u.UserId));
+        foreach (DepartmentUserExtendedData departmentUser in departmentsUsersDictionary?.Values ?? Enumerable.Empty<DepartmentUserExtendedData>())
+        {
+          if (departmentUser.IsActive)
+          {
+            usersIds.Add(departmentUser.UserId);
+          }
+          else
+          {
+            pendingIds?.Add(departmentUser.UserId);
+          }
+        }
+
+        departmentsData = await departmentsDataTask;
+      }
+
+      if (filter.ProjectsIds is not null && filter.ProjectsIds.Any())
+      {
+        projectUsersData = await _projectService.GetProjectsUsersAsync(
+          projectsIds: filter.ProjectsIds,
+          isActive: true,
+          byEntryDate: new DateTime(filter.Year, filter.Month, 1));
+
+        if (projectUsersData is null)
+        {
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.NotFound);
+        }
+
+        // todo - add check for multiple projects role
+        if ((filter.DepartmentsIds is null || filter.DepartmentsIds.Any())
+          && !(filter.ProjectsIds.Count() == 1
+            && await _projectService.GetProjectUserRoleAsync(senderId, filter.ProjectsIds.FirstOrDefault()) == ProjectUserRoleType.Manager)
+          && !await _accessValidator.HasRightsAsync(Rights.AddEditRemoveTime))
+        {
+          return _responseCreator.CreateFailureFindResponse<UserStatInfo>(HttpStatusCode.Forbidden);
+        }
+
+        usersIds = filter.DepartmentsIds is not null && filter.DepartmentsIds.Any()
+          ? projectUsersData.Select(pu => pu.UserId).Distinct().Intersect(usersIds).ToList()
+          : projectUsersData.Select(pu => pu.UserId).Distinct().ToList();
+      }
+
+      if (usersIds is null || !usersIds.Any())
+      {
+        return new();
       }
 
       dbWorkTimes = await _workTimeRepository.GetAsync(usersIds, null, filter.Year, filter.Month, true);
       dbLeaveTimes = await _leaveTimeRepository.GetAsync(usersIds, filter.Year, filter.Month, isActive: true);
 
-      managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value).Distinct().ToList();
+      managersIds = dbWorkTimes.Where(wt => wt.ManagerWorkTime is not null).Select(wt => wt.ManagerWorkTime.ModifiedBy.Value)
+        .Concat(dbLeaveTimes.Where(lt => lt.ManagerLeaveTime is not null).Select(lt => lt.ManagerLeaveTime.CreatedBy))
+        .Distinct().ToList();
 
       List<string> errors = new();
 
@@ -161,7 +186,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       DbWorkTimeMonthLimit monthLimit = await _workTimeMonthLimitRepository.GetAsync(filter.Year, filter.Month);
 
       (List<UserData> usersData, int totalCount) = await _userService.GetFilteredUsersDataAsync(
-        usersIds: usersIds,
+        usersIds: usersIds.Concat(pendingIds ?? Enumerable.Empty<Guid>()).ToList(),
         skipCount: filter.SkipCount,
         takeCount: filter.TakeCount,
         ascendingSort: filter.AscendingSort,
@@ -172,15 +197,9 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
       Task<List<CompanyData>> companiesTask = _companyService.GetCompaniesDataAsync(
         usersData?.Select(ud => ud.Id).ToList(),
         errors);
-      Task<List<ImageData>> imagesTask = _imageService.GetUsersImagesAsync(usersData?.Where(u => u.ImageId is not null).Select(u => u.ImageId.Value).ToList(), errors);
       Task<List<PositionData>> positionsTask = _positionService.GetPositionsAsync(usersData?.Select(u => u.Id).ToList(), errors);
 
-      List<ImageData> images = await imagesTask;
-
-      List<UserInfo> usersInfos = usersData?
-        .Select(u => _userInfoMapper.Map(
-          u,
-          images?.FirstOrDefault(i => i.ImageId == u.ImageId))).ToList();
+      List<UserInfo> usersInfos = usersData?.Select(u => _userInfoMapper.Map(u, departmentsUsersDictionary?.GetValueOrDefault(u.Id)?.IsPending)).ToList();
 
       List<UserInfo> managersInfos = (await managersDataTask)?.Select(ud => _userInfoMapper.Map(ud)).ToList();
 
@@ -202,7 +221,7 @@ namespace LT.DigitalOffice.TimeService.Business.Commands.Stat
           leaveTimes: dbLeaveTimes?.Where(lt => lt.UserId == user.Id).ToList(),
           projects: projectsInfos,
           position: positionsData?.FirstOrDefault(p => p.UsersIds.Contains(user.Id)),
-          department: departmentsData?.FirstOrDefault(d => departmentsUsers.FirstOrDefault(u => u.UserId == user.Id)?.DepartmenId == d.Id),
+          department: departmentsData?.FirstOrDefault(d => departmentsUsersDictionary?.GetValueOrDefault(user.Id)?.DepartmenId == d.Id),
           companyUser: companiesUsersData?.FirstOrDefault(cu => cu.UserId == user.Id))).ToList(),
         Errors = errors
       };

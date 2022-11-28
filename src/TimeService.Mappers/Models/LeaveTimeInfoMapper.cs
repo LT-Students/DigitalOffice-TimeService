@@ -8,11 +8,19 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
 {
   public class LeaveTimeInfoMapper : ILeaveTimeInfoMapper
   {
-    public LeaveTimeInfo Map(DbLeaveTime dbLeaveTime)
+    private readonly IManagerLeaveTimeInfoMapper _managerLeaveTimeInfoMapper;
+
+    public LeaveTimeInfoMapper(
+      IManagerLeaveTimeInfoMapper managerLeaveTimeInfoMapper)
     {
-      if (dbLeaveTime == null)
+      _managerLeaveTimeInfoMapper = managerLeaveTimeInfoMapper;
+    }
+
+    public LeaveTimeInfo Map(DbLeaveTime dbLeaveTime, UserInfo managerInfo)
+    {
+      if (dbLeaveTime is null)
       {
-        throw new ArgumentNullException(nameof(dbLeaveTime));
+        return null;
       }
 
       return new LeaveTimeInfo
@@ -22,10 +30,13 @@ namespace LT.DigitalOffice.TimeService.Mappers.Models
         Minutes = dbLeaveTime.Minutes,
         StartTime = dbLeaveTime.StartTime,
         EndTime = dbLeaveTime.EndTime,
-        CreatedAt = dbLeaveTime.CreatedAtUtc,
+        CreatedAtUtc = dbLeaveTime.CreatedAtUtc,
         Comment = dbLeaveTime.Comment,
         LeaveType = (LeaveType)dbLeaveTime.LeaveType,
-        IsActive = dbLeaveTime.IsActive
+        IsClosed = dbLeaveTime.IsClosed,
+        IsActive = dbLeaveTime.IsActive,
+        ManagerLeaveTime = _managerLeaveTimeInfoMapper.Map(dbLeaveTime.ManagerLeaveTime),
+        ManagerInfo = managerInfo
       };
     }
   }

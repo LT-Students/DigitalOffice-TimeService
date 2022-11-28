@@ -1,14 +1,12 @@
 ﻿using LT.DigitalOffice.Kernel.Attributes;
-using LT.DigitalOffice.Models.Broker.Models;
+using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Models;
 
 namespace LT.DigitalOffice.TimeService.Mappers.Models.Interfaces
 {
   [AutoInject]
-  public interface IUserInfoMapper
+  public interface IManagerLeaveTimeInfoMapper
   {
-    UserInfo Map(
-      UserData userData,
-      bool? isPending = null);
+    ManagerLeaveTimeInfo Map(DbLeaveTime managerLeaveTime);
   }
 }

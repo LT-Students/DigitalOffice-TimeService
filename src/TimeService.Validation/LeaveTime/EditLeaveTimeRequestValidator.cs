@@ -5,19 +5,24 @@ using System.Linq;
 using System.Threading;
 using FluentValidation;
 using FluentValidation.Validators;
+using LT.DigitalOffice.Kernel.Extensions;
 using LT.DigitalOffice.Kernel.Validators;
 using LT.DigitalOffice.TimeService.Models.Db;
 using LT.DigitalOffice.TimeService.Models.Dto.Enums;
 using LT.DigitalOffice.TimeService.Models.Dto.Requests;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Interfaces;
 using LT.DigitalOffice.TimeService.Validation.LeaveTime.Resources;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.JsonPatch.Operations;
 
 namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 {
   public class EditLeaveTimeRequestValidator : ExtendedEditRequestValidator<DbLeaveTime, EditLeaveTimeRequest>, IEditLeaveTimeRequestValidator
   {
-    private void HandleInternalPropertyValidation(Operation<EditLeaveTimeRequest> requestedOperation, CustomContext context)
+    private void HandleInternalPropertyValidation(
+      Operation<EditLeaveTimeRequest> requestedOperation,
+      ValidationContext<(DbLeaveTime, JsonPatchDocument<EditLeaveTimeRequest>)> context)
     {
       Context = context;
       RequestedOperation = requestedOperation;
@@ -30,7 +35,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
           nameof(EditLeaveTimeRequest.StartTime),
           nameof(EditLeaveTimeRequest.EndTime),
           nameof(EditLeaveTimeRequest.Minutes),
-          nameof(EditLeaveTimeRequest.LeaveType),
+          nameof(EditLeaveTimeRequest.IsClosed),
           nameof(EditLeaveTimeRequest.IsActive),
           nameof(EditLeaveTimeRequest.Comment)
         });
@@ -38,7 +43,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       AddСorrectOperations(nameof(EditLeaveTimeRequest.StartTime), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.EndTime), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Minutes), new List<OperationType> { OperationType.Replace });
-      AddСorrectOperations(nameof(EditLeaveTimeRequest.LeaveType), new List<OperationType> { OperationType.Replace });
+      AddСorrectOperations(nameof(EditLeaveTimeRequest.IsClosed), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.IsActive), new List<OperationType> { OperationType.Replace });
       AddСorrectOperations(nameof(EditLeaveTimeRequest.Comment), new List<OperationType> { OperationType.Replace });
 
@@ -56,14 +61,17 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
 
       #endregion
 
-      #region LeaveType
+      #region IsClosed
 
       AddFailureForPropertyIf(
-        nameof(EditLeaveTimeRequest.LeaveType),
+        nameof(EditLeaveTimeRequest.IsClosed),
         x => x == OperationType.Replace,
         new()
         {
-          { x => Enum.TryParse(typeof(LeaveType), x.value.ToString(), out _), $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.LeaveType)}" },
+          {
+            x => bool.TryParse(x.value.ToString(), out _),
+            $"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.IsClosed)}"
+          },
         });
 
       #endregion
@@ -93,6 +101,41 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       #endregion
     }
 
+    private void ValidateProlongedFailures(
+      DbLeaveTime dbLeaveTime,
+      List<Operation<EditLeaveTimeRequest>> operations,
+      ValidationContext<(DbLeaveTime, JsonPatchDocument<EditLeaveTimeRequest>)> context)
+    {
+      Operation<EditLeaveTimeRequest> isCLosedOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.IsClosed), StringComparison.OrdinalIgnoreCase));
+      Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
+        o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
+
+      bool isValid;
+
+      // isClosed field can be edited only in prolonged leave times, in others it is always true
+      isValid = isCLosedOperation is not null
+        ? dbLeaveTime.LeaveType == (int)LeaveType.Prolonged
+        : true;
+
+      if (!isValid)
+      {
+        context.AddFailure(LeaveTimeValidatorResource.IsClosedFailure);
+      }
+
+      // end time can't be edited in prolonged leave time without closing it
+      if (isValid && endTimeOperation is not null)
+      {
+        isValid = dbLeaveTime.IsClosed
+          || isCLosedOperation is not null && bool.TryParse(isCLosedOperation.value.ToString(), out bool isClosed) && isClosed;
+
+        if (!isValid)
+        {
+          context.AddFailure(LeaveTimeValidatorResource.EndTimeInProlonged);
+        }
+      }
+    }
+
     private bool ValidateTimeVariables(List<Operation<EditLeaveTimeRequest>> operations)
     {
       Operation<EditLeaveTimeRequest> startTimeOperation = operations.FirstOrDefault(
@@ -105,7 +148,7 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
     }
 
     //user id is always null here, it is used for time validation in createLeaveTimeRequest
-    private (DateTimeOffset startTime, DateTimeOffset endTime, DbLeaveTime leaveTime, Guid? userId) GetItems(
+    private (DateTimeOffset? startTime, DateTimeOffset? endTime, DbLeaveTime leaveTime, Guid? userId) GetItems(
       DbLeaveTime oldLeaveTime,
       List<Operation<EditLeaveTimeRequest>> operations)
     {
@@ -114,44 +157,41 @@ namespace LT.DigitalOffice.TimeService.Validation.LeaveTime
       Operation<EditLeaveTimeRequest> endTimeOperation = operations.FirstOrDefault(
         o => o.path.EndsWith(nameof(EditLeaveTimeRequest.EndTime), StringComparison.OrdinalIgnoreCase));
 
-      DateTimeOffset startTime;
-      DateTimeOffset endTime;
-
-      if (startTimeOperation is null && endTimeOperation is null)
-      {
-        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified));
-        endTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified));
-      }
-      else if (startTimeOperation is null)
-      {
-        endTime = DateTimeOffset.Parse(endTimeOperation?.value.ToString());
-        startTime = new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.StartTime, DateTimeKind.Unspecified), endTime.Offset);
-      }
-      else
-      {
-        startTime = DateTimeOffset.Parse(startTimeOperation.value.ToString());
-        endTime = endTimeOperation is null
-          ? new DateTimeOffset(DateTime.SpecifyKind(oldLeaveTime.EndTime, DateTimeKind.Unspecified), startTime.Offset)
-          : DateTimeOffset.Parse(endTimeOperation.value.ToString());
-      }
+      DateTimeOffset? startTime = startTimeOperation is not null
+        ? DateTimeOffset.Parse(startTimeOperation.value.ToString())
+        : null;
+      DateTimeOffset? endTime = endTimeOperation is not null
+        ? DateTimeOffset.Parse(endTimeOperation?.value.ToString())
+        : null;
 
       return (startTime: startTime, endTime: endTime, leaveTime: oldLeaveTime, userId: null);
     }
 
-    public EditLeaveTimeRequestValidator(ILeaveTimeIntervalValidator validator)
+    public EditLeaveTimeRequestValidator(
+      ILeaveTimeIntervalValidator validator,
+      IHttpContextAccessor httpContextAccessor)
     {
       Thread.CurrentThread.CurrentUICulture = new CultureInfo("ru-RU");
 
-      RuleForEach(x => x.Item2.Operations)
-        .Custom(HandleInternalPropertyValidation);
-
-      RuleFor(x => x.Item2.Operations)
-        .Must(ops => ValidateTimeVariables(ops))
-        .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
+      RuleFor(x => x.Item1)
+        .Must(x => x.ManagerLeaveTime == null || x.UserId != httpContextAccessor.HttpContext.GetUserId())
+        .WithMessage(LeaveTimeValidatorResource.CannotBeEdited)
         .DependentRules(() =>
         {
-          RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
-            .SetValidator(validator);
+          RuleForEach(x => x.Item2.Operations)
+            .Custom(HandleInternalPropertyValidation);
+
+          RuleFor(x => x.Item2.Operations)
+            .Must(ops => ValidateTimeVariables(ops))
+            .WithMessage($"{LeaveTimeValidatorResource.IncorrectFormat} {nameof(EditLeaveTimeRequest.StartTime)} or {nameof(EditLeaveTimeRequest.EndTime)}")
+            .DependentRules(() =>
+            {
+              RuleFor(x => GetItems(x.Item1, x.Item2.Operations))
+                .SetValidator(validator);
+            });
+
+          RuleFor(x => x)
+            .Custom((x, context) => ValidateProlongedFailures(x.Item1, x.Item2.Operations, context));
         });
     }
   }

@@ -20,6 +20,7 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests.Interfaces
     Task<List<ProjectUserData>> GetProjectsUsersAsync(
       List<Guid> projectsIds = null,
       List<Guid> usersIds = null,
+      bool? isActive = null,
       DateTime? byEntryDate = null,
       List<string> errors = null);
 

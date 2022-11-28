@@ -9,6 +9,7 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Models
     public string MiddleName { get; set; }
     public string LastName { get; set; }
     public bool IsActive { get; set; }
-    public ImageInfo Image { get; set; }
+    public bool? IsPending { get; set; }
+    public Guid? ImageId { get; set; }
   }
 }

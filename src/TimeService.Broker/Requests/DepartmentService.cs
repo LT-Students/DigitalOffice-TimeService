@@ -61,13 +61,15 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
     public async Task<List<DepartmentUserExtendedData>> GetDepartmentsUsersAsync(
       List<Guid> departmentsIds,
       DateTime? byEntryDate = null,
+      bool includePendingUsers = false,
       List<string> errors = null)
     {
       IGetDepartmentsUsersResponse response = await _rcGetDepartmentUsers
         .ProcessRequest<IGetDepartmentsUsersRequest, IGetDepartmentsUsersResponse>(
           IGetDepartmentsUsersRequest.CreateObj(
-            departmentsIds,
-            byEntryDate: byEntryDate),
+            departmentsIds: departmentsIds,
+            byEntryDate: byEntryDate,
+            includePendingUsers: includePendingUsers),
           errors,
           _logger);
 
@@ -89,7 +91,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       object request = IFilterDepartmentsRequest.CreateObj(departmentsIds);
 
       List<DepartmentFilteredData> departmentsData =
-        await _globalCache.GetAsync<List<DepartmentFilteredData>>(Cache.Departments, departmentsIds.GetRedisCacheKey(request.GetBasicProperties()));
+        await _globalCache.GetAsync<List<DepartmentFilteredData>>(Cache.Departments, departmentsIds.GetRedisCacheKey(
+          nameof(IFilterDepartmentsRequest), request.GetBasicProperties()));
 
       if (departmentsData is null)
       {
@@ -114,7 +117,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
         usersIds: usersIds);
 
       List<DepartmentData> departmentsData = await _globalCache.GetAsync<List<DepartmentData>>(
-        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheKey(request.GetBasicProperties()));
+        Cache.Departments, GetRedisKeyArray(departmentsIds, usersIds).GetRedisCacheKey(
+          nameof(IGetDepartmentsRequest), request.GetBasicProperties()));
 
       if (departmentsData is null)
       {

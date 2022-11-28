@@ -11,8 +11,6 @@ namespace LT.DigitalOffice.TimeService.Data.Interfaces
   {
     Task<DbWorkTimeDayJob> GetAsync(Guid workTimeDayJobId, bool includeWorkTime = false);
 
-    Task<bool> DoesExistAsync(Guid workTimeDayJobId);
-
     Task<Guid?> CreateAsync(DbWorkTimeDayJob dayJob);
 
     Task<bool> EditAsync(Guid workTimeDayJobId, JsonPatchDocument<DbWorkTimeDayJob> request);

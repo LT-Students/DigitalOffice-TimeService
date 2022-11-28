@@ -7,11 +7,11 @@ namespace LT.DigitalOffice.TimeService.Models.Dto.Filters
 {
   public record FindStatFilter : BaseFindFilter
   {
-    [FromQuery(Name = "departmentsids")]
+    [FromQuery(Name = "departmentid")]
     public List<Guid> DepartmentsIds { get; set; }
 
     [FromQuery(Name = "projectid")]
-    public Guid? ProjectId { get; set; }
+    public List<Guid> ProjectsIds { get; set; }
 
     [FromQuery(Name = "year")]
     public int Year { get; set; }

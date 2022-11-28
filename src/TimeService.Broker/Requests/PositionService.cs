@@ -41,7 +41,8 @@ namespace LT.DigitalOffice.TimeService.Broker.Requests
       object request = IGetPositionsRequest.CreateObj(usersIds);
 
       List<PositionData> positionsData =
-        await _globalCache.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheKey(request.GetBasicProperties()));
+        await _globalCache.GetAsync<List<PositionData>>(Cache.Positions, usersIds.GetRedisCacheKey(
+          nameof(IGetPositionsRequest), request.GetBasicProperties()));
 
       if (positionsData is null)
       {
